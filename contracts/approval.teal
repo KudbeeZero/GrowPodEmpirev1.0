@@ -7,32 +7,38 @@ txn OnCompletion
 int OptIn
 ==
 bnz main_l17
-txn OnCompletion
-int CloseOut
+txna ApplicationArgs 0
+byte "bootstrap"
 ==
 bnz main_l16
-txn OnCompletion
-int UpdateApplication
-==
-bnz main_l15
-txn OnCompletion
-int DeleteApplication
-==
-bnz main_l14
 txna ApplicationArgs 0
 byte "water"
 ==
-bnz main_l11
+bnz main_l13
 txna ApplicationArgs 0
 byte "harvest"
 ==
-bnz main_l10
+bnz main_l12
 txna ApplicationArgs 0
 byte "cleanup"
+==
+bnz main_l11
+txn OnCompletion
+int UpdateApplication
+==
+bnz main_l10
+txn OnCompletion
+int DeleteApplication
 ==
 bnz main_l9
 err
 main_l9:
+int 1
+return
+main_l10:
+int 1
+return
+main_l11:
 txn Sender
 byte "stage"
 app_local_get
@@ -53,7 +59,7 @@ int 0
 app_local_put
 int 1
 return
-main_l10:
+main_l12:
 txn Sender
 byte "stage"
 app_local_get
@@ -66,7 +72,7 @@ int 6
 app_local_put
 int 1
 return
-main_l11:
+main_l13:
 txn Sender
 byte "stage"
 app_local_get
@@ -98,11 +104,11 @@ byte "water_count"
 app_local_get
 int 10
 >=
-bnz main_l13
-main_l12:
+bnz main_l15
+main_l14:
 int 1
 return
-main_l13:
+main_l15:
 txn Sender
 byte "stage"
 int 5
@@ -111,20 +117,19 @@ txn Sender
 byte "water_count"
 int 0
 app_local_put
-b main_l12
-main_l14:
-txn Sender
-byte "owner"
-app_global_get
-==
-return
-main_l15:
-txn Sender
-byte "owner"
-app_global_get
-==
-return
+b main_l14
 main_l16:
+txn Sender
+byte "owner"
+app_global_get
+==
+assert
+byte "bud_asset"
+int 1000001
+app_global_put
+byte "terp_asset"
+int 1000002
+app_global_put
 int 1
 return
 main_l17:

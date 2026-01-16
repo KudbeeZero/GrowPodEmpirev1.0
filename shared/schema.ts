@@ -5,6 +5,8 @@ import { z } from "zod";
 export const users = pgTable("users", {
   id: serial("id").primaryKey(),
   walletAddress: text("wallet_address").unique().notNull(),
+  budBalance: text("bud_balance").default("0"),
+  terpBalance: text("terp_balance").default("0"),
   lastLogin: timestamp("last_login").defaultNow(),
   createdAt: timestamp("created_at").defaultNow(),
 });
@@ -30,7 +32,7 @@ export interface PodData {
 
 export interface PlayerState {
   walletAddress: string;
-  budBalance: number;
-  terpBalance: number;
+  budBalance: string;
+  terpBalance: string;
   pods: PodData[];
 }
