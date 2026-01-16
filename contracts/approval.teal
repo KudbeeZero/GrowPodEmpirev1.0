@@ -1,0 +1,160 @@
+#pragma version 6
+txn ApplicationID
+int 0
+==
+bnz main_l18
+txn OnCompletion
+int OptIn
+==
+bnz main_l17
+txn OnCompletion
+int CloseOut
+==
+bnz main_l16
+txn OnCompletion
+int UpdateApplication
+==
+bnz main_l15
+txn OnCompletion
+int DeleteApplication
+==
+bnz main_l14
+txna ApplicationArgs 0
+byte "water"
+==
+bnz main_l11
+txna ApplicationArgs 0
+byte "harvest"
+==
+bnz main_l10
+txna ApplicationArgs 0
+byte "cleanup"
+==
+bnz main_l9
+err
+main_l9:
+txn Sender
+byte "stage"
+app_local_get
+int 6
+==
+assert
+txn Sender
+byte "stage"
+int 0
+app_local_put
+txn Sender
+byte "water_count"
+int 0
+app_local_put
+txn Sender
+byte "last_watered"
+int 0
+app_local_put
+int 1
+return
+main_l10:
+txn Sender
+byte "stage"
+app_local_get
+int 5
+==
+assert
+txn Sender
+byte "stage"
+int 6
+app_local_put
+int 1
+return
+main_l11:
+txn Sender
+byte "stage"
+app_local_get
+int 6
+<
+assert
+global LatestTimestamp
+txn Sender
+byte "last_watered"
+app_local_get
+-
+int 86400
+>=
+assert
+txn Sender
+byte "last_watered"
+global LatestTimestamp
+app_local_put
+txn Sender
+byte "water_count"
+txn Sender
+byte "water_count"
+app_local_get
+int 1
++
+app_local_put
+txn Sender
+byte "water_count"
+app_local_get
+int 10
+>=
+bnz main_l13
+main_l12:
+int 1
+return
+main_l13:
+txn Sender
+byte "stage"
+int 5
+app_local_put
+txn Sender
+byte "water_count"
+int 0
+app_local_put
+b main_l12
+main_l14:
+txn Sender
+byte "owner"
+app_global_get
+==
+return
+main_l15:
+txn Sender
+byte "owner"
+app_global_get
+==
+return
+main_l16:
+int 1
+return
+main_l17:
+txn Sender
+byte "stage"
+int 0
+app_local_put
+txn Sender
+byte "water_count"
+int 0
+app_local_put
+txn Sender
+byte "last_watered"
+int 0
+app_local_put
+txn Sender
+byte "dna"
+byte ""
+app_local_put
+int 1
+return
+main_l18:
+byte "owner"
+txn Sender
+app_global_put
+byte "period"
+int 864000
+app_global_put
+byte "cost"
+int 1000000
+app_global_put
+int 1
+return
