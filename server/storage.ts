@@ -6,6 +6,7 @@ export interface IStorage {
   getUserByWallet(walletAddress: string): Promise<User | undefined>;
   createUser(user: InsertUser): Promise<User>;
   updateUserLogin(id: number): Promise<User>;
+  updateUserBalances(walletAddress: string, bud: string, terp: string): Promise<User>;
 }
 
 export class DatabaseStorage implements IStorage {
@@ -23,6 +24,14 @@ export class DatabaseStorage implements IStorage {
     const [user] = await db.update(users)
       .set({ lastLogin: new Date() })
       .where(eq(users.id, id))
+      .returning();
+    return user;
+  }
+
+  async updateUserBalances(walletAddress: string, bud: string, terp: string): Promise<User> {
+    const [user] = await db.update(users)
+      .set({ budBalance: bud, terpBalance: terp })
+      .where(eq(users.walletAddress, walletAddress))
       .returning();
     return user;
   }

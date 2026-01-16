@@ -32,6 +32,16 @@ export async function registerRoutes(
     }
   });
 
+  app.post("/api/users/sync-balances", async (req, res) => {
+    try {
+      const { walletAddress, budBalance, terpBalance } = req.body;
+      const user = await storage.updateUserBalances(walletAddress, budBalance, terpBalance);
+      res.json(user);
+    } catch (err) {
+      res.status(500).json({ message: "Failed to sync balances" });
+    }
+  });
+
   app.get(api.users.get.path, async (req, res) => {
     const user = await storage.getUserByWallet(req.params.walletAddress);
     if (!user) {

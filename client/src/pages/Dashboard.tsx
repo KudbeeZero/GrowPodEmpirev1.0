@@ -43,7 +43,21 @@ export default function Dashboard() {
               </p>
             </div>
             
-            <CurrencyDisplay budAmount={budBalance} terpAmount={terpBalance} />
+            <div className="flex flex-col gap-4">
+              <CurrencyDisplay budAmount={budBalance} terpAmount={terpBalance} />
+              <Button 
+                variant="outline" 
+                className="w-full bg-primary/10 border-primary/20 hover:bg-primary/20 text-primary"
+                onClick={() => {
+                  toast({
+                    title: "Smoking $BUD...",
+                    description: "Entourage effect activated! 10% boost to next harvest.",
+                  });
+                }}
+              >
+                Smoke $BUD (Entourage Buff)
+              </Button>
+            </div>
           </div>
 
           {!isConnected && (
