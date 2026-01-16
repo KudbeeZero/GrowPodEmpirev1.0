@@ -10,12 +10,12 @@ const ALGOD_SERVER = 'https://testnet-api.algonode.cloud';
 const ALGOD_TOKEN = '';
 const CHAIN_ID = 416002;
 
-// Contract Configuration (set these after deployment)
+// Contract Configuration (reads from environment variables)
 export const CONTRACT_CONFIG = {
-  appId: 0, // Set after deployment
-  budAssetId: 0, // $BUD ASA ID
-  terpAssetId: 0, // $TERP ASA ID
-  appAddress: '', // Application address
+  appId: parseInt(import.meta.env.VITE_GROWPOD_APP_ID || '0'),
+  budAssetId: parseInt(import.meta.env.VITE_BUD_ASSET_ID || '0'),
+  terpAssetId: parseInt(import.meta.env.VITE_TERP_ASSET_ID || '0'),
+  appAddress: import.meta.env.VITE_GROWPOD_APP_ADDRESS || '',
 };
 
 // Create Algorand client
@@ -129,13 +129,16 @@ export function useAlgorand() {
     }
   }, [queryClient, toast]);
 
-  const signTransactions = useCallback(async (txns: algosdk.Transaction[]) => {
+  const signTransactions = useCallback(async (txns: algosdk.Transaction[]): Promise<Uint8Array[]> => {
     if (!account) throw new Error('Wallet not connected');
     
+    // Pera Wallet expects an array of transaction groups
+    // Each group is an array of { txn: Transaction } objects
     const signedTxns = await peraWallet.signTransaction([
       txns.map(txn => ({ txn }))
     ]);
     
+    // signedTxns is Uint8Array[] - the signed transaction blobs
     return signedTxns;
   }, [account]);
 
@@ -167,10 +170,10 @@ export function useTokenBalances(account: string | null): TokenBalances {
         
         const assets = accountInfo.assets || [];
         for (const asset of assets) {
-          if (asset['asset-id'] === CONTRACT_CONFIG.budAssetId) {
+          if (Number(asset.assetId) === CONTRACT_CONFIG.budAssetId) {
             budBalance = String(asset.amount || 0);
           }
-          if (asset['asset-id'] === CONTRACT_CONFIG.terpAssetId) {
+          if (Number(asset.assetId) === CONTRACT_CONFIG.terpAssetId) {
             terpBalance = String(asset.amount || 0);
           }
         }
@@ -198,18 +201,20 @@ export function useGameState(account: string | null) {
       
       try {
         const accountInfo = await algodClient.accountInformation(account).do();
-        const appLocalStates = accountInfo['apps-local-state'] || [];
+        const appLocalStates = accountInfo.appsLocalState || [];
         
         for (const appState of appLocalStates) {
-          if (appState.id === CONTRACT_CONFIG.appId) {
+          if (Number(appState.id) === CONTRACT_CONFIG.appId) {
             const state: Record<string, number | string> = {};
             
-            for (const kv of appState['key-value'] || []) {
-              const key = atob(kv.key);
+            for (const kv of appState.keyValue || []) {
+              const keyBytes = kv.key;
+              const key = typeof keyBytes === 'string' ? atob(keyBytes) : new TextDecoder().decode(keyBytes);
               if (kv.value.type === 2) {
-                state[key] = kv.value.uint;
+                state[key] = Number(kv.value.uint);
               } else {
-                state[key] = kv.value.bytes;
+                const bytes = kv.value.bytes;
+                state[key] = typeof bytes === 'string' ? bytes : new TextDecoder().decode(bytes);
               }
             }
             
@@ -329,4 +334,268 @@ export function formatCooldown(seconds: number): string {
     return `${hours}h ${minutes}m`;
   }
   return `${minutes}m`;
+}
+
+// Transaction builder and submitter hook
+export function useTransactions() {
+  const { account, signTransactions } = useAlgorand();
+  const queryClient = useQueryClient();
+
+  const submitTransaction = async (signedTxns: Uint8Array[]): Promise<string> => {
+    const result = await algodClient.sendRawTransaction(signedTxns).do();
+    const txId = result.txid;
+    await algosdk.waitForConfirmation(algodClient, txId, 4);
+    return txId;
+  };
+
+  const refreshState = () => {
+    queryClient.invalidateQueries({ queryKey: ['/api/balances'] });
+    queryClient.invalidateQueries({ queryKey: ['/api/local-state'] });
+  };
+
+  // Helper to encode string to Uint8Array (browser-safe, no Buffer dependency)
+  const encodeArg = (str: string) => new TextEncoder().encode(str);
+
+  // Opt-in to the application
+  const optInToApp = useCallback(async (): Promise<string | null> => {
+    if (!account || !CONTRACT_CONFIG.appId) return null;
+    
+    try {
+      const suggestedParams = await algodClient.getTransactionParams().do();
+      
+      const txn = algosdk.makeApplicationOptInTxnFromObject({
+        sender: account,
+        suggestedParams,
+        appIndex: CONTRACT_CONFIG.appId,
+      });
+      
+      const signedTxns = await signTransactions([txn]);
+      const txId = await submitTransaction(signedTxns);
+      refreshState();
+      return txId;
+    } catch (error) {
+      console.error('Opt-in to app failed:', error);
+      throw error;
+    }
+  }, [account, signTransactions]);
+
+  // Opt-in to an ASA (asset)
+  const optInToAsset = useCallback(async (assetId: number): Promise<string | null> => {
+    if (!account || !assetId) return null;
+    
+    try {
+      const suggestedParams = await algodClient.getTransactionParams().do();
+      
+      const txn = algosdk.makeAssetTransferTxnWithSuggestedParamsFromObject({
+        sender: account,
+        receiver: account,
+        amount: BigInt(0),
+        assetIndex: assetId,
+        suggestedParams,
+      });
+      
+      const signedTxns = await signTransactions([txn]);
+      const txId = await submitTransaction(signedTxns);
+      refreshState();
+      return txId;
+    } catch (error) {
+      console.error('Opt-in to asset failed:', error);
+      throw error;
+    }
+  }, [account, signTransactions]);
+
+  // Mint a new GrowPod - calls "mint_pod" on the smart contract
+  const mintPod = useCallback(async (): Promise<string | null> => {
+    if (!account || !CONTRACT_CONFIG.appId) return null;
+    
+    try {
+      const suggestedParams = await algodClient.getTransactionParams().do();
+      
+      const txn = algosdk.makeApplicationNoOpTxnFromObject({
+        sender: account,
+        suggestedParams,
+        appIndex: CONTRACT_CONFIG.appId,
+        appArgs: [encodeArg('mint_pod')],
+      });
+      
+      const signedTxns = await signTransactions([txn]);
+      const txId = await submitTransaction(signedTxns);
+      refreshState();
+      return txId;
+    } catch (error) {
+      console.error('Mint pod failed:', error);
+      throw error;
+    }
+  }, [account, signTransactions]);
+
+  // Water a plant - calls "water" on the smart contract
+  const waterPlant = useCallback(async (): Promise<string | null> => {
+    if (!account || !CONTRACT_CONFIG.appId) return null;
+    
+    try {
+      const suggestedParams = await algodClient.getTransactionParams().do();
+      
+      const txn = algosdk.makeApplicationNoOpTxnFromObject({
+        sender: account,
+        suggestedParams,
+        appIndex: CONTRACT_CONFIG.appId,
+        appArgs: [encodeArg('water')],
+      });
+      
+      const signedTxns = await signTransactions([txn]);
+      const txId = await submitTransaction(signedTxns);
+      refreshState();
+      return txId;
+    } catch (error) {
+      console.error('Water plant failed:', error);
+      throw error;
+    }
+  }, [account, signTransactions]);
+
+  // Harvest a plant - calls "harvest" on the smart contract
+  const harvestPlant = useCallback(async (): Promise<string | null> => {
+    if (!account || !CONTRACT_CONFIG.appId) return null;
+    
+    try {
+      const suggestedParams = await algodClient.getTransactionParams().do();
+      
+      const txn = algosdk.makeApplicationNoOpTxnFromObject({
+        sender: account,
+        suggestedParams,
+        appIndex: CONTRACT_CONFIG.appId,
+        appArgs: [encodeArg('harvest')],
+        foreignAssets: CONTRACT_CONFIG.budAssetId ? [CONTRACT_CONFIG.budAssetId] : undefined,
+      });
+      
+      const signedTxns = await signTransactions([txn]);
+      const txId = await submitTransaction(signedTxns);
+      refreshState();
+      return txId;
+    } catch (error) {
+      console.error('Harvest failed:', error);
+      throw error;
+    }
+  }, [account, signTransactions]);
+
+  // Cleanup pod - requires burning 500 $BUD + 1 ALGO fee
+  const cleanupPod = useCallback(async (): Promise<string | null> => {
+    if (!account || !CONTRACT_CONFIG.appId || !CONTRACT_CONFIG.budAssetId) return null;
+    
+    try {
+      const suggestedParams = await algodClient.getTransactionParams().do();
+      
+      // Transaction 1: Burn 500 $BUD (send to app address)
+      const burnTxn = algosdk.makeAssetTransferTxnWithSuggestedParamsFromObject({
+        sender: account,
+        receiver: CONTRACT_CONFIG.appAddress,
+        amount: BigInt(500000000), // 500 $BUD (6 decimals)
+        assetIndex: CONTRACT_CONFIG.budAssetId,
+        suggestedParams,
+      });
+      
+      // Transaction 2: Send 1 ALGO fee
+      const feeTxn = algosdk.makePaymentTxnWithSuggestedParamsFromObject({
+        sender: account,
+        receiver: CONTRACT_CONFIG.appAddress,
+        amount: BigInt(1000000), // 1 ALGO
+        suggestedParams,
+      });
+      
+      // Transaction 3: Call cleanup on contract
+      const appTxn = algosdk.makeApplicationNoOpTxnFromObject({
+        sender: account,
+        suggestedParams,
+        appIndex: CONTRACT_CONFIG.appId,
+        appArgs: [encodeArg('cleanup')],
+      });
+      
+      // Group the transactions
+      const txns = [burnTxn, feeTxn, appTxn];
+      algosdk.assignGroupID(txns);
+      
+      const signedTxns = await signTransactions(txns);
+      const txId = await submitTransaction(signedTxns);
+      refreshState();
+      return txId;
+    } catch (error) {
+      console.error('Cleanup failed:', error);
+      throw error;
+    }
+  }, [account, signTransactions]);
+
+  // Breed plants - requires burning 1000 $BUD
+  const breedPlants = useCallback(async (): Promise<string | null> => {
+    if (!account || !CONTRACT_CONFIG.appId || !CONTRACT_CONFIG.budAssetId) return null;
+    
+    try {
+      const suggestedParams = await algodClient.getTransactionParams().do();
+      
+      // Transaction 1: Burn 1000 $BUD
+      const burnTxn = algosdk.makeAssetTransferTxnWithSuggestedParamsFromObject({
+        sender: account,
+        receiver: CONTRACT_CONFIG.appAddress,
+        amount: BigInt(1000000000), // 1000 $BUD (6 decimals)
+        assetIndex: CONTRACT_CONFIG.budAssetId,
+        suggestedParams,
+      });
+      
+      // Transaction 2: Call breed on contract
+      const appTxn = algosdk.makeApplicationNoOpTxnFromObject({
+        sender: account,
+        suggestedParams,
+        appIndex: CONTRACT_CONFIG.appId,
+        appArgs: [encodeArg('breed')],
+      });
+      
+      // Group the transactions
+      const txns = [burnTxn, appTxn];
+      algosdk.assignGroupID(txns);
+      
+      const signedTxns = await signTransactions(txns);
+      const txId = await submitTransaction(signedTxns);
+      refreshState();
+      return txId;
+    } catch (error) {
+      console.error('Breed failed:', error);
+      throw error;
+    }
+  }, [account, signTransactions]);
+
+  // Check if user is opted into the app
+  const checkAppOptedIn = useCallback(async (): Promise<boolean> => {
+    if (!account || !CONTRACT_CONFIG.appId) return false;
+    
+    try {
+      const accountInfo = await algodClient.accountInformation(account).do();
+      const appsLocalState = accountInfo.appsLocalState || [];
+      return appsLocalState.some((app) => Number(app.id) === CONTRACT_CONFIG.appId);
+    } catch {
+      return false;
+    }
+  }, [account]);
+
+  // Check if user is opted into an asset
+  const checkAssetOptedIn = useCallback(async (assetId: number): Promise<boolean> => {
+    if (!account || !assetId) return false;
+    
+    try {
+      const accountInfo = await algodClient.accountInformation(account).do();
+      const assets = accountInfo.assets || [];
+      return assets.some((asset) => Number(asset.assetId) === assetId);
+    } catch {
+      return false;
+    }
+  }, [account]);
+
+  return {
+    optInToApp,
+    optInToAsset,
+    mintPod,
+    waterPlant,
+    harvestPlant,
+    cleanupPod,
+    breedPlants,
+    checkAppOptedIn,
+    checkAssetOptedIn,
+  };
 }

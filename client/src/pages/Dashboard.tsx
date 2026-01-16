@@ -1,4 +1,4 @@
-import { useAlgorand, useGameState } from "@/hooks/use-algorand";
+import { useAlgorand, useGameState, useTransactions, CONTRACT_CONFIG } from "@/hooks/use-algorand";
 import { CurrencyDisplay } from "@/components/CurrencyDisplay";
 import { PodCard } from "@/components/PodCard";
 import { Button } from "@/components/ui/button";
@@ -12,8 +12,11 @@ import { useState } from "react";
 export default function Dashboard() {
   const { account, isConnected, connectWallet } = useAlgorand();
   const { budBalance, terpBalance, algoBalance, pods } = useGameState(account);
+  const { mintPod, waterPlant, harvestPlant, cleanupPod } = useTransactions();
   const { toast } = useToast();
   const [isActionLoading, setIsActionLoading] = useState(false);
+
+  const isContractConfigured = CONTRACT_CONFIG.appId > 0;
 
   const handleMintPod = async () => {
     if (!isConnected) {
@@ -25,19 +28,37 @@ export default function Dashboard() {
       return;
     }
     
+    if (!isContractConfigured) {
+      toast({
+        title: "Contract Not Deployed",
+        description: "The smart contract has not been deployed yet. Set VITE_GROWPOD_APP_ID environment variable.",
+        variant: "destructive",
+      });
+      return;
+    }
+    
     setIsActionLoading(true);
     toast({
       title: "Minting GrowPod...",
       description: "Sign the transaction in your Pera Wallet.",
     });
     
-    setTimeout(() => {
+    try {
+      const txId = await mintPod();
       toast({
-        title: "Demo Mode",
-        description: "In production, this would mint a soulbound GrowPod NFT and plant a mystery seed.",
+        title: "GrowPod Minted!",
+        description: `Transaction: ${txId?.slice(0, 8)}...`,
       });
+    } catch (error) {
+      const errorMessage = error instanceof Error ? error.message : 'Transaction failed';
+      toast({
+        title: "Mint Failed",
+        description: errorMessage,
+        variant: "destructive",
+      });
+    } finally {
       setIsActionLoading(false);
-    }, 2000);
+    }
   };
 
   const handleWater = async (id: number) => {
@@ -50,19 +71,37 @@ export default function Dashboard() {
       return;
     }
     
+    if (!isContractConfigured) {
+      toast({
+        title: "Contract Not Deployed",
+        description: "The smart contract has not been deployed yet.",
+        variant: "destructive",
+      });
+      return;
+    }
+    
     setIsActionLoading(true);
     toast({
       title: "Watering Plant...",
       description: `Sign the transaction to water Pod #${id}.`,
     });
     
-    setTimeout(() => {
+    try {
+      const txId = await waterPlant();
       toast({
         title: "Watered Successfully!",
-        description: "Your plant is growing. Next water available in 24 hours.",
+        description: `Your plant is growing. Next water in 24h. TX: ${txId?.slice(0, 8)}...`,
       });
+    } catch (error) {
+      const errorMessage = error instanceof Error ? error.message : 'Transaction failed';
+      toast({
+        title: "Water Failed",
+        description: errorMessage,
+        variant: "destructive",
+      });
+    } finally {
       setIsActionLoading(false);
-    }, 2000);
+    }
   };
 
   const handleHarvest = async (id: number) => {
@@ -75,19 +114,37 @@ export default function Dashboard() {
       return;
     }
     
+    if (!isContractConfigured) {
+      toast({
+        title: "Contract Not Deployed",
+        description: "The smart contract has not been deployed yet.",
+        variant: "destructive",
+      });
+      return;
+    }
+    
     setIsActionLoading(true);
     toast({
       title: "Harvesting...",
       description: `Calculating yield for Pod #${id}...`,
     });
     
-    setTimeout(() => {
+    try {
+      const txId = await harvestPlant();
       toast({
         title: "Harvest Complete!",
-        description: "You received 0.25g $BUD! Check for rare $TERP reward...",
+        description: `You received $BUD! TX: ${txId?.slice(0, 8)}...`,
       });
+    } catch (error) {
+      const errorMessage = error instanceof Error ? error.message : 'Transaction failed';
+      toast({
+        title: "Harvest Failed",
+        description: errorMessage,
+        variant: "destructive",
+      });
+    } finally {
       setIsActionLoading(false);
-    }, 2000);
+    }
   };
 
   const handleCleanup = async (id: number) => {
@@ -100,19 +157,37 @@ export default function Dashboard() {
       return;
     }
     
+    if (!isContractConfigured) {
+      toast({
+        title: "Contract Not Deployed",
+        description: "The smart contract has not been deployed yet.",
+        variant: "destructive",
+      });
+      return;
+    }
+    
     setIsActionLoading(true);
     toast({
       title: "Cleaning Pod...",
       description: "This will burn 500 $BUD + 1 ALGO.",
     });
     
-    setTimeout(() => {
+    try {
+      const txId = await cleanupPod();
       toast({
         title: "Pod Cleaned!",
-        description: "Your pod is ready for a new planting cycle.",
+        description: `Ready for new planting. TX: ${txId?.slice(0, 8)}...`,
       });
+    } catch (error) {
+      const errorMessage = error instanceof Error ? error.message : 'Transaction failed';
+      toast({
+        title: "Cleanup Failed",
+        description: errorMessage,
+        variant: "destructive",
+      });
+    } finally {
       setIsActionLoading(false);
-    }, 2000);
+    }
   };
 
   const handleSmokeBud = () => {

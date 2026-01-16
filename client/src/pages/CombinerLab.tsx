@@ -1,15 +1,20 @@
 import { useState } from "react";
 import { FlaskConical, Plus, Atom } from "lucide-react";
 import { Button } from "@/components/ui/button";
-import { useSeeds } from "@/hooks/use-algorand";
+import { useSeeds, useTransactions, useAlgorand, CONTRACT_CONFIG } from "@/hooks/use-algorand";
 import { cn } from "@/lib/utils";
 import { useToast } from "@/hooks/use-toast";
 
 export default function CombinerLab() {
   const seeds = useSeeds();
   const { toast } = useToast();
+  const { isConnected } = useAlgorand();
+  const { breedPlants } = useTransactions();
   const [selectedParent1, setSelectedParent1] = useState<string | null>(null);
   const [selectedParent2, setSelectedParent2] = useState<string | null>(null);
+  const [isBreeding, setIsBreeding] = useState(false);
+
+  const isContractConfigured = CONTRACT_CONFIG.appId > 0;
 
   const handleSelect = (id: string) => {
     if (selectedParent1 === id) {
@@ -23,11 +28,49 @@ export default function CombinerLab() {
     }
   };
 
-  const handleBreed = () => {
+  const handleBreed = async () => {
+    if (!isConnected) {
+      toast({
+        title: "Wallet Required",
+        description: "Please connect your Pera Wallet first.",
+        variant: "destructive",
+      });
+      return;
+    }
+
+    if (!isContractConfigured) {
+      toast({
+        title: "Contract Not Deployed",
+        description: "The smart contract has not been deployed yet.",
+        variant: "destructive",
+      });
+      return;
+    }
+
+    setIsBreeding(true);
     toast({
       title: "Breeding Initiated",
-      description: "Burning BUD tokens to fuse genetic material...",
+      description: "Burning 1000 $BUD to fuse genetic material...",
     });
+
+    try {
+      const txId = await breedPlants();
+      toast({
+        title: "Breeding Complete!",
+        description: `New hybrid seed created! TX: ${txId?.slice(0, 8)}...`,
+      });
+      setSelectedParent1(null);
+      setSelectedParent2(null);
+    } catch (error) {
+      const errorMessage = error instanceof Error ? error.message : 'Transaction failed';
+      toast({
+        title: "Breeding Failed",
+        description: errorMessage,
+        variant: "destructive",
+      });
+    } finally {
+      setIsBreeding(false);
+    }
   };
 
   const isReady = selectedParent1 && selectedParent2;
@@ -71,12 +114,13 @@ export default function CombinerLab() {
             size="lg" 
             className={cn(
               "rounded-full h-16 w-16 p-0 border-4 border-background transition-all",
-              isReady ? "bg-gradient-to-r from-purple-600 to-pink-600 hover:scale-110 shadow-lg shadow-purple-500/40" : "bg-muted cursor-not-allowed"
+              isReady && !isBreeding ? "bg-gradient-to-r from-purple-600 to-pink-600 hover:scale-110 shadow-lg shadow-purple-500/40" : "bg-muted cursor-not-allowed"
             )}
-            disabled={!isReady}
+            disabled={!isReady || isBreeding}
             onClick={handleBreed}
+            data-testid="button-breed-confirm"
           >
-            <Plus className={cn("h-8 w-8", isReady ? "text-white" : "text-muted-foreground")} />
+            <Plus className={cn("h-8 w-8", isReady && !isBreeding ? "text-white" : "text-muted-foreground", isBreeding && "animate-spin")} />
           </Button>
         </div>
 

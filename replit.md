@@ -85,11 +85,26 @@ Preferred communication style: Simple, everyday language.
 - **$TERP**: 100M fixed supply, 6 decimals, minted on rare profiles (5k-50k reward)
 
 ### Frontend Updates
-- Enhanced `use-algorand.ts` with proper $BUD/$TERP balance querying via algosdk
-- Updated Dashboard with Mint Pod, Water (24h countdown), Harvest, Cleanup, Breed buttons
-- Updated CurrencyDisplay to show $BUD, $TERP, and ALGO balances
-- Navigation shows wallet address and compact token balances when connected
-- Added loading states and toast notifications for all actions
+- Enhanced `use-algorand.ts` with algosdk v3 API for balance/state queries
+- Added `useTransactions` hook with real blockchain transaction functions:
+  - `optInToApp`: Opt into the smart contract
+  - `optInToAsset`: Opt into $BUD/$TERP ASAs
+  - `mintPod`: Mint new GrowPod NFT + plant seed
+  - `waterPlant`: Water plant with 24h cooldown
+  - `harvestPlant`: Harvest and receive $BUD tokens
+  - `cleanupPod`: Grouped transaction (burn 500 $BUD + 1 ALGO + app call)
+  - `breedPlants`: Grouped transaction (burn 1000 $BUD + app call)
+- Updated Dashboard with real transaction handlers (not mock)
+- Updated CombinerLab with real breed transaction
+- Contract config reads from VITE_ environment variables
+- Browser-safe encoding (TextEncoder instead of Buffer)
+
+### Environment Variables (Frontend)
+Add to `.env` for production:
+- `VITE_GROWPOD_APP_ID`: Deployed smart contract application ID
+- `VITE_BUD_ASSET_ID`: $BUD ASA ID
+- `VITE_TERP_ASSET_ID`: $TERP ASA ID
+- `VITE_GROWPOD_APP_ADDRESS`: Contract application address
 
 ### Contract Scripts
 - `contracts/contract.py`: Main PyTeal contract with all game logic
