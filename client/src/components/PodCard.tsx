@@ -1,23 +1,77 @@
-import { MockPod } from "@/hooks/use-algorand";
+import { type GrowPod, formatCooldown } from "@/hooks/use-algorand";
 import { cn } from "@/lib/utils";
-import { Droplets, Skull, Flower, AlertTriangle, CheckCircle2 } from "lucide-react";
+import { 
+  Droplets, 
+  Skull, 
+  Flower, 
+  AlertTriangle, 
+  Trash2,
+  Sprout,
+  Clock
+} from "lucide-react";
 import { Button } from "./ui/button";
 import { Progress } from "./ui/progress";
+import { Badge } from "./ui/badge";
 import { motion } from "framer-motion";
+import { useEffect, useState } from "react";
 
 interface PodCardProps {
-  pod: MockPod;
+  pod: GrowPod;
   onWater: (id: number) => void;
   onHarvest: (id: number) => void;
+  onCleanup?: (id: number) => void;
+  isLoading?: boolean;
 }
 
-export function PodCard({ pod, onWater, onHarvest }: PodCardProps) {
-  const isDead = pod.status === "dead";
-  const isHarvestReady = pod.status === "harvest_ready";
-  const needsWater = pod.status === "active" && (Date.now() - pod.lastWatered > 86400000); // > 24h
+export function PodCard({ pod, onWater, onHarvest, onCleanup, isLoading = false }: PodCardProps) {
+  const [cooldownDisplay, setCooldownDisplay] = useState('');
   
-  // Calculate progress relative to max stage (5)
-  const growthProgress = (pod.stage / 5) * 100;
+  const isDead = pod.status === 'dead';
+  const isHarvestReady = pod.status === 'harvest_ready';
+  const needsCleanup = pod.status === 'needs_cleanup';
+  const isEmpty = pod.status === 'empty';
+  
+  const growthProgress = isEmpty ? 0 : (Math.min(pod.stage, 5) / 5) * 100;
+  const waterProgress = (pod.waterCount / 10) * 100;
+
+  useEffect(() => {
+    if (pod.waterCooldownRemaining <= 0) {
+      setCooldownDisplay('');
+      return;
+    }
+    
+    const updateCooldown = () => {
+      const now = Date.now();
+      const lastWatered = pod.lastWatered;
+      const elapsed = Math.floor((now - lastWatered) / 1000);
+      const remaining = Math.max(0, 86400 - elapsed);
+      setCooldownDisplay(formatCooldown(remaining));
+    };
+    
+    updateCooldown();
+    const interval = setInterval(updateCooldown, 60000);
+    return () => clearInterval(interval);
+  }, [pod.lastWatered, pod.waterCooldownRemaining]);
+
+  const getStageLabel = () => {
+    switch (pod.status) {
+      case 'empty': return 'Empty';
+      case 'seedling': return 'Seedling';
+      case 'vegetative': return 'Vegetative';
+      case 'flowering': return 'Flowering';
+      case 'mature': return 'Mature';
+      case 'harvest_ready': return 'Harvest Ready';
+      case 'needs_cleanup': return 'Needs Cleanup';
+      case 'dead': return 'Dead';
+      default: return 'Unknown';
+    }
+  };
+
+  const getStatusColor = () => {
+    if (isDead || needsCleanup) return "destructive";
+    if (isHarvestReady) return "default";
+    return "secondary";
+  };
 
   return (
     <motion.div 
@@ -25,91 +79,118 @@ export function PodCard({ pod, onWater, onHarvest }: PodCardProps) {
       animate={{ opacity: 1, y: 0 }}
       className={cn(
         "relative overflow-hidden rounded-xl border p-6 transition-all duration-300",
-        isDead ? "border-destructive/30 bg-destructive/5" : "border-primary/20 bg-card/40 hover:border-primary/50 hover:shadow-lg hover:shadow-primary/10"
+        isDead || needsCleanup 
+          ? "border-destructive/30 bg-destructive/5" 
+          : isHarvestReady 
+            ? "border-amber-500/30 bg-amber-500/5 shadow-lg shadow-amber-500/10"
+            : "border-primary/20 bg-card/40 hover:border-primary/50 hover:shadow-lg hover:shadow-primary/10"
       )}
+      data-testid={`pod-card-${pod.id}`}
     >
-      {/* Background Texture/Gradient */}
       <div className="absolute inset-0 bg-gradient-to-br from-white/5 to-transparent pointer-events-none" />
       
-      {/* Header */}
       <div className="relative flex justify-between items-start mb-4">
         <div>
           <h3 className="font-display text-lg font-bold text-foreground flex items-center gap-2">
             {pod.name}
             {pod.pests && <AlertTriangle className="h-4 w-4 text-amber-500 animate-pulse" />}
           </h3>
-          <p className="text-xs text-muted-foreground font-mono mt-1">DNA: {pod.dna}</p>
+          <p className="text-xs text-muted-foreground font-mono mt-1">
+            DNA: {pod.dna ? `${pod.dna.slice(0, 8)}...` : 'N/A'}
+          </p>
         </div>
-        <div className={cn(
-          "px-2 py-1 rounded text-xs font-bold uppercase tracking-wider",
-          isDead ? "bg-destructive/20 text-destructive" : 
-          isHarvestReady ? "bg-amber-500/20 text-amber-500" : "bg-primary/20 text-primary"
-        )}>
-          {pod.status.replace("_", " ")}
-        </div>
+        <Badge variant={getStatusColor()} data-testid={`pod-status-${pod.id}`}>
+          {getStageLabel()}
+        </Badge>
       </div>
 
-      {/* Visual Representation (Placeholder for NFT Art) */}
       <div className="relative h-32 w-full bg-black/20 rounded-lg mb-6 flex items-center justify-center border border-white/5 overflow-hidden group">
-         {/* Simple visualization based on stage */}
-         {isDead ? (
-           <Skull className="h-16 w-16 text-muted-foreground/50" />
-         ) : isHarvestReady ? (
-           <Flower className="h-16 w-16 text-amber-400 drop-shadow-[0_0_15px_rgba(251,191,36,0.5)] animate-bounce" />
-         ) : (
-           <div className="relative">
-             <div className="absolute bottom-0 left-1/2 -translate-x-1/2 w-2 h-24 bg-gradient-to-t from-green-800 to-green-500 rounded-full origin-bottom transition-all" style={{ height: `${(pod.stage + 1) * 15}%` }} />
-             <div className="absolute bottom-[20%] left-1/2 -translate-x-1/2 w-12 h-12 bg-green-500/20 rounded-full blur-xl" />
-           </div>
-         )}
+        {isEmpty ? (
+          <div className="text-center">
+            <Sprout className="h-12 w-12 text-muted-foreground/30 mx-auto mb-2" />
+            <p className="text-xs text-muted-foreground">No plant</p>
+          </div>
+        ) : isDead || needsCleanup ? (
+          <Skull className="h-16 w-16 text-muted-foreground/50" />
+        ) : isHarvestReady ? (
+          <Flower className="h-16 w-16 text-amber-400 drop-shadow-[0_0_15px_rgba(251,191,36,0.5)] animate-bounce" />
+        ) : (
+          <div className="relative">
+            <div 
+              className="absolute bottom-0 left-1/2 -translate-x-1/2 w-2 bg-gradient-to-t from-green-800 to-green-500 rounded-full origin-bottom transition-all" 
+              style={{ height: `${Math.max(20, pod.stage * 20)}%` }} 
+            />
+            <div className="absolute bottom-[20%] left-1/2 -translate-x-1/2 w-12 h-12 bg-green-500/20 rounded-full blur-xl" />
+          </div>
+        )}
       </div>
 
-      {/* Stats */}
       <div className="space-y-4 relative">
         <div className="space-y-1">
           <div className="flex justify-between text-xs">
             <span className="text-muted-foreground">Growth Stage</span>
-            <span className="font-mono text-foreground">{pod.stage} / 5</span>
+            <span className="font-mono text-foreground">{Math.min(pod.stage, 5)} / 5</span>
           </div>
-          <Progress value={growthProgress} className="h-2 bg-black/40" indicatorClassName="bg-primary" />
+          <Progress value={growthProgress} className="h-2 bg-black/40" />
         </div>
         
         <div className="space-y-1">
           <div className="flex justify-between text-xs">
-            <span className="text-muted-foreground">Health</span>
-            <span className={cn("font-mono", pod.health < 50 ? "text-destructive" : "text-green-400")}>
-              {pod.health}%
-            </span>
+            <span className="text-muted-foreground">Water Count</span>
+            <span className="font-mono text-foreground">{pod.waterCount} / 10</span>
           </div>
-          <Progress value={pod.health} className="h-2 bg-black/40" indicatorClassName={pod.health < 50 ? "bg-destructive" : "bg-green-500"} />
+          <Progress value={waterProgress} className="h-2 bg-black/40" />
         </div>
+
+        {!pod.canWater && cooldownDisplay && !isHarvestReady && !needsCleanup && !isEmpty && (
+          <div className="flex items-center gap-2 text-xs text-muted-foreground bg-black/20 rounded px-2 py-1">
+            <Clock className="h-3 w-3" />
+            <span>Next water: {cooldownDisplay}</span>
+          </div>
+        )}
       </div>
 
-      {/* Actions */}
       <div className="mt-6 flex gap-3 relative">
         {isHarvestReady ? (
           <Button 
             className="w-full bg-amber-500 hover:bg-amber-600 text-amber-950 font-bold shadow-lg shadow-amber-500/20"
             onClick={() => onHarvest(pod.id)}
+            disabled={isLoading}
+            data-testid={`button-harvest-${pod.id}`}
           >
             <Flower className="mr-2 h-4 w-4" /> Harvest
           </Button>
+        ) : needsCleanup ? (
+          <Button 
+            variant="destructive" 
+            className="w-full"
+            onClick={() => onCleanup?.(pod.id)}
+            disabled={isLoading}
+            data-testid={`button-cleanup-${pod.id}`}
+          >
+            <Trash2 className="mr-2 h-4 w-4" /> Clean Pod (500 $BUD)
+          </Button>
         ) : isDead ? (
-          <Button variant="destructive" className="w-full opacity-50 cursor-not-allowed" disabled>
+          <Button variant="destructive" className="w-full opacity-50" disabled>
             <Skull className="mr-2 h-4 w-4" /> Dead Plant
+          </Button>
+        ) : isEmpty ? (
+          <Button variant="secondary" className="w-full opacity-50" disabled>
+            <Sprout className="mr-2 h-4 w-4" /> Plant a Seed
           </Button>
         ) : (
           <Button 
             className={cn(
               "w-full transition-all", 
-              needsWater ? "animate-pulse shadow-lg shadow-blue-500/20" : "opacity-80"
+              pod.canWater ? "animate-pulse shadow-lg shadow-blue-500/20" : "opacity-80"
             )}
-            variant={needsWater ? "default" : "secondary"}
-            disabled={!needsWater}
+            variant={pod.canWater ? "default" : "secondary"}
+            disabled={!pod.canWater || isLoading}
             onClick={() => onWater(pod.id)}
+            data-testid={`button-water-${pod.id}`}
           >
-            <Droplets className={cn("mr-2 h-4 w-4", needsWater ? "text-blue-200" : "")} /> 
-            {needsWater ? "Water Now" : "Hydrated"}
+            <Droplets className={cn("mr-2 h-4 w-4", pod.canWater ? "text-blue-200" : "")} /> 
+            {pod.canWater ? "Water Now" : cooldownDisplay || "Hydrated"}
           </Button>
         )}
       </div>

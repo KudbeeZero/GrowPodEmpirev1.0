@@ -287,13 +287,24 @@ def approval_program():
         Approve()
     )
 
+    # Handle update/delete application (owner only)
+    handle_update = Seq(
+        Assert(is_owner),
+        Approve()
+    )
+    
+    handle_delete = Seq(
+        Assert(is_owner),
+        Approve()
+    )
+
     # Main router
     return Cond(
         [Txn.application_id() == Int(0), handle_creation],
         [Txn.on_completion() == OnComplete.OptIn, handle_optin],
         [Txn.on_completion() == OnComplete.CloseOut, Approve()],
-        [Txn.on_completion() == OnComplete.UpdateApplication, Assert(is_owner)],
-        [Txn.on_completion() == OnComplete.DeleteApplication, Assert(is_owner)],
+        [Txn.on_completion() == OnComplete.UpdateApplication, handle_update],
+        [Txn.on_completion() == OnComplete.DeleteApplication, handle_delete],
         [Txn.application_args[0] == Bytes("bootstrap"), bootstrap_asas],
         [Txn.application_args[0] == Bytes("set_asa_ids"), set_asa_ids],
         [Txn.application_args[0] == Bytes("mint_pod"), mint_pod],
@@ -310,15 +321,20 @@ def clear_state_program():
 
 
 if __name__ == "__main__":
-    with open("contracts/approval.teal", "w") as f:
+    import os
+    script_dir = os.path.dirname(os.path.abspath(__file__))
+    
+    approval_path = os.path.join(script_dir, "approval.teal")
+    with open(approval_path, "w") as f:
         compiled = compileTeal(approval_program(), mode=Mode.Application, version=8)
         f.write(compiled)
-        print("Compiled approval.teal")
+        print(f"Compiled: {approval_path}")
 
-    with open("contracts/clear.teal", "w") as f:
+    clear_path = os.path.join(script_dir, "clear.teal")
+    with open(clear_path, "w") as f:
         compiled = compileTeal(clear_state_program(), mode=Mode.Application, version=8)
         f.write(compiled)
-        print("Compiled clear.teal")
+        print(f"Compiled: {clear_path}")
     
     print("\nContract compilation complete!")
     print("Global state: owner, period, cleanup_cost, breed_cost, bud_asset, terp_asset, terp_registry")

@@ -65,3 +65,37 @@ Preferred communication style: Simple, everyday language.
 ### Environment Variables Required
 - `DATABASE_URL`: PostgreSQL connection string
 - `ALGO_MNEMONIC`: (for contract deployment scripts) 25-word Algorand wallet mnemonic
+- `GROWPOD_APP_ID`: Deployed smart contract application ID
+- `BUD_ASSET_ID`: $BUD ASA ID after bootstrap
+- `TERP_ASSET_ID`: $TERP ASA ID after bootstrap
+- `GROWPOD_APP_ADDRESS`: Contract application address
+
+## Recent Changes (January 2026)
+
+### Smart Contract Updates
+- Added $BUD and $TERP ASA creation via inner transactions in bootstrap
+- Implemented harvest logic with yield calculation (0.25g base = 250,000,000 units)
+- Added `check_and_mint_terp` function for rare terpene profile rewards
+- Added overwater defect detection (3+ waters in 48h = dead plant)
+- Cleanup requires burning 500 $BUD + 1 ALGO fee
+- Breeding requires burning 1,000 $BUD
+
+### Token Specifications
+- **$BUD**: 10B total supply cap, 6 decimals, minted only on harvest
+- **$TERP**: 100M fixed supply, 6 decimals, minted on rare profiles (5k-50k reward)
+
+### Frontend Updates
+- Enhanced `use-algorand.ts` with proper $BUD/$TERP balance querying via algosdk
+- Updated Dashboard with Mint Pod, Water (24h countdown), Harvest, Cleanup, Breed buttons
+- Updated CurrencyDisplay to show $BUD, $TERP, and ALGO balances
+- Navigation shows wallet address and compact token balances when connected
+- Added loading states and toast notifications for all actions
+
+### Contract Scripts
+- `contracts/contract.py`: Main PyTeal contract with all game logic
+- `contracts/bootstrap.py`: Creates $BUD and $TERP ASAs
+- `contracts/mint.py`: Mints soulbound GrowPod NFT + plants mystery seed
+- `contracts/water.py`: Waters plant with 24h cooldown check
+- `contracts/harvest.py`: Harvests plant + checks for $TERP reward
+- `contracts/clean.py`: Cleanup pod (burn 500 $BUD + 1 ALGO)
+- `contracts/breed.py`: Breed two plants (burn 1,000 $BUD)

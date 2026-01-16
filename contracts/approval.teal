@@ -1,48 +1,133 @@
-#pragma version 6
+#pragma version 8
 txn ApplicationID
 int 0
 ==
-bnz main_l18
+bnz main_l38
 txn OnCompletion
 int OptIn
 ==
-bnz main_l17
-txna ApplicationArgs 0
-byte "bootstrap"
+bnz main_l37
+txn OnCompletion
+int CloseOut
 ==
-bnz main_l16
-txna ApplicationArgs 0
-byte "water"
-==
-bnz main_l13
-txna ApplicationArgs 0
-byte "harvest"
-==
-bnz main_l12
-txna ApplicationArgs 0
-byte "cleanup"
-==
-bnz main_l11
+bnz main_l36
 txn OnCompletion
 int UpdateApplication
 ==
-bnz main_l10
+bnz main_l35
 txn OnCompletion
 int DeleteApplication
 ==
-bnz main_l9
+bnz main_l34
+txna ApplicationArgs 0
+byte "bootstrap"
+==
+bnz main_l33
+txna ApplicationArgs 0
+byte "set_asa_ids"
+==
+bnz main_l32
+txna ApplicationArgs 0
+byte "mint_pod"
+==
+bnz main_l31
+txna ApplicationArgs 0
+byte "water"
+==
+bnz main_l22
+txna ApplicationArgs 0
+byte "harvest"
+==
+bnz main_l19
+txna ApplicationArgs 0
+byte "check_terp"
+==
+bnz main_l16
+txna ApplicationArgs 0
+byte "cleanup"
+==
+bnz main_l15
+txna ApplicationArgs 0
+byte "breed"
+==
+bnz main_l14
 err
-main_l9:
+main_l14:
+byte "bud_asset"
+app_global_get
+int 0
+!=
+assert
+txn GroupIndex
+int 1
+-
+gtxns TypeEnum
+int axfer
+==
+assert
+txn GroupIndex
+int 1
+-
+gtxns XferAsset
+byte "bud_asset"
+app_global_get
+==
+assert
+txn GroupIndex
+int 1
+-
+gtxns AssetAmount
+int 1000000000
+>=
+assert
+txn GroupIndex
+int 1
+-
+gtxns AssetReceiver
+global CurrentApplicationAddress
+==
+assert
 int 1
 return
-main_l10:
-int 1
-return
-main_l11:
+main_l15:
 txn Sender
 byte "stage"
 app_local_get
 int 6
+==
+assert
+byte "bud_asset"
+app_global_get
+int 0
+!=
+assert
+txn GroupIndex
+int 1
+-
+gtxns TypeEnum
+int axfer
+==
+assert
+txn GroupIndex
+int 1
+-
+gtxns XferAsset
+byte "bud_asset"
+app_global_get
+==
+assert
+txn GroupIndex
+int 1
+-
+gtxns AssetAmount
+int 500000000
+>=
+assert
+txn GroupIndex
+int 1
+-
+gtxns AssetReceiver
+global CurrentApplicationAddress
 ==
 assert
 txn Sender
@@ -57,28 +142,145 @@ txn Sender
 byte "last_watered"
 int 0
 app_local_put
+txn Sender
+byte "dna"
+byte ""
+app_local_put
+txn Sender
+byte "terpene_profile"
+byte ""
+app_local_put
+txn Sender
+byte "minor_profile"
+byte ""
+app_local_put
 int 1
 return
-main_l12:
+main_l16:
+txn Sender
+byte "stage"
+app_local_get
+int 6
+==
+assert
+byte "terp_asset"
+app_global_get
+int 0
+!=
+assert
+txn Sender
+byte "terpene_profile"
+app_local_get
+txn Sender
+byte "minor_profile"
+app_local_get
+concat
+sha256
+store 2
+load 2
+int 0
+getbyte
+int 32
+<
+bnz main_l18
+main_l17:
+int 1
+return
+main_l18:
+int 5000000000
+int 32
+load 2
+int 0
+getbyte
+-
+int 50000000000
+int 5000000000
+-
+*
+int 32
+/
++
+store 1
+itxn_begin
+int axfer
+itxn_field TypeEnum
+byte "terp_asset"
+app_global_get
+itxn_field XferAsset
+load 1
+itxn_field AssetAmount
+txn Sender
+itxn_field AssetReceiver
+itxn_submit
+b main_l17
+main_l19:
 txn Sender
 byte "stage"
 app_local_get
 int 5
 ==
 assert
+byte "bud_asset"
+app_global_get
+int 0
+!=
+assert
+int 250000000
+store 0
+txn Sender
+byte "water_count"
+app_local_get
+int 10
+>=
+bnz main_l21
+main_l20:
+load 0
+store 0
+itxn_begin
+int axfer
+itxn_field TypeEnum
+byte "bud_asset"
+app_global_get
+itxn_field XferAsset
+load 0
+itxn_field AssetAmount
+txn Sender
+itxn_field AssetReceiver
+itxn_submit
 txn Sender
 byte "stage"
 int 6
 app_local_put
 int 1
 return
-main_l13:
+main_l21:
+load 0
+int 250000000
+int 20
+*
+int 100
+/
++
+store 0
+b main_l20
+main_l22:
 txn Sender
 byte "stage"
 app_local_get
-int 6
-<
+int 1
+>=
 assert
+txn Sender
+byte "stage"
+app_local_get
+int 4
+<=
+assert
+txn Sender
+byte "last_watered"
+app_local_get
+int 0
+==
 global LatestTimestamp
 txn Sender
 byte "last_watered"
@@ -86,6 +288,7 @@ app_local_get
 -
 int 86400
 >=
+||
 assert
 txn Sender
 byte "last_watered"
@@ -104,35 +307,212 @@ byte "water_count"
 app_local_get
 int 10
 >=
-bnz main_l15
-main_l14:
+bnz main_l30
+txn Sender
+byte "water_count"
+app_local_get
+int 3
+==
+bnz main_l29
+txn Sender
+byte "water_count"
+app_local_get
+int 6
+==
+bnz main_l28
+txn Sender
+byte "water_count"
+app_local_get
+int 8
+==
+bnz main_l27
+main_l26:
 int 1
 return
-main_l15:
+main_l27:
+txn Sender
+byte "stage"
+int 4
+app_local_put
+b main_l26
+main_l28:
+txn Sender
+byte "stage"
+int 3
+app_local_put
+b main_l26
+main_l29:
+txn Sender
+byte "stage"
+int 2
+app_local_put
+b main_l26
+main_l30:
 txn Sender
 byte "stage"
 int 5
+app_local_put
+b main_l26
+main_l31:
+txn Sender
+byte "stage"
+app_local_get
+int 0
+==
+assert
+txn Sender
+byte "dna"
+txn Sender
+global LatestTimestamp
+itob
+concat
+global Round
+itob
+concat
+sha256
+app_local_put
+txn Sender
+byte "stage"
+int 1
+app_local_put
+txn Sender
+byte "start_round"
+global Round
 app_local_put
 txn Sender
 byte "water_count"
 int 0
 app_local_put
-b main_l14
-main_l16:
+txn Sender
+byte "last_watered"
+int 0
+app_local_put
+txn Sender
+byte "terpene_profile"
+byte "terp"
+txn Sender
+concat
+global LatestTimestamp
+itob
+concat
+sha256
+app_local_put
+txn Sender
+byte "minor_profile"
+byte "minor"
+txn Sender
+concat
+global Round
+itob
+concat
+sha256
+app_local_put
+int 1
+return
+main_l32:
 txn Sender
 byte "owner"
 app_global_get
 ==
 assert
 byte "bud_asset"
-int 1000001
+txna ApplicationArgs 1
+btoi
 app_global_put
 byte "terp_asset"
-int 1000002
+txna ApplicationArgs 2
+btoi
 app_global_put
 int 1
 return
-main_l17:
+main_l33:
+txn Sender
+byte "owner"
+app_global_get
+==
+assert
+byte "bud_asset"
+app_global_get
+int 0
+==
+assert
+byte "terp_asset"
+app_global_get
+int 0
+==
+assert
+itxn_begin
+int acfg
+itxn_field TypeEnum
+int 10000000000000000
+itxn_field ConfigAssetTotal
+int 6
+itxn_field ConfigAssetDecimals
+byte "BUD"
+itxn_field ConfigAssetUnitName
+byte "GrowPod BUD"
+itxn_field ConfigAssetName
+byte "https://growpod.empire/bud"
+itxn_field ConfigAssetURL
+global CurrentApplicationAddress
+itxn_field ConfigAssetManager
+global CurrentApplicationAddress
+itxn_field ConfigAssetReserve
+global CurrentApplicationAddress
+itxn_field ConfigAssetFreeze
+global CurrentApplicationAddress
+itxn_field ConfigAssetClawback
+itxn_submit
+byte "bud_asset"
+itxn CreatedAssetID
+app_global_put
+itxn_begin
+int acfg
+itxn_field TypeEnum
+int 100000000000000
+itxn_field ConfigAssetTotal
+int 6
+itxn_field ConfigAssetDecimals
+byte "TERP"
+itxn_field ConfigAssetUnitName
+byte "GrowPod TERP"
+itxn_field ConfigAssetName
+byte "https://growpod.empire/terp"
+itxn_field ConfigAssetURL
+global CurrentApplicationAddress
+itxn_field ConfigAssetManager
+global CurrentApplicationAddress
+itxn_field ConfigAssetReserve
+global CurrentApplicationAddress
+itxn_field ConfigAssetFreeze
+global CurrentApplicationAddress
+itxn_field ConfigAssetClawback
+itxn_submit
+byte "terp_asset"
+itxn CreatedAssetID
+app_global_put
+int 1
+return
+main_l34:
+txn Sender
+byte "owner"
+app_global_get
+==
+assert
+int 1
+return
+main_l35:
+txn Sender
+byte "owner"
+app_global_get
+==
+assert
+int 1
+return
+main_l36:
+int 1
+return
+main_l37:
 txn Sender
 byte "stage"
 int 0
@@ -149,17 +529,41 @@ txn Sender
 byte "dna"
 byte ""
 app_local_put
+txn Sender
+byte "start_round"
+int 0
+app_local_put
+txn Sender
+byte "terpene_profile"
+byte ""
+app_local_put
+txn Sender
+byte "minor_profile"
+byte ""
+app_local_put
 int 1
 return
-main_l18:
+main_l38:
 byte "owner"
 txn Sender
 app_global_put
 byte "period"
 int 864000
 app_global_put
-byte "cost"
-int 1000000
+byte "cleanup_cost"
+int 500000000
+app_global_put
+byte "breed_cost"
+int 1000000000
+app_global_put
+byte "bud_asset"
+int 0
+app_global_put
+byte "terp_asset"
+int 0
+app_global_put
+byte "terp_registry"
+byte ""
 app_global_put
 int 1
 return
