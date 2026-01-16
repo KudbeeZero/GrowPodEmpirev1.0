@@ -81,3 +81,19 @@ export function useGameState(account: string | null) {
     pods 
   };
 }
+
+export function useInventory() {
+  return [
+    { id: 'item-1', name: 'Nutrient Pack A', count: 5, type: 'nutrient', icon: 'FlaskConical' },
+    { id: 'item-2', name: 'Neem Oil', count: 2, type: 'pest_control', icon: 'Bug' },
+    { id: 'item-3', name: 'pH Up', count: 1, type: 'ph_adjuster', icon: 'Droplets' },
+  ];
+}
+
+export function useSeeds() {
+  return [
+    { id: 'seed-1', name: 'OG Kush Seed', dna: '0x123...', rarity: 'Common' },
+    { id: 'seed-2', name: 'Sour Diesel Seed', dna: '0x456...', rarity: 'Rare' },
+    { id: 'seed-3', name: 'Blue Dream Seed', dna: '0x789...', rarity: 'Epic' },
+  ];
+}
