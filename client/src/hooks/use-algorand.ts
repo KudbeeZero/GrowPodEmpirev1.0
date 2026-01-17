@@ -368,7 +368,12 @@ export function useTransactions() {
 
   // Mint a new GrowPod - calls "mint_pod" on the smart contract
   const mintPod = useCallback(async (): Promise<string | null> => {
-    if (!account || !CONTRACT_CONFIG.appId) return null;
+    if (!account) {
+      throw new Error('Please connect your wallet first');
+    }
+    if (!CONTRACT_CONFIG.appId) {
+      throw new Error('Contract not configured. App ID: ' + CONTRACT_CONFIG.appId);
+    }
     
     try {
       const suggestedParams = await algodClient.getTransactionParams().do();
