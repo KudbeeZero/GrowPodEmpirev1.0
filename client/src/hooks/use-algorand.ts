@@ -10,12 +10,12 @@ const ALGOD_SERVER = 'https://testnet-api.algonode.cloud';
 const ALGOD_TOKEN = '';
 const CHAIN_ID = 416002;
 
-// Contract Configuration (reads from environment variables)
+// Contract Configuration - deployed on Algorand TestNet
 export const CONTRACT_CONFIG = {
-  appId: parseInt(import.meta.env.VITE_GROWPOD_APP_ID || '0'),
-  budAssetId: parseInt(import.meta.env.VITE_BUD_ASSET_ID || '0'),
-  terpAssetId: parseInt(import.meta.env.VITE_TERP_ASSET_ID || '0'),
-  appAddress: import.meta.env.VITE_GROWPOD_APP_ADDRESS || '',
+  appId: 753803704,
+  budAssetId: 753803729,
+  terpAssetId: 753803733,
+  appAddress: 'EME2PR6EWPV3KHWCRSHJRF5RPPLNVWMVV4C5BGMA6QFKX4MYQQ3QLZ4KIU',
 };
 
 // Create Algorand client
