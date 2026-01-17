@@ -7,16 +7,103 @@ import { useToast } from "@/hooks/use-toast";
 import { Plus, Sprout, Leaf, FlaskConical, Flame, Zap } from "lucide-react";
 import { Link } from "wouter";
 import { motion } from "framer-motion";
-import { useState } from "react";
+import { useState, useEffect } from "react";
 
 export default function Dashboard() {
   const { account, isConnected, connectWallet } = useAlgorand();
   const { budBalance, terpBalance, algoBalance, pods } = useGameState(account);
-  const { mintPod, waterPlant, harvestPlant, cleanupPod } = useTransactions();
+  const { mintPod, waterPlant, harvestPlant, cleanupPod, optInToApp, optInToAsset, checkAppOptedIn, checkAssetOptedIn } = useTransactions();
   const { toast } = useToast();
   const [isActionLoading, setIsActionLoading] = useState(false);
+  const [isOptedInApp, setIsOptedInApp] = useState(false);
+  const [isOptedInBud, setIsOptedInBud] = useState(false);
+  const [isOptedInTerp, setIsOptedInTerp] = useState(false);
 
   const isContractConfigured = CONTRACT_CONFIG.appId > 0;
+
+  useEffect(() => {
+    const checkOptIns = async () => {
+      if (!isConnected || !account) {
+        setIsOptedInApp(false);
+        setIsOptedInBud(false);
+        setIsOptedInTerp(false);
+        return;
+      }
+      
+      try {
+        const [appOptedIn, budOptedIn, terpOptedIn] = await Promise.all([
+          checkAppOptedIn(),
+          CONTRACT_CONFIG.budAssetId > 0 ? checkAssetOptedIn(CONTRACT_CONFIG.budAssetId) : Promise.resolve(false),
+          CONTRACT_CONFIG.terpAssetId > 0 ? checkAssetOptedIn(CONTRACT_CONFIG.terpAssetId) : Promise.resolve(false),
+        ]);
+        setIsOptedInApp(appOptedIn);
+        setIsOptedInBud(budOptedIn);
+        setIsOptedInTerp(terpOptedIn);
+      } catch (error) {
+        console.error('Error checking opt-ins:', error);
+      }
+    };
+    
+    checkOptIns();
+  }, [isConnected, account, checkAppOptedIn, checkAssetOptedIn]);
+
+  const handleOptIn = async () => {
+    if (!isConnected) {
+      toast({
+        title: "Wallet Required",
+        description: "Please connect your Pera Wallet first.",
+        variant: "destructive",
+      });
+      return;
+    }
+    
+    setIsActionLoading(true);
+    
+    try {
+      if (!isOptedInApp) {
+        toast({
+          title: "Opting into Contract...",
+          description: "Sign the transaction in your Pera Wallet.",
+        });
+        await optInToApp();
+        setIsOptedInApp(true);
+      }
+      
+      if (!isOptedInBud && CONTRACT_CONFIG.budAssetId > 0) {
+        toast({
+          title: "Opting into $BUD Token...",
+          description: "Sign the transaction in your Pera Wallet.",
+        });
+        await optInToAsset(CONTRACT_CONFIG.budAssetId);
+        setIsOptedInBud(true);
+      }
+      
+      if (!isOptedInTerp && CONTRACT_CONFIG.terpAssetId > 0) {
+        toast({
+          title: "Opting into $TERP Token...",
+          description: "Sign the transaction in your Pera Wallet.",
+        });
+        await optInToAsset(CONTRACT_CONFIG.terpAssetId);
+        setIsOptedInTerp(true);
+      }
+      
+      toast({
+        title: "Setup Complete!",
+        description: "You can now mint your first GrowPod!",
+      });
+    } catch (error) {
+      const errorMessage = error instanceof Error ? error.message : 'Transaction failed';
+      toast({
+        title: "Opt-in Failed",
+        description: errorMessage,
+        variant: "destructive",
+      });
+    } finally {
+      setIsActionLoading(false);
+    }
+  };
+
+  const needsOptIn = isConnected && (!isOptedInApp || !isOptedInBud || !isOptedInTerp);
 
   const handleMintPod = async () => {
     if (!isConnected) {
@@ -32,6 +119,15 @@ export default function Dashboard() {
       toast({
         title: "Contract Not Deployed",
         description: "The smart contract has not been deployed yet. Set VITE_GROWPOD_APP_ID environment variable.",
+        variant: "destructive",
+      });
+      return;
+    }
+
+    if (needsOptIn) {
+      toast({
+        title: "Setup Required",
+        description: "Please complete the setup first by opting into the contract and tokens.",
         variant: "destructive",
       });
       return;
@@ -242,6 +338,44 @@ export default function Dashboard() {
                 data-testid="button-connect-wallet-banner"
               >
                 Connect Wallet
+              </Button>
+            </motion.div>
+          )}
+
+          {needsOptIn && (
+            <motion.div 
+              initial={{ opacity: 0, y: 10 }}
+              animate={{ opacity: 1, y: 0 }}
+              className="bg-amber-500/10 border border-amber-500/20 rounded-xl p-6 mb-8 flex flex-col md:flex-row items-start md:items-center justify-between gap-4 backdrop-blur-sm"
+              data-testid="opt-in-banner"
+            >
+              <div>
+                <h3 className="text-amber-500 font-bold flex items-center gap-2">
+                  <Sprout className="h-5 w-5" />
+                  Setup Required
+                </h3>
+                <p className="text-sm text-muted-foreground mt-1">
+                  Opt into the smart contract and tokens to start playing. This is a one-time setup.
+                </p>
+                <div className="flex flex-wrap gap-2 mt-2">
+                  <span className={`text-xs px-2 py-1 rounded ${isOptedInApp ? 'bg-green-500/20 text-green-400' : 'bg-muted text-muted-foreground'}`}>
+                    Contract: {isOptedInApp ? 'Ready' : 'Not opted in'}
+                  </span>
+                  <span className={`text-xs px-2 py-1 rounded ${isOptedInBud ? 'bg-green-500/20 text-green-400' : 'bg-muted text-muted-foreground'}`}>
+                    $BUD: {isOptedInBud ? 'Ready' : 'Not opted in'}
+                  </span>
+                  <span className={`text-xs px-2 py-1 rounded ${isOptedInTerp ? 'bg-green-500/20 text-green-400' : 'bg-muted text-muted-foreground'}`}>
+                    $TERP: {isOptedInTerp ? 'Ready' : 'Not opted in'}
+                  </span>
+                </div>
+              </div>
+              <Button 
+                onClick={handleOptIn} 
+                className="bg-amber-500 hover:bg-amber-600 text-amber-950"
+                disabled={isActionLoading}
+                data-testid="button-opt-in"
+              >
+                {isActionLoading ? 'Signing...' : 'Complete Setup'}
               </Button>
             </motion.div>
           )}
