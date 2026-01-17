@@ -14,6 +14,7 @@ import { Progress } from "./ui/progress";
 import { Badge } from "./ui/badge";
 import { motion } from "framer-motion";
 import { useEffect, useState } from "react";
+import seedlingPodImage from "@assets/8FB8A93B-2A96-4974-88BB-83E5EA7E9FA2_1768610870600.png";
 
 interface PodCardProps {
   pod: GrowPod;
@@ -104,7 +105,7 @@ export function PodCard({ pod, onWater, onHarvest, onCleanup, isLoading = false 
         </Badge>
       </div>
 
-      <div className="relative h-32 w-full bg-black/20 rounded-lg mb-6 flex items-center justify-center border border-white/5 overflow-hidden group">
+      <div className="relative h-48 w-full bg-black/40 rounded-lg mb-6 flex items-center justify-center border border-white/5 overflow-hidden group">
         {isEmpty ? (
           <div className="text-center">
             <Sprout className="h-12 w-12 text-muted-foreground/30 mx-auto mb-2" />
@@ -115,13 +116,11 @@ export function PodCard({ pod, onWater, onHarvest, onCleanup, isLoading = false 
         ) : isHarvestReady ? (
           <Flower className="h-16 w-16 text-amber-400 drop-shadow-[0_0_15px_rgba(251,191,36,0.5)] animate-bounce" />
         ) : (
-          <div className="relative">
-            <div 
-              className="absolute bottom-0 left-1/2 -translate-x-1/2 w-2 bg-gradient-to-t from-green-800 to-green-500 rounded-full origin-bottom transition-all" 
-              style={{ height: `${Math.max(20, pod.stage * 20)}%` }} 
-            />
-            <div className="absolute bottom-[20%] left-1/2 -translate-x-1/2 w-12 h-12 bg-green-500/20 rounded-full blur-xl" />
-          </div>
+          <img 
+            src={seedlingPodImage} 
+            alt="GrowPod Seedling" 
+            className="h-full w-full object-contain"
+          />
         )}
       </div>
 
