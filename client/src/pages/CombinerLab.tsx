@@ -143,24 +143,34 @@ export default function CombinerLab() {
 
       {/* Inventory Selection */}
       <h3 className="font-display font-bold text-xl mb-6 border-b border-white/10 pb-2">Available Seeds</h3>
-      <div className="grid grid-cols-2 md:grid-cols-4 lg:grid-cols-5 gap-4">
-        {seeds.map((seed) => {
-          const isSelected = selectedParent1 === seed.id || selectedParent2 === seed.id;
-          return (
-            <div 
-              key={seed.id}
-              onClick={() => handleSelect(seed.id)}
-              className={cn(
-                "cursor-pointer border rounded-lg p-4 transition-all hover:bg-white/5",
-                isSelected ? "border-purple-500 bg-purple-500/10 ring-1 ring-purple-500" : "border-white/10"
-              )}
-            >
-              <div className="text-sm font-bold truncate">{seed.name}</div>
-              <div className="text-xs text-muted-foreground mt-1">{seed.rarity}</div>
-            </div>
-          );
-        })}
-      </div>
+      {seeds.length > 0 ? (
+        <div className="grid grid-cols-2 md:grid-cols-4 lg:grid-cols-5 gap-4">
+          {seeds.map((seed) => {
+            const isSelected = selectedParent1 === seed.id || selectedParent2 === seed.id;
+            return (
+              <div 
+                key={seed.id}
+                onClick={() => handleSelect(seed.id)}
+                className={cn(
+                  "cursor-pointer border rounded-lg p-4 transition-all hover:bg-white/5",
+                  isSelected ? "border-purple-500 bg-purple-500/10 ring-1 ring-purple-500" : "border-white/10"
+                )}
+              >
+                <div className="text-sm font-bold truncate">{seed.name}</div>
+                <div className="text-xs text-muted-foreground mt-1">{seed.rarity}</div>
+              </div>
+            );
+          })}
+        </div>
+      ) : (
+        <div className="flex flex-col items-center justify-center py-12 bg-card/20 rounded-xl border border-white/5">
+          <Atom className="h-12 w-12 text-muted-foreground/30 mb-4" />
+          <h3 className="text-lg font-bold text-muted-foreground">No Seeds Available</h3>
+          <p className="text-muted-foreground/70 mt-2 text-center max-w-md">
+            Harvest plants to collect seeds for breeding. Costs 1000 $BUD per breed.
+          </p>
+        </div>
+      )}
     </div>
   );
 }

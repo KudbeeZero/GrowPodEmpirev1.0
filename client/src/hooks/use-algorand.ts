@@ -231,39 +231,9 @@ export function useGameState(account: string | null) {
   });
 
   const pods: GrowPod[] = useMemo(() => {
+    // Return empty array if no local state (user not connected or no active pod)
     if (!localState) {
-      return [
-        { 
-          id: 1, 
-          name: "Demo Pod #1", 
-          stage: 3 as PodStage, 
-          waterCount: 6, 
-          lastWatered: Date.now() - 90000000, 
-          health: 95, 
-          status: 'flowering' as PodStatus, 
-          dna: '0xA1B2...', 
-          terpeneProfile: '',
-          minorProfile: '',
-          pests: false,
-          canWater: true,
-          waterCooldownRemaining: 0
-        },
-        { 
-          id: 2, 
-          name: "Demo Pod #2", 
-          stage: 5 as PodStage, 
-          waterCount: 10, 
-          lastWatered: Date.now(), 
-          health: 100, 
-          status: 'harvest_ready' as PodStatus, 
-          dna: '0xD4E5...', 
-          terpeneProfile: '',
-          minorProfile: '',
-          pests: false,
-          canWater: false,
-          waterCooldownRemaining: 86400
-        },
-      ];
+      return [];
     }
     
     const stage = (localState.stage as number) || 0;
@@ -300,21 +270,13 @@ export function useGameState(account: string | null) {
 }
 
 export function useInventory() {
-  return [
-    { id: 'item-1', name: 'Nutrient Pack A', count: 5, type: 'nutrient', icon: 'FlaskConical', budCost: 100000000 },
-    { id: 'item-2', name: 'Neem Oil', count: 2, type: 'pest_control', icon: 'Bug', budCost: 50000000 },
-    { id: 'item-3', name: 'pH Up', count: 1, type: 'ph_adjuster', icon: 'Droplets', budCost: 25000000 },
-    { id: 'item-4', name: 'Ladybugs', count: 3, type: 'pest_control', icon: 'Bug', budCost: 75000000 },
-    { id: 'item-5', name: 'Potassium Bicarb', count: 2, type: 'fungicide', icon: 'Shield', budCost: 60000000 },
-  ];
+  // Inventory will be loaded from blockchain/backend when implemented
+  return [];
 }
 
 export function useSeeds() {
-  return [
-    { id: 'seed-1', name: 'Mystery Seed', dna: '???', rarity: 'Unknown', type: 'mystery' },
-    { id: 'seed-2', name: 'OG Kush Hybrid', dna: '0x123...', rarity: 'Rare', type: 'hybrid' },
-    { id: 'seed-3', name: 'Blue Dream x Sour D', dna: '0x456...', rarity: 'Epic', type: 'hybrid' },
-  ];
+  // Seeds will be loaded from blockchain/backend when implemented
+  return [];
 }
 
 export function formatTokenAmount(amount: string | number, decimals: number = 6): string {

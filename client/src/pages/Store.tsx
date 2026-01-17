@@ -1,23 +1,6 @@
-import { ShoppingBag, Star, ShieldCheck, Droplet } from "lucide-react";
-import { Button } from "@/components/ui/button";
-import { useToast } from "@/hooks/use-toast";
-
-const ITEMS = [
-  { id: 1, name: "Advanced Nutrients", price: 150, type: "nutrient", icon: Star, desc: "Boosts growth speed by 10% for 24h." },
-  { id: 2, name: "Neem Oil Spray", price: 75, type: "pest", icon: ShieldCheck, desc: "Cures pest infestations instantly." },
-  { id: 3, name: "pH Regulator", price: 50, type: "ph", icon: Droplet, desc: "Corrects soil acidity levels." },
-];
+import { ShoppingBag } from "lucide-react";
 
 export default function Store() {
-  const { toast } = useToast();
-
-  const handleBuy = (item: typeof ITEMS[0]) => {
-    toast({
-      title: "Purchase Successful",
-      description: `Bought ${item.name} for ${item.price} BUD.`,
-    });
-  };
-
   return (
     <div className="min-h-screen py-12 px-4 container mx-auto">
       <div className="flex items-center gap-4 mb-8">
@@ -30,27 +13,12 @@ export default function Store() {
         </div>
       </div>
 
-      <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-        {ITEMS.map((item) => {
-          const Icon = item.icon;
-          return (
-            <div key={item.id} className="bg-card border border-white/10 rounded-xl p-6 flex flex-col hover:border-orange-500/50 transition-colors">
-              <div className="w-12 h-12 bg-white/5 rounded-full flex items-center justify-center mb-4">
-                <Icon className="h-6 w-6 text-foreground" />
-              </div>
-              
-              <h3 className="font-display font-bold text-lg">{item.name}</h3>
-              <p className="text-sm text-muted-foreground mt-2 mb-6 flex-grow">{item.desc}</p>
-              
-              <div className="flex items-center justify-between mt-auto pt-4 border-t border-white/5">
-                <span className="font-bold text-lg text-primary">{item.price} BUD</span>
-                <Button onClick={() => handleBuy(item)} variant="outline" className="border-orange-500/30 text-orange-400 hover:bg-orange-500/10 hover:text-orange-300">
-                  Buy Now
-                </Button>
-              </div>
-            </div>
-          );
-        })}
+      <div className="flex flex-col items-center justify-center py-20 bg-card/20 rounded-2xl border border-white/5">
+        <ShoppingBag className="h-16 w-16 text-muted-foreground/30 mb-4" />
+        <h3 className="text-xl font-bold text-muted-foreground">Supply Depot Coming Soon</h3>
+        <p className="text-muted-foreground/70 mt-2 text-center max-w-md">
+          The supply depot is under construction. Soon you'll be able to trade $BUD for nutrients, pest control, and other grow supplies.
+        </p>
       </div>
     </div>
   );

@@ -34,16 +34,16 @@ export default function CureVault() {
           <div className="space-y-4">
             <div className="flex justify-between text-sm">
               <span className="text-muted-foreground">APY</span>
-              <span className="text-emerald-400 font-bold">12.5%</span>
+              <span className="text-muted-foreground">Coming soon</span>
             </div>
             <div className="flex justify-between text-sm">
               <span className="text-muted-foreground">Lock Period</span>
-              <span>14 Days</span>
+              <span className="text-muted-foreground">Coming soon</span>
             </div>
           </div>
 
-          <Button className="w-full mt-8 bg-emerald-600 hover:bg-emerald-700 text-white font-bold h-12">
-            Stake Tokens
+          <Button className="w-full mt-8 bg-emerald-600 hover:bg-emerald-700 text-white font-bold h-12" disabled>
+            Staking Coming Soon
           </Button>
         </div>
 
@@ -54,7 +54,8 @@ export default function CureVault() {
               <TrendingUp className="text-emerald-400 h-5 w-5" />
               <h3 className="font-bold">Total Value Locked</h3>
             </div>
-            <p className="text-3xl font-display font-bold">1,240,500 BUD</p>
+            <p className="text-3xl font-display font-bold">0 BUD</p>
+            <p className="text-xs text-muted-foreground mt-1">Coming soon</p>
           </div>
 
           <div className="bg-card/50 border border-white/5 rounded-xl p-6">

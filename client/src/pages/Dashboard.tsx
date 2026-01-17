@@ -224,21 +224,21 @@ export default function Dashboard() {
             <motion.div 
               initial={{ opacity: 0, y: 10 }}
               animate={{ opacity: 1, y: 0 }}
-              className="bg-yellow-500/10 border border-yellow-500/20 rounded-xl p-6 mb-8 flex items-center justify-between backdrop-blur-sm"
-              data-testid="demo-mode-banner"
+              className="bg-primary/10 border border-primary/20 rounded-xl p-6 mb-8 flex items-center justify-between backdrop-blur-sm"
+              data-testid="connect-wallet-banner"
             >
               <div>
-                <h3 className="text-yellow-500 font-bold flex items-center gap-2">
-                  Demo Mode Active
+                <h3 className="text-primary font-bold flex items-center gap-2">
+                  <Sprout className="h-5 w-5" />
+                  Welcome to GrowPod Empire
                 </h3>
                 <p className="text-sm text-muted-foreground mt-1">
-                  Connect your Pera Wallet to access your real assets and save progress.
+                  Connect your Pera Wallet to start growing on Algorand TestNet.
                 </p>
               </div>
               <Button 
                 onClick={connectWallet} 
-                variant="outline" 
-                className="border-yellow-500/50 text-yellow-500 hover:bg-yellow-500/10"
+                className="bg-primary hover:bg-primary/90"
                 data-testid="button-connect-wallet-banner"
               >
                 Connect Wallet
