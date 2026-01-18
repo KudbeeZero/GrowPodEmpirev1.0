@@ -72,6 +72,14 @@ Preferred communication style: Simple, everyday language.
 
 ## Recent Changes (January 2026)
 
+### Gameplay Updates
+- Added 2-pod maximum limit per user for balanced gameplay
+- Implemented nutrient system with 6-hour cooldown alongside 24-hour watering
+- Added quick "Mint Mystery Seed" button for direct planting from Dashboard
+- Updated PodCard with nutrient progress bar and dual Water/Feed action buttons
+- Fixed NaN handling for undefined nutrient fields with safe value extraction helpers
+- Updated active pod counting to include needs_cleanup status pods
+
 ### Smart Contract Updates
 - Added $BUD and $TERP ASA creation via inner transactions in bootstrap
 - Implemented harvest logic with yield calculation (0.25g base = 250,000,000 units)
