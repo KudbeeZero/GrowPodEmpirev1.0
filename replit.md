@@ -72,32 +72,46 @@ Preferred communication style: Simple, everyday language.
 
 ## Recent Changes (January 2026)
 
-### Gameplay Updates
-- Added 2-pod maximum limit per user for balanced gameplay
-- Implemented nutrient system with 6-hour cooldown alongside 24-hour watering
-- Added quick "Mint Mystery Seed" button for direct planting from Dashboard
-- Updated PodCard with nutrient progress bar and dual Water/Feed action buttons
-- Fixed NaN handling for undefined nutrient fields with safe value extraction helpers
-- Updated active pod counting to include needs_cleanup status pods
+### Pod Slot Progression System (Latest)
+- Players now start with 1 pod slot and can unlock up to 5 total slots
+- After every 5 harvests, players can claim 1 Slot Token
+- Claiming a Slot Token requires burning 2,500 $BUD
+- Burning 1 Slot Token unlocks 1 new pod slot
+- Progression: 5 harvests → 2,500 $BUD → 1 Slot Token → 1 new slot
+
+### Tri-Token Economy
+- **$BUD**: 10B total supply cap, 6 decimals, minted on harvest
+- **$TERP**: 100M fixed supply, 6 decimals, minted on rare terpene profiles (5k-50k reward)
+- **Slot Token**: 1M fixed supply, 0 decimals, earned through harvests for slot unlocks
+
+### Contract Local State Optimization
+- Optimized local state to fit Algorand's 16-key limit
+- Removed start_round fields from both pods
+- Current local state: 12 uints + 4 bytes = 16 keys (maximum allowed)
+- Pod 1: stage, water_count, last_watered, nutrient_count, last_nutrients, dna, terpene_profile
+- Pod 2: stage_2, water_count_2, last_watered_2, nutrient_count_2, last_nutrients_2, dna_2, terpene_profile_2
+- Slots: harvest_count, pod_slots
 
 ### Smart Contract Updates
-- Added support for 2 pods per user with separate local state keys (stage_2, water_count_2, etc.)
-- Added nutrient system with 6-hour cooldown (nutrient_count, last_nutrients for both pods)
-- Added $BUD and $TERP ASA creation via inner transactions in bootstrap
-- Implemented harvest logic with yield calculation (0.25g base = 250,000,000 units)
-- Added nutrient bonus: up to 30% extra yield for consistent feeding
-- Added `check_and_mint_terp` function for rare terpene profile rewards
+- Added Slot Token ASA creation in bootstrap (tri-token: BUD, TERP, SLOT)
+- Added harvest_count tracking: increments on each harvest
+- Added pod_slots tracking: starts at 1, max 5
+- Added claim_slot_token method: burn 2,500 $BUD to claim after 5 harvests
+- Added unlock_slot method: burn 1 Slot Token to unlock new pod slot
 - Cleanup requires burning 500 $BUD + 1 ALGO fee
 - Breeding requires burning 1,000 $BUD
 
 ### Contract Methods
-- **Pod 1**: mint_pod, water, nutrients, harvest, cleanup, check_terp
-- **Pod 2**: mint_pod_2, water_2, nutrients_2, harvest_2, cleanup_2, check_terp_2
-- **Shared**: breed, bootstrap, set_asa_ids
+- **Pod 1**: mint_pod, water, nutrients, harvest, cleanup
+- **Pod 2**: mint_pod_2, water_2, nutrients_2, harvest_2, cleanup_2
+- **Shared**: check_terp, check_terp_2, breed, bootstrap, set_asa_ids
+- **Slots**: claim_slot_token, unlock_slot
 
-### Token Specifications
-- **$BUD**: 10B total supply cap, 6 decimals, minted only on harvest
-- **$TERP**: 100M fixed supply, 6 decimals, minted on rare profiles (5k-50k reward)
+### Frontend Updates
+- Added slotAssetId to CONTRACT_CONFIG
+- Updated useTokenBalances to include slot token balance
+- Updated useGameState to return harvestCount, podSlots, canClaimSlotToken, canUnlockSlot
+- Added claimSlotToken and unlockSlot transaction functions
 
 ### TestNet Growth Cycle (January 2026)
 - Water cooldown: 2 hours (7200 seconds) by default

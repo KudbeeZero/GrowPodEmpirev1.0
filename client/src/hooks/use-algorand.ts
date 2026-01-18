@@ -38,6 +38,7 @@ export interface GrowPod {
 export interface TokenBalances {
   budBalance: string;
   terpBalance: string;
+  slotBalance: string;
   algoBalance: string;
 }
 
@@ -63,13 +64,14 @@ export function useTokenBalances(account: string | null): TokenBalances {
     queryKey: ['/api/balances', account],
     enabled: !!account && !!CONTRACT_CONFIG.budAssetId,
     queryFn: async (): Promise<TokenBalances> => {
-      if (!account) return { budBalance: '0', terpBalance: '0', algoBalance: '0' };
+      if (!account) return { budBalance: '0', terpBalance: '0', slotBalance: '0', algoBalance: '0' };
       
       try {
         const accountInfo = await algodClient.accountInformation(account).do();
         
         let budBalance = '0';
         let terpBalance = '0';
+        let slotBalance = '0';
         const algoBalance = String(accountInfo.amount || 0);
         
         const assets = accountInfo.assets || [];
@@ -80,18 +82,21 @@ export function useTokenBalances(account: string | null): TokenBalances {
           if (Number(asset.assetId) === CONTRACT_CONFIG.terpAssetId) {
             terpBalance = String(asset.amount || 0);
           }
+          if (Number(asset.assetId) === CONTRACT_CONFIG.slotAssetId) {
+            slotBalance = String(asset.amount || 0);
+          }
         }
         
-        return { budBalance, terpBalance, algoBalance };
+        return { budBalance, terpBalance, slotBalance, algoBalance };
       } catch (error) {
         console.error('Error fetching balances:', error);
-        return { budBalance: '0', terpBalance: '0', algoBalance: '0' };
+        return { budBalance: '0', terpBalance: '0', slotBalance: '0', algoBalance: '0' };
       }
     },
     refetchInterval: 10000,
   });
   
-  return balances || { budBalance: '0', terpBalance: '0', algoBalance: '0' };
+  return balances || { budBalance: '0', terpBalance: '0', slotBalance: '0', algoBalance: '0' };
 }
 
 export function useGameState(account: string | null) {
@@ -222,19 +227,36 @@ export function useGameState(account: string | null) {
     return result;
   }, [localState]);
 
+  // Get harvest count and pod slots from local state
+  const harvestCount = localState ? (typeof localState['harvest_count'] === 'number' ? localState['harvest_count'] : 0) : 0;
+  const podSlots = localState ? (typeof localState['pod_slots'] === 'number' ? localState['pod_slots'] : 1) : 1;
+  
   // Calculate active pods count - count any pod with stage > 0 (including needs_cleanup)
   const activePods = pods.filter(p => p.stage > 0).length;
-  const canMintMorePods = activePods < MAX_PODS;
+  const canMintMorePods = activePods < podSlots;
+  
+  // Can claim slot token: when harvest count >= 5 (contract deducts 5 on each claim)
+  const harvestsForNextSlot = harvestCount >= 5 ? 0 : 5 - harvestCount;
+  const canClaimSlotToken = harvestCount >= 5;
+  
+  // Can unlock slot: has slot tokens and hasn't reached max
+  const canUnlockSlot = podSlots < 5;
 
   return { 
     budBalance: balances.budBalance, 
     terpBalance: balances.terpBalance,
+    slotBalance: balances.slotBalance,
     algoBalance: balances.algoBalance,
     pods,
     localState,
     activePods,
     canMintMorePods,
-    maxPods: MAX_PODS
+    maxPods: 5,
+    podSlots,
+    harvestCount,
+    harvestsForNextSlot,
+    canClaimSlotToken,
+    canUnlockSlot,
   };
 }
 
@@ -593,6 +615,83 @@ export function useTransactions() {
     }
   }, [account]);
 
+  // Claim a Slot Token - requires burning 2,500 $BUD and at least 5 total harvests
+  const claimSlotToken = useCallback(async (): Promise<string | null> => {
+    if (!account || !CONTRACT_CONFIG.appId || !CONTRACT_CONFIG.budAssetId || !CONTRACT_CONFIG.slotAssetId) return null;
+    
+    try {
+      const suggestedParams = await getParamsWithRetry();
+      
+      // Transaction 1: Burn 2,500 $BUD (send to app address)
+      const burnTxn = algosdk.makeAssetTransferTxnWithSuggestedParamsFromObject({
+        sender: account,
+        receiver: CONTRACT_CONFIG.appAddress,
+        amount: BigInt(2500000000), // 2,500 $BUD (6 decimals)
+        assetIndex: CONTRACT_CONFIG.budAssetId,
+        suggestedParams,
+      });
+      
+      // Transaction 2: Call claim_slot_token on contract
+      const appTxn = algosdk.makeApplicationNoOpTxnFromObject({
+        sender: account,
+        suggestedParams,
+        appIndex: CONTRACT_CONFIG.appId,
+        appArgs: [encodeArg('claim_slot_token')],
+        foreignAssets: [CONTRACT_CONFIG.slotAssetId],
+      });
+      
+      // Group the transactions
+      const txns = [burnTxn, appTxn];
+      algosdk.assignGroupID(txns);
+      
+      const signedTxns = await signTransactions(txns);
+      const txId = await submitTransaction(signedTxns);
+      refreshState();
+      return txId;
+    } catch (error) {
+      console.error('Claim slot token failed:', error);
+      throw error;
+    }
+  }, [account, signTransactions]);
+
+  // Unlock a new pod slot - requires burning 1 Slot Token
+  const unlockSlot = useCallback(async (): Promise<string | null> => {
+    if (!account || !CONTRACT_CONFIG.appId || !CONTRACT_CONFIG.slotAssetId) return null;
+    
+    try {
+      const suggestedParams = await getParamsWithRetry();
+      
+      // Transaction 1: Burn 1 Slot Token (send to app address)
+      const burnTxn = algosdk.makeAssetTransferTxnWithSuggestedParamsFromObject({
+        sender: account,
+        receiver: CONTRACT_CONFIG.appAddress,
+        amount: BigInt(1), // 1 Slot Token (0 decimals)
+        assetIndex: CONTRACT_CONFIG.slotAssetId,
+        suggestedParams,
+      });
+      
+      // Transaction 2: Call unlock_slot on contract
+      const appTxn = algosdk.makeApplicationNoOpTxnFromObject({
+        sender: account,
+        suggestedParams,
+        appIndex: CONTRACT_CONFIG.appId,
+        appArgs: [encodeArg('unlock_slot')],
+      });
+      
+      // Group the transactions
+      const txns = [burnTxn, appTxn];
+      algosdk.assignGroupID(txns);
+      
+      const signedTxns = await signTransactions(txns);
+      const txId = await submitTransaction(signedTxns);
+      refreshState();
+      return txId;
+    } catch (error) {
+      console.error('Unlock slot failed:', error);
+      throw error;
+    }
+  }, [account, signTransactions]);
+
   return {
     optInToApp,
     optInToAsset,
@@ -604,5 +703,7 @@ export function useTransactions() {
     breedPlants,
     checkAppOptedIn,
     checkAssetOptedIn,
+    claimSlotToken,
+    unlockSlot,
   };
 }

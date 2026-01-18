@@ -25,13 +25,14 @@ ALGOD_TOKEN = ""
 algod_client = algod.AlgodClient(ALGOD_TOKEN, ALGOD_ADDRESS)
 
 # Contract state schema
-# Global: 5 uints (period, cleanup_cost, breed_cost, bud_asset, terp_asset)
+# Global: 6 uints (period, cleanup_cost, breed_cost, bud_asset, terp_asset, slot_asset)
 #         2 bytes (owner, terp_registry)
-# Pod 1: 6 uints (stage, water_count, last_watered, nutrient_count, last_nutrients, start_round)
+# Pod 1: 5 uints (stage, water_count, last_watered, nutrient_count, last_nutrients)
 #        2 bytes (dna, terpene_profile)
-# Pod 2: same 6 uints + 2 bytes
-# Total Local: 12 uints, 4 bytes = 16 keys (at the limit!)
-GLOBAL_SCHEMA = StateSchema(num_uints=5, num_byte_slices=2)
+# Pod 2: same 5 uints + 2 bytes
+# Slot progression: 2 uints (harvest_count, pod_slots)
+# Total Local: 12 uints, 4 bytes = 16 keys (max allowed)
+GLOBAL_SCHEMA = StateSchema(num_uints=6, num_byte_slices=2)
 LOCAL_SCHEMA = StateSchema(num_uints=12, num_byte_slices=4)
 
 
@@ -137,13 +138,13 @@ def fund_app_address(creator_mnemonic: str, app_address: str, amount_algo: float
 
 
 def bootstrap_tokens(creator_mnemonic: str, app_id: int) -> tuple:
-    """Call bootstrap on the contract to create $BUD and $TERP tokens."""
-    print("\n[4/4] Bootstrapping $BUD and $TERP tokens...")
+    """Call bootstrap on the contract to create $BUD, $TERP, and Slot tokens."""
+    print("\n[4/4] Bootstrapping $BUD, $TERP, and Slot tokens...")
     
     private_key = mnemonic.to_private_key(creator_mnemonic)
     sender = account.address_from_private_key(private_key)
     params = algod_client.suggested_params()
-    params.fee = 3000
+    params.fee = 4000  # Extra fee for 3 inner txns
     params.flat_fee = True
     
     txn = ApplicationNoOpTxn(
@@ -164,6 +165,7 @@ def bootstrap_tokens(creator_mnemonic: str, app_id: int) -> tuple:
     
     bud_id = None
     terp_id = None
+    slot_id = None
     
     for item in global_state:
         key = encoding.base64.b64decode(item['key']).decode('utf-8')
@@ -171,15 +173,18 @@ def bootstrap_tokens(creator_mnemonic: str, app_id: int) -> tuple:
             bud_id = item['value']['uint']
         elif key == 'terp_asset':
             terp_id = item['value']['uint']
+        elif key == 'slot_asset':
+            slot_id = item['value']['uint']
     
-    if bud_id and terp_id:
+    if bud_id and terp_id and slot_id:
         print(f"  $BUD Asset ID: {bud_id}")
         print(f"  $TERP Asset ID: {terp_id}")
+        print(f"  Slot Token Asset ID: {slot_id}")
     else:
-        print("  WARNING: Could not retrieve ASA IDs from global state")
+        print("  WARNING: Could not retrieve all ASA IDs from global state")
         print(f"  Global state: {global_state}")
     
-    return bud_id, terp_id
+    return bud_id, terp_id, slot_id
 
 
 def main():
@@ -222,7 +227,7 @@ def main():
     
     fund_app_address(mnemonic_phrase, app_address, 0.5)
     
-    bud_id, terp_id = bootstrap_tokens(mnemonic_phrase, app_id)
+    bud_id, terp_id, slot_id = bootstrap_tokens(mnemonic_phrase, app_id)
     
     print("\n" + "=" * 60)
     print("DEPLOYMENT COMPLETE!")
@@ -233,19 +238,21 @@ def main():
     print(f"VITE_GROWPOD_APP_ID={app_id}")
     print(f"VITE_BUD_ASSET_ID={bud_id}")
     print(f"VITE_TERP_ASSET_ID={terp_id}")
+    print(f"VITE_SLOT_ASSET_ID={slot_id}")
     print(f"VITE_GROWPOD_APP_ADDRESS={app_address}")
     
     print("\n--- View on AlgoExplorer ---")
     print(f"App:   https://testnet.algoexplorer.io/application/{app_id}")
     print(f"$BUD:  https://testnet.algoexplorer.io/asset/{bud_id}")
     print(f"$TERP: https://testnet.algoexplorer.io/asset/{terp_id}")
+    print(f"SLOT:  https://testnet.algoexplorer.io/asset/{slot_id}")
     
     print("\n--- Next Steps ---")
     print("1. Copy the environment variables above to your Replit Secrets")
     print("2. Restart the app to pick up the new configuration")
     print("3. Connect your Pera Wallet and opt-in to start playing!")
     
-    return app_id, app_address, bud_id, terp_id
+    return app_id, app_address, bud_id, terp_id, slot_id
 
 
 if __name__ == "__main__":
