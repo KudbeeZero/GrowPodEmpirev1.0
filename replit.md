@@ -100,9 +100,9 @@ Preferred communication style: Simple, everyday language.
 - **$TERP**: 100M fixed supply, 6 decimals, minted on rare profiles (5k-50k reward)
 
 ### TestNet Growth Cycle (January 2026)
-- Simplified growth cycle: 2 waters to reach harvest (instead of 10)
 - Water cooldown: 2 hours (7200 seconds) by default
-- Yield bonuses now require 2+ waters/nutrients instead of 10
+- 10 waters required to reach harvest
+- Yield bonuses require 10+ waters/nutrients
 
 ### Visual Growth Stage System (v2.0)
 - Added 7 unique pod images for each growth stage:

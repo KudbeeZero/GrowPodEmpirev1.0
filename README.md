@@ -26,7 +26,7 @@ A blockchain-based idle/farming game built on **Algorand TestNet**. Players mana
 
 1. **Mint Pod**: Create soulbound GrowPod NFT (non-transferable until first harvest)
 2. **Plant Seed**: Random DNA hash with hidden terpene/minor profile
-3. **Water**: 2-hour cooldown, 2 waters = ready to harvest
+3. **Water**: 2-hour cooldown, 10 waters = ready to harvest
 4. **Harvest**: Mint $BUD based on yield calculation, check for rare $TERP
 5. **Cleanup**: Burn 500 $BUD + 1 ALGO to reset pod for next cycle
 6. **Breed**: Combine two plants in Combiner Lab (1,000 $BUD) for hybrid seeds
