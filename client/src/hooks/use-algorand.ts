@@ -10,8 +10,8 @@ export type PodStage = 0 | 1 | 2 | 3 | 4 | 5 | 6;
 export type PodStatus = 'empty' | 'seedling' | 'vegetative' | 'flowering' | 'mature' | 'harvest_ready' | 'dead' | 'needs_cleanup';
 
 // Constants for cooldowns
-export const WATER_COOLDOWN = 86400; // 24 hours in seconds (MainNet/default)
-export const WATER_COOLDOWN_TESTNET = 7200; // 2 hours in seconds (TestNet Fast Mode)
+export const WATER_COOLDOWN = 14400; // 4 hours in seconds
+export const WATER_COOLDOWN_TESTNET = 14400; // 4 hours in seconds (TestNet)
 export const NUTRIENT_COOLDOWN = 21600; // 6 hours in seconds
 export const MAX_PODS = 2; // Maximum pods per user
 

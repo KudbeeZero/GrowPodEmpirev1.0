@@ -551,11 +551,11 @@ txn NumAppArgs
 int 1
 >
 bnz main_l50
-int 7200
+int 14400
 store 4
 main_l41:
 load 4
-int 7200
+int 14400
 >=
 assert
 txn Sender
@@ -894,11 +894,11 @@ txn NumAppArgs
 int 1
 >
 bnz main_l70
-int 7200
+int 14400
 store 3
 main_l61:
 load 3
-int 7200
+int 14400
 >=
 assert
 txn Sender

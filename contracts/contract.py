@@ -34,8 +34,8 @@ LocalPodSlots = Bytes("pod_slots")  # Number of pod slots unlocked (1-5)
 
 # Constants
 BASE_YIELD = Int(250000000)  # 0.25g = 250,000,000 units (6 decimals)
-WATER_COOLDOWN = Int(7200)  # 2 hours in seconds (TestNet default)
-WATER_COOLDOWN_MIN = Int(7200)  # 2 hours minimum
+WATER_COOLDOWN = Int(14400)  # 4 hours in seconds
+WATER_COOLDOWN_MIN = Int(14400)  # 4 hours minimum
 NUTRIENT_COOLDOWN = Int(21600)  # 6 hours in seconds
 GROWTH_CYCLE = Int(864000)  # 10 days in seconds
 CLEANUP_BURN = Int(500000000)  # 500 $BUD to burn for cleanup
@@ -177,8 +177,8 @@ def approval_program():
     )
 
     # Water Pod 1 - Water the plant with configurable cooldown
-    # If args[1] is provided, use it as cooldown_seconds; otherwise default to WATER_COOLDOWN (24h)
-    # Minimum cooldown enforced at WATER_COOLDOWN_MIN (2h) to prevent abuse
+    # If args[1] is provided, use it as cooldown_seconds; otherwise default to WATER_COOLDOWN (4h)
+    # Minimum cooldown enforced at WATER_COOLDOWN_MIN (4h) to prevent abuse
     scratch_cooldown = ScratchVar(TealType.uint64)
     
     water = Seq(
@@ -317,7 +317,7 @@ def approval_program():
     )
 
     # Water Pod 2 - with configurable cooldown
-    # Minimum cooldown enforced at WATER_COOLDOWN_MIN (2h) to prevent abuse
+    # Minimum cooldown enforced at WATER_COOLDOWN_MIN (4h) to prevent abuse
     scratch_cooldown_2 = ScratchVar(TealType.uint64)
     
     water_2 = Seq(
