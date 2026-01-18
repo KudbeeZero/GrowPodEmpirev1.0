@@ -19,6 +19,7 @@ import { useEffect, useState } from "react";
 // Stage images
 import emptyPodImage from "@assets/generated_images/empty_futuristic_hydroponic_pod.png";
 import seedlingPodImage from "@assets/8FB8A93B-2A96-4974-88BB-83E5EA7E9FA2_1768743434278.png";
+import seedlingAnimation from "@assets/seedling_animation.mp4";
 import youngPodImage from "@assets/BCD9AEF2-730A-4176-8342-F462B3B83E92_1768743434278.png";
 import vegetativePodImage from "@assets/generated_images/vegetative_stage_cannabis_in_pod.png";
 import floweringPodImage from "@assets/97632FA9-E545-43B3-9799-79FF9CF27404_1768743434278.png";
@@ -35,6 +36,14 @@ const stageImages: Record<number, string> = {
   5: harvestReadyPodImage,
   6: cleanupPodImage,
 };
+
+// Check if pod should show seedling animation (stage 1)
+function shouldShowSeedlingAnimation(pod: { status: string; stage: number | null }): boolean {
+  if (pod.status === 'empty' || pod.status === 'dead' || pod.status === 'needs_cleanup' || pod.status === 'harvest_ready') {
+    return false;
+  }
+  return pod.stage === 1 || pod.status === 'seedling';
+}
 
 // Get the correct image based on pod status and stage
 function getPodImage(pod: { status: string; stage: number | null }): string {
@@ -162,20 +171,37 @@ export function PodCard({ pod, onWater, onNutrients, onHarvest, onCleanup, isLoa
 
       <div className="relative h-48 w-full bg-black/40 rounded-lg mb-6 flex items-center justify-center border border-white/5 overflow-hidden group">
         <AnimatePresence mode="wait">
-          <motion.img
-            key={`${pod.status}-${pod.stage}`}
-            src={getPodImage(pod)}
-            alt={`GrowPod ${getStageLabel()}`}
-            className={cn(
-              "h-full w-full object-contain",
-              isHarvestReady && "drop-shadow-[0_0_20px_rgba(251,191,36,0.4)]"
-            )}
-            initial={{ opacity: 0, scale: 0.9 }}
-            animate={{ opacity: 1, scale: 1 }}
-            exit={{ opacity: 0, scale: 0.9 }}
-            transition={{ duration: 0.4, ease: "easeInOut" }}
-            data-testid={`pod-image-${pod.id}`}
-          />
+          {shouldShowSeedlingAnimation(pod) ? (
+            <motion.video
+              key={`${pod.status}-${pod.stage}-video`}
+              src={seedlingAnimation}
+              autoPlay
+              loop
+              muted
+              playsInline
+              className="h-full w-full object-contain"
+              initial={{ opacity: 0, scale: 0.9 }}
+              animate={{ opacity: 1, scale: 1 }}
+              exit={{ opacity: 0, scale: 0.9 }}
+              transition={{ duration: 0.4, ease: "easeInOut" }}
+              data-testid={`pod-video-${pod.id}`}
+            />
+          ) : (
+            <motion.img
+              key={`${pod.status}-${pod.stage}`}
+              src={getPodImage(pod)}
+              alt={`GrowPod ${getStageLabel()}`}
+              className={cn(
+                "h-full w-full object-contain",
+                isHarvestReady && "drop-shadow-[0_0_20px_rgba(251,191,36,0.4)]"
+              )}
+              initial={{ opacity: 0, scale: 0.9 }}
+              animate={{ opacity: 1, scale: 1 }}
+              exit={{ opacity: 0, scale: 0.9 }}
+              transition={{ duration: 0.4, ease: "easeInOut" }}
+              data-testid={`pod-image-${pod.id}`}
+            />
+          )}
         </AnimatePresence>
         {isHarvestReady && (
           <motion.div 
