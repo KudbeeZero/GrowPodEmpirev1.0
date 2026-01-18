@@ -99,13 +99,9 @@ Preferred communication style: Simple, everyday language.
 - **$BUD**: 10B total supply cap, 6 decimals, minted only on harvest
 - **$TERP**: 100M fixed supply, 6 decimals, minted on rare profiles (5k-50k reward)
 
-### TestNet Fast Mode (January 2026)
+### TestNet Growth Cycle (January 2026)
 - Simplified growth cycle: 2 waters to reach harvest (instead of 10)
-- Water cooldown: 24h (MainNet) or 2h (TestNet Fast Mode)
-- Frontend checkbox "Fast Mode (TestNet)" in Quick Stats card
-- Contract water/water_2 methods accept optional cooldown_seconds via args[1]
-- Minimum cooldown enforced on-chain at 2 hours (7200s) to prevent abuse
-- WATER_COOLDOWN_TESTNET constant (7200s) added to use-algorand.ts
+- Water cooldown: 2 hours (7200 seconds) by default
 - Yield bonuses now require 2+ waters/nutrients instead of 10
 
 ### Visual Growth Stage System (v2.0)

@@ -417,7 +417,7 @@ txn NumAppArgs
 int 1
 >
 bnz main_l40
-int 86400
+int 7200
 store 4
 main_l37:
 load 4
@@ -720,7 +720,7 @@ txn NumAppArgs
 int 1
 >
 bnz main_l54
-int 86400
+int 7200
 store 3
 main_l51:
 load 3
