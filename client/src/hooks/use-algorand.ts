@@ -323,14 +323,15 @@ export function useTransactions() {
     return txId;
   };
 
-  const refreshState = useCallback(() => {
+  // Simple refresh function - uses current values from closure
+  const refreshState = () => {
     // Invalidate all balance and state queries to force refresh
     queryClient.invalidateQueries({ queryKey: ['/api/balances', account] });
     queryClient.invalidateQueries({ queryKey: ['/api/local-state', account] });
     // Also refetch immediately
     queryClient.refetchQueries({ queryKey: ['/api/balances', account] });
     queryClient.refetchQueries({ queryKey: ['/api/local-state', account] });
-  }, [account, queryClient]);
+  };
 
   // Helper to encode string to Uint8Array (browser-safe, no Buffer dependency)
   const encodeArg = (str: string) => new TextEncoder().encode(str);
@@ -356,7 +357,7 @@ export function useTransactions() {
       console.error('Opt-in to app failed:', error);
       throw error;
     }
-  }, [account, signTransactions, refreshState]);
+  }, [account, signTransactions]);
 
   // Opt-in to an ASA (asset)
   const optInToAsset = useCallback(async (assetId: number): Promise<string | null> => {
@@ -381,7 +382,7 @@ export function useTransactions() {
       console.error('Opt-in to asset failed:', error);
       throw error;
     }
-  }, [account, signTransactions, refreshState]);
+  }, [account, signTransactions]);
 
   // Mint a new GrowPod - calls "mint_pod" on the smart contract
   const mintPod = useCallback(async (): Promise<string | null> => {
@@ -410,7 +411,7 @@ export function useTransactions() {
       console.error('Mint pod failed:', error);
       throw error;
     }
-  }, [account, signTransactions, refreshState]);
+  }, [account, signTransactions]);
 
   // Water a plant - calls "water" on the smart contract
   const waterPlant = useCallback(async (): Promise<string | null> => {
@@ -434,7 +435,7 @@ export function useTransactions() {
       console.error('Water plant failed:', error);
       throw error;
     }
-  }, [account, signTransactions, refreshState]);
+  }, [account, signTransactions]);
 
   // Harvest a plant - calls "harvest" on the smart contract
   const harvestPlant = useCallback(async (): Promise<string | null> => {
@@ -459,7 +460,7 @@ export function useTransactions() {
       console.error('Harvest failed:', error);
       throw error;
     }
-  }, [account, signTransactions, refreshState]);
+  }, [account, signTransactions]);
 
   // Cleanup pod - requires burning 500 $BUD + 1 ALGO fee
   const cleanupPod = useCallback(async (): Promise<string | null> => {
@@ -505,7 +506,7 @@ export function useTransactions() {
       console.error('Cleanup failed:', error);
       throw error;
     }
-  }, [account, signTransactions, refreshState]);
+  }, [account, signTransactions]);
 
   // Breed plants - requires burning 1000 $BUD
   const breedPlants = useCallback(async (): Promise<string | null> => {
@@ -543,7 +544,7 @@ export function useTransactions() {
       console.error('Breed failed:', error);
       throw error;
     }
-  }, [account, signTransactions, refreshState]);
+  }, [account, signTransactions]);
 
   // Check if user is opted into the app
   const checkAppOptedIn = useCallback(async (): Promise<boolean> => {
