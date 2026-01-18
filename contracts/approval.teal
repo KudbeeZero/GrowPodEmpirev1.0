@@ -1235,7 +1235,7 @@ int 0
 app_local_put
 txn Sender
 byte "pod_slots"
-int 1
+int 2
 app_local_put
 int 1
 return
