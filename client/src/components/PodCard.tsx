@@ -1,4 +1,4 @@
-import { type GrowPod, formatCooldown, NUTRIENT_COOLDOWN } from "@/hooks/use-algorand";
+import { type GrowPod, formatCooldown, NUTRIENT_COOLDOWN, WATER_COOLDOWN } from "@/hooks/use-algorand";
 import { cn } from "@/lib/utils";
 import { 
   Droplets, 
@@ -90,7 +90,7 @@ export function PodCard({ pod, onWater, onNutrients, onHarvest, onCleanup, isLoa
       const now = Date.now();
       const lastWatered = pod.lastWatered;
       const elapsed = Math.floor((now - lastWatered) / 1000);
-      const remaining = Math.max(0, 86400 - elapsed);
+      const remaining = Math.max(0, WATER_COOLDOWN - elapsed);
       setCooldownDisplay(formatCooldown(remaining));
     };
     

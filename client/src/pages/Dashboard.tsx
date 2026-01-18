@@ -203,10 +203,9 @@ export default function Dashboard() {
     try {
       // Pass the cooldown based on Fast Mode toggle
       const txId = await waterPlant(id, activeWaterCooldown);
-      const cooldownText = fastModeEnabled ? '2h (Fast Mode)' : '24h';
       toast({
         title: "Watered Successfully!",
-        description: `Your plant is growing. Next water in ${cooldownText}. TX: ${txId?.slice(0, 8)}...`,
+        description: `Your plant is growing. Next water in 4h. TX: ${txId?.slice(0, 8)}...`,
       });
     } catch (error) {
       const errorMessage = error instanceof Error ? error.message : 'Transaction failed';
@@ -556,7 +555,7 @@ export default function Dashboard() {
                     </div>
                   </label>
                   <p className="text-xs text-muted-foreground/60 mt-1 ml-6">
-                    {fastModeEnabled ? '2h water cooldown' : '24h water cooldown'}
+                    4h water cooldown
                   </p>
                 </div>
               </CardContent>
