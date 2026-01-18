@@ -13,6 +13,8 @@ from algosdk.transaction import (
     PaymentTxn
 )
 from algosdk.v2client import algod
+from algosdk.logic import get_application_address
+import base64
 import os
 import sys
 import subprocess
@@ -23,8 +25,14 @@ ALGOD_TOKEN = ""
 algod_client = algod.AlgodClient(ALGOD_TOKEN, ALGOD_ADDRESS)
 
 # Contract state schema
-GLOBAL_SCHEMA = StateSchema(num_uints=7, num_byte_slices=1)
-LOCAL_SCHEMA = StateSchema(num_uints=14, num_byte_slices=6)
+# Global: 5 uints (period, cleanup_cost, breed_cost, bud_asset, terp_asset)
+#         2 bytes (owner, terp_registry)
+# Pod 1: 6 uints (stage, water_count, last_watered, nutrient_count, last_nutrients, start_round)
+#        2 bytes (dna, terpene_profile)
+# Pod 2: same 6 uints + 2 bytes
+# Total Local: 12 uints, 4 bytes = 16 keys (at the limit!)
+GLOBAL_SCHEMA = StateSchema(num_uints=5, num_byte_slices=2)
+LOCAL_SCHEMA = StateSchema(num_uints=12, num_byte_slices=4)
 
 
 def compile_contract():
@@ -54,7 +62,7 @@ def compile_contract():
 def compile_teal_to_bytecode(teal_source: str) -> bytes:
     """Compile TEAL source to bytecode using algod."""
     compile_response = algod_client.compile(teal_source)
-    return encoding.base64.b64decode(compile_response['result'])
+    return base64.b64decode(compile_response['result'])
 
 
 def deploy_contract(creator_mnemonic: str, approval_path: str, clear_path: str) -> tuple:
@@ -81,18 +89,21 @@ def deploy_contract(creator_mnemonic: str, approval_path: str, clear_path: str) 
         approval_program=approval_bytecode,
         clear_program=clear_bytecode,
         global_schema=GLOBAL_SCHEMA,
-        local_schema=LOCAL_SCHEMA
+        local_schema=LOCAL_SCHEMA,
+        extra_pages=1
     )
     
     signed_txn = txn.sign(private_key)
-    txid = algod_client.send_transaction(signed_txn)
-    print(f"  Deployment TX: {txid}")
+    try:
+        txid = algod_client.send_transaction(signed_txn)
+        print(f"  Deployment TX: {txid}")
+    except Exception as e:
+        print(f"  ERROR sending transaction: {e}")
+        raise
     
     confirmed_txn = wait_for_confirmation(algod_client, txid, 4)
     app_id = confirmed_txn['application-index']
-    app_address = encoding.encode_address(
-        encoding.checksum(b'appID' + app_id.to_bytes(8, 'big'))
-    )
+    app_address = get_application_address(app_id)
     
     print(f"  Contract deployed!")
     print(f"  App ID: {app_id}")

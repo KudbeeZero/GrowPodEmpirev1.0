@@ -132,10 +132,6 @@ assert
 txn Sender
 byte "terpene_profile_2"
 app_local_get
-txn Sender
-byte "minor_profile_2"
-app_local_get
-concat
 sha256
 store 2
 load 2
@@ -189,10 +185,6 @@ assert
 txn Sender
 byte "terpene_profile"
 app_local_get
-txn Sender
-byte "minor_profile"
-app_local_get
-concat
 sha256
 store 2
 load 2
@@ -298,10 +290,6 @@ byte ""
 app_local_put
 txn Sender
 byte "terpene_profile_2"
-byte ""
-app_local_put
-txn Sender
-byte "minor_profile_2"
 byte ""
 app_local_put
 int 1
@@ -556,16 +544,6 @@ itob
 concat
 sha256
 app_local_put
-txn Sender
-byte "minor_profile_2"
-byte "minor2"
-txn Sender
-concat
-global Round
-itob
-concat
-sha256
-app_local_put
 int 1
 return
 main_l45:
@@ -635,10 +613,6 @@ byte ""
 app_local_put
 txn Sender
 byte "terpene_profile"
-byte ""
-app_local_put
-txn Sender
-byte "minor_profile"
 byte ""
 app_local_put
 int 1
@@ -891,16 +865,6 @@ itob
 concat
 sha256
 app_local_put
-txn Sender
-byte "minor_profile"
-byte "minor"
-txn Sender
-concat
-global Round
-itob
-concat
-sha256
-app_local_put
 int 1
 return
 main_l62:
@@ -1040,10 +1004,6 @@ byte "terpene_profile"
 byte ""
 app_local_put
 txn Sender
-byte "minor_profile"
-byte ""
-app_local_put
-txn Sender
 byte "stage_2"
 int 0
 app_local_put
@@ -1073,10 +1033,6 @@ int 0
 app_local_put
 txn Sender
 byte "terpene_profile_2"
-byte ""
-app_local_put
-txn Sender
-byte "minor_profile_2"
 byte ""
 app_local_put
 int 1

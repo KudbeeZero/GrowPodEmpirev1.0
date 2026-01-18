@@ -9,7 +9,7 @@ GlobalBudAsset = Bytes("bud_asset")  # $BUD ASA ID
 GlobalTerpAsset = Bytes("terp_asset")  # $TERP ASA ID
 GlobalTerpProfileRegistry = Bytes("terp_registry")  # Hash registry for unique profiles
 
-# Local State Keys - Pod 1 (per user)
+# Local State Keys - Pod 1 (per user) - 8 keys
 LocalStage = Bytes("stage")  # 0=empty, 1-4=growing, 5=ready, 6=needs_cleanup
 LocalWaterCount = Bytes("water_count")  # Number of successful waterings
 LocalLastWatered = Bytes("last_watered")  # Timestamp of last water
@@ -18,9 +18,8 @@ LocalLastNutrients = Bytes("last_nutrients")  # Timestamp of last nutrient
 LocalDna = Bytes("dna")  # Plant genetic hash
 LocalStartRound = Bytes("start_round")  # Round when planted
 LocalTerpeneProfile = Bytes("terpene_profile")  # Terpene hash for rarity check
-LocalMinorProfile = Bytes("minor_profile")  # Minor cannabinoid profile
 
-# Local State Keys - Pod 2 (per user)
+# Local State Keys - Pod 2 (per user) - 8 keys
 LocalStage2 = Bytes("stage_2")
 LocalWaterCount2 = Bytes("water_count_2")
 LocalLastWatered2 = Bytes("last_watered_2")
@@ -29,7 +28,6 @@ LocalLastNutrients2 = Bytes("last_nutrients_2")
 LocalDna2 = Bytes("dna_2")
 LocalStartRound2 = Bytes("start_round_2")
 LocalTerpeneProfile2 = Bytes("terpene_profile_2")
-LocalMinorProfile2 = Bytes("minor_profile_2")
 
 # Constants
 BASE_YIELD = Int(250000000)  # 0.25g = 250,000,000 units (6 decimals)
@@ -74,7 +72,6 @@ def approval_program():
         App.localPut(Txn.sender(), LocalDna, Bytes("")),
         App.localPut(Txn.sender(), LocalStartRound, Int(0)),
         App.localPut(Txn.sender(), LocalTerpeneProfile, Bytes("")),
-        App.localPut(Txn.sender(), LocalMinorProfile, Bytes("")),
         # Pod 2
         App.localPut(Txn.sender(), LocalStage2, Int(0)),
         App.localPut(Txn.sender(), LocalWaterCount2, Int(0)),
@@ -84,7 +81,6 @@ def approval_program():
         App.localPut(Txn.sender(), LocalDna2, Bytes("")),
         App.localPut(Txn.sender(), LocalStartRound2, Int(0)),
         App.localPut(Txn.sender(), LocalTerpeneProfile2, Bytes("")),
-        App.localPut(Txn.sender(), LocalMinorProfile2, Bytes("")),
         Approve()
     )
 
@@ -151,11 +147,6 @@ def approval_program():
             Bytes("terp"),
             Txn.sender(),
             Itob(Global.latest_timestamp())
-        ))),
-        App.localPut(Txn.sender(), LocalMinorProfile, Sha256(Concat(
-            Bytes("minor"),
-            Txn.sender(),
-            Itob(Global.round())
         ))),
         Approve()
     )
@@ -255,7 +246,6 @@ def approval_program():
         App.localPut(Txn.sender(), LocalLastNutrients, Int(0)),
         App.localPut(Txn.sender(), LocalDna, Bytes("")),
         App.localPut(Txn.sender(), LocalTerpeneProfile, Bytes("")),
-        App.localPut(Txn.sender(), LocalMinorProfile, Bytes("")),
         Approve()
     )
 
@@ -280,11 +270,6 @@ def approval_program():
             Bytes("terp2"),
             Txn.sender(),
             Itob(Global.latest_timestamp())
-        ))),
-        App.localPut(Txn.sender(), LocalMinorProfile2, Sha256(Concat(
-            Bytes("minor2"),
-            Txn.sender(),
-            Itob(Global.round())
         ))),
         Approve()
     )
@@ -383,7 +368,6 @@ def approval_program():
         App.localPut(Txn.sender(), LocalLastNutrients2, Int(0)),
         App.localPut(Txn.sender(), LocalDna2, Bytes("")),
         App.localPut(Txn.sender(), LocalTerpeneProfile2, Bytes("")),
-        App.localPut(Txn.sender(), LocalMinorProfile2, Bytes("")),
         Approve()
     )
 
@@ -394,10 +378,9 @@ def approval_program():
         Assert(App.localGet(Txn.sender(), LocalStage) == Int(6)),
         Assert(App.globalGet(GlobalTerpAsset) != Int(0)),
         
-        scratch_profile_hash.store(Sha256(Concat(
-            App.localGet(Txn.sender(), LocalTerpeneProfile),
-            App.localGet(Txn.sender(), LocalMinorProfile)
-        ))),
+        scratch_profile_hash.store(Sha256(
+            App.localGet(Txn.sender(), LocalTerpeneProfile)
+        )),
         
         If(
             GetByte(scratch_profile_hash.load(), Int(0)) < Int(32),
@@ -426,10 +409,9 @@ def approval_program():
         Assert(App.localGet(Txn.sender(), LocalStage2) == Int(6)),
         Assert(App.globalGet(GlobalTerpAsset) != Int(0)),
         
-        scratch_profile_hash.store(Sha256(Concat(
-            App.localGet(Txn.sender(), LocalTerpeneProfile2),
-            App.localGet(Txn.sender(), LocalMinorProfile2)
-        ))),
+        scratch_profile_hash.store(Sha256(
+            App.localGet(Txn.sender(), LocalTerpeneProfile2)
+        )),
         
         If(
             GetByte(scratch_profile_hash.load(), Int(0)) < Int(32),
@@ -535,8 +517,8 @@ if __name__ == "__main__":
     
     print("\nContract compilation complete!")
     print("Global state: owner, period, cleanup_cost, breed_cost, bud_asset, terp_asset, terp_registry")
-    print("Local state Pod 1: stage, water_count, last_watered, nutrient_count, last_nutrients, dna, start_round, terpene_profile, minor_profile")
-    print("Local state Pod 2: stage_2, water_count_2, last_watered_2, nutrient_count_2, last_nutrients_2, dna_2, start_round_2, terpene_profile_2, minor_profile_2")
+    print("Local state Pod 1: stage, water_count, last_watered, nutrient_count, last_nutrients, dna, start_round, terpene_profile")
+    print("Local state Pod 2: stage_2, water_count_2, last_watered_2, nutrient_count_2, last_nutrients_2, dna_2, start_round_2, terpene_profile_2")
     print("\nMethods:")
     print("  Pod 1: mint_pod, water, nutrients, harvest, cleanup")
     print("  Pod 2: mint_pod_2, water_2, nutrients_2, harvest_2, cleanup_2")
