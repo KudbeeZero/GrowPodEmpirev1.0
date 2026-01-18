@@ -129,9 +129,30 @@ TERP_ASSET_ID=<terp_asa_id>
 DATABASE_URL=<postgresql_connection_string>
 ```
 
+## TestNet Fast Mode
+
+For faster testing on TestNet, enable **Fast Mode** in the Dashboard to reduce cooldowns:
+
+| Cooldown | MainNet (Default) | TestNet Fast Mode |
+|----------|-------------------|-------------------|
+| Water    | 24 hours (86400s) | 2 hours (7200s)   |
+
+### How to Enable
+1. Go to the **Dashboard**
+2. Find the **Quick Stats** card
+3. Check the **Fast Mode (TestNet)** checkbox
+4. Water cooldowns will now use 2-hour intervals
+
+### Technical Details
+- The smart contract accepts an optional `cooldown_seconds` argument (args[1]) for the water methods
+- When Fast Mode is enabled, the frontend passes `7200` seconds to the contract
+- When disabled (default), it uses `86400` seconds (24 hours)
+- This only affects the water action; nutrients still use 6h cooldown
+- **Security**: The contract enforces a minimum cooldown of 2 hours (7200s) on-chain to prevent abuse
+
 ## Security Features
 
-- **24h Water Cooldown**: Prevents exploitation, enforced on-chain
+- **Configurable Water Cooldown**: 24h default, 2h for TestNet fast mode, enforced on-chain
 - **Atomic Burns**: $BUD burns grouped with actions (cleanup, breed)
 - **Soulbound NFTs**: Clawback mechanism prevents transfers
 - **DNA Uniqueness**: Cryptographic hashing for plant genetics

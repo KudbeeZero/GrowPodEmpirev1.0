@@ -99,6 +99,13 @@ Preferred communication style: Simple, everyday language.
 - **$BUD**: 10B total supply cap, 6 decimals, minted only on harvest
 - **$TERP**: 100M fixed supply, 6 decimals, minted on rare profiles (5k-50k reward)
 
+### TestNet Fast Mode (January 2026)
+- Added configurable water cooldown: 24h (MainNet) or 2h (TestNet Fast Mode)
+- Frontend checkbox "Fast Mode (TestNet)" in Quick Stats card
+- Contract water/water_2 methods accept optional cooldown_seconds via args[1]
+- Minimum cooldown enforced on-chain at 2 hours (7200s) to prevent abuse
+- WATER_COOLDOWN_TESTNET constant (7200s) added to use-algorand.ts
+
 ### Visual Growth Stage System (v2.0)
 - Added 7 unique pod images for each growth stage:
   - Stage 0: Empty pod (generated)

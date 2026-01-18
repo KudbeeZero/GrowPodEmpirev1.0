@@ -1,10 +1,11 @@
-import { useAlgorand, useGameState, useTransactions, CONTRACT_CONFIG, MAX_PODS } from "@/hooks/use-algorand";
+import { useAlgorand, useGameState, useTransactions, CONTRACT_CONFIG, MAX_PODS, WATER_COOLDOWN, WATER_COOLDOWN_TESTNET } from "@/hooks/use-algorand";
 import { CurrencyDisplay } from "@/components/CurrencyDisplay";
 import { PodCard } from "@/components/PodCard";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { Checkbox } from "@/components/ui/checkbox";
 import { useToast } from "@/hooks/use-toast";
-import { Plus, Sprout, Leaf, FlaskConical, Flame, Zap, Sparkles } from "lucide-react";
+import { Plus, Sprout, Leaf, FlaskConical, Flame, Zap, Sparkles, TestTube2 } from "lucide-react";
 import { Link } from "wouter";
 import { motion } from "framer-motion";
 import { useState, useEffect } from "react";
@@ -18,6 +19,10 @@ export default function Dashboard() {
   const [isOptedInApp, setIsOptedInApp] = useState(false);
   const [isOptedInBud, setIsOptedInBud] = useState(false);
   const [isOptedInTerp, setIsOptedInTerp] = useState(false);
+  const [fastModeEnabled, setFastModeEnabled] = useState(false);
+
+  // Get the active cooldown based on Fast Mode toggle
+  const activeWaterCooldown = fastModeEnabled ? WATER_COOLDOWN_TESTNET : WATER_COOLDOWN;
 
   const isContractConfigured = CONTRACT_CONFIG.appId > 0;
 
@@ -196,10 +201,12 @@ export default function Dashboard() {
     });
     
     try {
-      const txId = await waterPlant(id);
+      // Pass the cooldown based on Fast Mode toggle
+      const txId = await waterPlant(id, activeWaterCooldown);
+      const cooldownText = fastModeEnabled ? '2h (Fast Mode)' : '24h';
       toast({
         title: "Watered Successfully!",
-        description: `Your plant is growing. Next water in 24h. TX: ${txId?.slice(0, 8)}...`,
+        description: `Your plant is growing. Next water in ${cooldownText}. TX: ${txId?.slice(0, 8)}...`,
       });
     } catch (error) {
       const errorMessage = error instanceof Error ? error.message : 'Transaction failed';
@@ -529,6 +536,28 @@ export default function Dashboard() {
                     <span className="text-muted-foreground">Need Nutrients:</span>
                     <span className="font-mono text-green-400">{pods.filter(p => p.canAddNutrients).length}</span>
                   </div>
+                </div>
+                
+                <div className="mt-4 pt-3 border-t border-white/10">
+                  <label 
+                    className="flex items-center gap-2 cursor-pointer group"
+                    data-testid="label-fast-mode"
+                  >
+                    <Checkbox 
+                      checked={fastModeEnabled}
+                      onCheckedChange={(checked) => setFastModeEnabled(checked === true)}
+                      data-testid="checkbox-fast-mode"
+                    />
+                    <div className="flex items-center gap-1.5">
+                      <TestTube2 className="h-3.5 w-3.5 text-cyan-400" />
+                      <span className="text-xs text-muted-foreground group-hover:text-foreground transition-colors">
+                        Fast Mode (TestNet)
+                      </span>
+                    </div>
+                  </label>
+                  <p className="text-xs text-muted-foreground/60 mt-1 ml-6">
+                    {fastModeEnabled ? '2h water cooldown' : '24h water cooldown'}
+                  </p>
                 </div>
               </CardContent>
             </Card>

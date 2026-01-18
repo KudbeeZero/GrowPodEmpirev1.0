@@ -32,6 +32,7 @@ LocalTerpeneProfile2 = Bytes("terpene_profile_2")
 # Constants
 BASE_YIELD = Int(250000000)  # 0.25g = 250,000,000 units (6 decimals)
 WATER_COOLDOWN = Int(86400)  # 24 hours in seconds
+WATER_COOLDOWN_MIN = Int(7200)  # 2 hours minimum (TestNet fast mode)
 NUTRIENT_COOLDOWN = Int(21600)  # 6 hours in seconds
 GROWTH_CYCLE = Int(864000)  # 10 days in seconds
 CLEANUP_BURN = Int(500000000)  # 500 $BUD to burn for cleanup
@@ -151,14 +152,29 @@ def approval_program():
         Approve()
     )
 
-    # Water Pod 1 - Water the plant with 24h cooldown
+    # Water Pod 1 - Water the plant with configurable cooldown
+    # If args[1] is provided, use it as cooldown_seconds; otherwise default to WATER_COOLDOWN (24h)
+    # Minimum cooldown enforced at WATER_COOLDOWN_MIN (2h) to prevent abuse
+    scratch_cooldown = ScratchVar(TealType.uint64)
+    
     water = Seq(
         Assert(App.localGet(Txn.sender(), LocalStage) >= Int(1)),
         Assert(App.localGet(Txn.sender(), LocalStage) <= Int(4)),
+        
+        # Use custom cooldown from args[1] if provided, else default 24h
+        If(
+            Txn.application_args.length() > Int(1),
+            scratch_cooldown.store(Btoi(Txn.application_args[1])),
+            scratch_cooldown.store(WATER_COOLDOWN)
+        ),
+        
+        # Enforce minimum cooldown to prevent abuse (at least 2 hours)
+        Assert(scratch_cooldown.load() >= WATER_COOLDOWN_MIN),
+        
         Assert(
             Or(
                 App.localGet(Txn.sender(), LocalLastWatered) == Int(0),
-                Global.latest_timestamp() - App.localGet(Txn.sender(), LocalLastWatered) >= WATER_COOLDOWN
+                Global.latest_timestamp() - App.localGet(Txn.sender(), LocalLastWatered) >= scratch_cooldown.load()
             )
         ),
         
@@ -274,14 +290,28 @@ def approval_program():
         Approve()
     )
 
-    # Water Pod 2
+    # Water Pod 2 - with configurable cooldown
+    # Minimum cooldown enforced at WATER_COOLDOWN_MIN (2h) to prevent abuse
+    scratch_cooldown_2 = ScratchVar(TealType.uint64)
+    
     water_2 = Seq(
         Assert(App.localGet(Txn.sender(), LocalStage2) >= Int(1)),
         Assert(App.localGet(Txn.sender(), LocalStage2) <= Int(4)),
+        
+        # Use custom cooldown from args[1] if provided, else default 24h
+        If(
+            Txn.application_args.length() > Int(1),
+            scratch_cooldown_2.store(Btoi(Txn.application_args[1])),
+            scratch_cooldown_2.store(WATER_COOLDOWN)
+        ),
+        
+        # Enforce minimum cooldown to prevent abuse (at least 2 hours)
+        Assert(scratch_cooldown_2.load() >= WATER_COOLDOWN_MIN),
+        
         Assert(
             Or(
                 App.localGet(Txn.sender(), LocalLastWatered2) == Int(0),
-                Global.latest_timestamp() - App.localGet(Txn.sender(), LocalLastWatered2) >= WATER_COOLDOWN
+                Global.latest_timestamp() - App.localGet(Txn.sender(), LocalLastWatered2) >= scratch_cooldown_2.load()
             )
         ),
         

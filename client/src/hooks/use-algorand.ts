@@ -10,7 +10,8 @@ export type PodStage = 0 | 1 | 2 | 3 | 4 | 5 | 6;
 export type PodStatus = 'empty' | 'seedling' | 'vegetative' | 'flowering' | 'mature' | 'harvest_ready' | 'dead' | 'needs_cleanup';
 
 // Constants for cooldowns
-export const WATER_COOLDOWN = 86400; // 24 hours in seconds
+export const WATER_COOLDOWN = 86400; // 24 hours in seconds (MainNet/default)
+export const WATER_COOLDOWN_TESTNET = 7200; // 2 hours in seconds (TestNet Fast Mode)
 export const NUTRIENT_COOLDOWN = 21600; // 6 hours in seconds
 export const MAX_PODS = 2; // Maximum pods per user
 
@@ -387,7 +388,8 @@ export function useTransactions() {
   }, [account, signTransactions]);
 
   // Water a plant - calls "water" on the smart contract
-  const waterPlant = useCallback(async (podId: number = 1): Promise<string | null> => {
+  // Optional cooldownSeconds: pass 7200 for TestNet fast mode, 86400 for MainNet (default)
+  const waterPlant = useCallback(async (podId: number = 1, cooldownSeconds?: number): Promise<string | null> => {
     if (!account || !CONTRACT_CONFIG.appId) return null;
     
     try {
@@ -396,11 +398,21 @@ export function useTransactions() {
       // Use different app arg based on pod ID
       const appArg = podId === 2 ? 'water_2' : 'water';
       
+      // Build app args array - include cooldown if provided
+      const appArgs: Uint8Array[] = [encodeArg(appArg)];
+      if (cooldownSeconds !== undefined) {
+        // Encode cooldown as 8-byte big-endian uint64
+        const cooldownBytes = new Uint8Array(8);
+        const view = new DataView(cooldownBytes.buffer);
+        view.setBigUint64(0, BigInt(cooldownSeconds), false); // false = big-endian
+        appArgs.push(cooldownBytes);
+      }
+      
       const txn = algosdk.makeApplicationNoOpTxnFromObject({
         sender: account,
         suggestedParams,
         appIndex: CONTRACT_CONFIG.appId,
-        appArgs: [encodeArg(appArg)],
+        appArgs,
       });
       
       const signedTxns = await signTransactions([txn]);
