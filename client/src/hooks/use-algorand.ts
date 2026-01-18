@@ -458,8 +458,8 @@ export function useTransactions() {
     }
   }, [account, signTransactions]);
 
-  // Mint a new GrowPod - calls "mint_pod" on the smart contract
-  const mintPod = useCallback(async (): Promise<string | null> => {
+  // Mint a new GrowPod - calls "mint_pod" or "mint_pod_2" on the smart contract
+  const mintPod = useCallback(async (podId: number = 1): Promise<string | null> => {
     if (!account) {
       throw new Error('Please connect your wallet first');
     }
@@ -470,11 +470,14 @@ export function useTransactions() {
     try {
       const suggestedParams = await algodClient.getTransactionParams().do();
       
+      // Use different app arg based on pod ID
+      const appArg = podId === 2 ? 'mint_pod_2' : 'mint_pod';
+      
       const txn = algosdk.makeApplicationNoOpTxnFromObject({
         sender: account,
         suggestedParams,
         appIndex: CONTRACT_CONFIG.appId,
-        appArgs: [encodeArg('mint_pod')],
+        appArgs: [encodeArg(appArg)],
       });
       
       const signedTxns = await signTransactions([txn]);
@@ -541,18 +544,21 @@ export function useTransactions() {
     }
   }, [account, signTransactions]);
 
-  // Harvest a plant - calls "harvest" on the smart contract
-  const harvestPlant = useCallback(async (): Promise<string | null> => {
+  // Harvest a plant - calls "harvest" or "harvest_2" on the smart contract
+  const harvestPlant = useCallback(async (podId: number = 1): Promise<string | null> => {
     if (!account || !CONTRACT_CONFIG.appId) return null;
     
     try {
       const suggestedParams = await algodClient.getTransactionParams().do();
       
+      // Use different app arg based on pod ID
+      const appArg = podId === 2 ? 'harvest_2' : 'harvest';
+      
       const txn = algosdk.makeApplicationNoOpTxnFromObject({
         sender: account,
         suggestedParams,
         appIndex: CONTRACT_CONFIG.appId,
-        appArgs: [encodeArg('harvest')],
+        appArgs: [encodeArg(appArg)],
         foreignAssets: CONTRACT_CONFIG.budAssetId ? [CONTRACT_CONFIG.budAssetId] : undefined,
       });
       
@@ -567,11 +573,14 @@ export function useTransactions() {
   }, [account, signTransactions]);
 
   // Cleanup pod - requires burning 500 $BUD + 1 ALGO fee
-  const cleanupPod = useCallback(async (): Promise<string | null> => {
+  const cleanupPod = useCallback(async (podId: number = 1): Promise<string | null> => {
     if (!account || !CONTRACT_CONFIG.appId || !CONTRACT_CONFIG.budAssetId) return null;
     
     try {
       const suggestedParams = await algodClient.getTransactionParams().do();
+      
+      // Use different app arg based on pod ID
+      const appArg = podId === 2 ? 'cleanup_2' : 'cleanup';
       
       // Transaction 1: Burn 500 $BUD (send to app address)
       const burnTxn = algosdk.makeAssetTransferTxnWithSuggestedParamsFromObject({
@@ -595,7 +604,7 @@ export function useTransactions() {
         sender: account,
         suggestedParams,
         appIndex: CONTRACT_CONFIG.appId,
-        appArgs: [encodeArg('cleanup')],
+        appArgs: [encodeArg(appArg)],
       });
       
       // Group the transactions

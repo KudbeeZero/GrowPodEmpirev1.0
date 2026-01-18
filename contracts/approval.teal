@@ -2,57 +2,85 @@
 txn ApplicationID
 int 0
 ==
-bnz main_l38
+bnz main_l68
 txn OnCompletion
 int OptIn
 ==
-bnz main_l37
+bnz main_l67
 txn OnCompletion
 int CloseOut
 ==
-bnz main_l36
+bnz main_l66
 txn OnCompletion
 int UpdateApplication
 ==
-bnz main_l35
+bnz main_l65
 txn OnCompletion
 int DeleteApplication
 ==
-bnz main_l34
+bnz main_l64
 txna ApplicationArgs 0
 byte "bootstrap"
 ==
-bnz main_l33
+bnz main_l63
 txna ApplicationArgs 0
 byte "set_asa_ids"
 ==
-bnz main_l32
+bnz main_l62
 txna ApplicationArgs 0
 byte "mint_pod"
 ==
-bnz main_l31
+bnz main_l61
 txna ApplicationArgs 0
 byte "water"
 ==
-bnz main_l22
+bnz main_l52
+txna ApplicationArgs 0
+byte "nutrients"
+==
+bnz main_l51
 txna ApplicationArgs 0
 byte "harvest"
 ==
-bnz main_l19
-txna ApplicationArgs 0
-byte "check_terp"
-==
-bnz main_l16
+bnz main_l46
 txna ApplicationArgs 0
 byte "cleanup"
 ==
-bnz main_l15
+bnz main_l45
+txna ApplicationArgs 0
+byte "mint_pod_2"
+==
+bnz main_l44
+txna ApplicationArgs 0
+byte "water_2"
+==
+bnz main_l35
+txna ApplicationArgs 0
+byte "nutrients_2"
+==
+bnz main_l34
+txna ApplicationArgs 0
+byte "harvest_2"
+==
+bnz main_l29
+txna ApplicationArgs 0
+byte "cleanup_2"
+==
+bnz main_l28
+txna ApplicationArgs 0
+byte "check_terp"
+==
+bnz main_l25
+txna ApplicationArgs 0
+byte "check_terp_2"
+==
+bnz main_l22
 txna ApplicationArgs 0
 byte "breed"
 ==
-bnz main_l14
+bnz main_l21
 err
-main_l14:
+main_l21:
 byte "bud_asset"
 app_global_get
 int 0
@@ -89,7 +117,458 @@ global CurrentApplicationAddress
 assert
 int 1
 return
-main_l15:
+main_l22:
+txn Sender
+byte "stage_2"
+app_local_get
+int 6
+==
+assert
+byte "terp_asset"
+app_global_get
+int 0
+!=
+assert
+txn Sender
+byte "terpene_profile_2"
+app_local_get
+txn Sender
+byte "minor_profile_2"
+app_local_get
+concat
+sha256
+store 2
+load 2
+int 0
+getbyte
+int 32
+<
+bnz main_l24
+main_l23:
+int 1
+return
+main_l24:
+int 5000000000
+int 32
+load 2
+int 0
+getbyte
+-
+int 50000000000
+int 5000000000
+-
+*
+int 32
+/
++
+store 1
+itxn_begin
+int axfer
+itxn_field TypeEnum
+byte "terp_asset"
+app_global_get
+itxn_field XferAsset
+load 1
+itxn_field AssetAmount
+txn Sender
+itxn_field AssetReceiver
+itxn_submit
+b main_l23
+main_l25:
+txn Sender
+byte "stage"
+app_local_get
+int 6
+==
+assert
+byte "terp_asset"
+app_global_get
+int 0
+!=
+assert
+txn Sender
+byte "terpene_profile"
+app_local_get
+txn Sender
+byte "minor_profile"
+app_local_get
+concat
+sha256
+store 2
+load 2
+int 0
+getbyte
+int 32
+<
+bnz main_l27
+main_l26:
+int 1
+return
+main_l27:
+int 5000000000
+int 32
+load 2
+int 0
+getbyte
+-
+int 50000000000
+int 5000000000
+-
+*
+int 32
+/
++
+store 1
+itxn_begin
+int axfer
+itxn_field TypeEnum
+byte "terp_asset"
+app_global_get
+itxn_field XferAsset
+load 1
+itxn_field AssetAmount
+txn Sender
+itxn_field AssetReceiver
+itxn_submit
+b main_l26
+main_l28:
+txn Sender
+byte "stage_2"
+app_local_get
+int 6
+==
+assert
+byte "bud_asset"
+app_global_get
+int 0
+!=
+assert
+txn GroupIndex
+int 1
+-
+gtxns TypeEnum
+int axfer
+==
+assert
+txn GroupIndex
+int 1
+-
+gtxns XferAsset
+byte "bud_asset"
+app_global_get
+==
+assert
+txn GroupIndex
+int 1
+-
+gtxns AssetAmount
+int 500000000
+>=
+assert
+txn GroupIndex
+int 1
+-
+gtxns AssetReceiver
+global CurrentApplicationAddress
+==
+assert
+txn Sender
+byte "stage_2"
+int 0
+app_local_put
+txn Sender
+byte "water_count_2"
+int 0
+app_local_put
+txn Sender
+byte "last_watered_2"
+int 0
+app_local_put
+txn Sender
+byte "nutrient_count_2"
+int 0
+app_local_put
+txn Sender
+byte "last_nutrients_2"
+int 0
+app_local_put
+txn Sender
+byte "dna_2"
+byte ""
+app_local_put
+txn Sender
+byte "terpene_profile_2"
+byte ""
+app_local_put
+txn Sender
+byte "minor_profile_2"
+byte ""
+app_local_put
+int 1
+return
+main_l29:
+txn Sender
+byte "stage_2"
+app_local_get
+int 5
+==
+assert
+byte "bud_asset"
+app_global_get
+int 0
+!=
+assert
+int 250000000
+store 0
+txn Sender
+byte "water_count_2"
+app_local_get
+int 10
+>=
+bnz main_l33
+main_l30:
+txn Sender
+byte "nutrient_count_2"
+app_local_get
+int 10
+>=
+bnz main_l32
+main_l31:
+itxn_begin
+int axfer
+itxn_field TypeEnum
+byte "bud_asset"
+app_global_get
+itxn_field XferAsset
+load 0
+itxn_field AssetAmount
+txn Sender
+itxn_field AssetReceiver
+itxn_submit
+txn Sender
+byte "stage_2"
+int 6
+app_local_put
+int 1
+return
+main_l32:
+load 0
+int 250000000
+int 30
+*
+int 100
+/
++
+store 0
+b main_l31
+main_l33:
+load 0
+int 250000000
+int 20
+*
+int 100
+/
++
+store 0
+b main_l30
+main_l34:
+txn Sender
+byte "stage_2"
+app_local_get
+int 1
+>=
+assert
+txn Sender
+byte "stage_2"
+app_local_get
+int 4
+<=
+assert
+txn Sender
+byte "last_nutrients_2"
+app_local_get
+int 0
+==
+global LatestTimestamp
+txn Sender
+byte "last_nutrients_2"
+app_local_get
+-
+int 21600
+>=
+||
+assert
+txn Sender
+byte "last_nutrients_2"
+global LatestTimestamp
+app_local_put
+txn Sender
+byte "nutrient_count_2"
+txn Sender
+byte "nutrient_count_2"
+app_local_get
+int 1
++
+app_local_put
+int 1
+return
+main_l35:
+txn Sender
+byte "stage_2"
+app_local_get
+int 1
+>=
+assert
+txn Sender
+byte "stage_2"
+app_local_get
+int 4
+<=
+assert
+txn Sender
+byte "last_watered_2"
+app_local_get
+int 0
+==
+global LatestTimestamp
+txn Sender
+byte "last_watered_2"
+app_local_get
+-
+int 86400
+>=
+||
+assert
+txn Sender
+byte "last_watered_2"
+global LatestTimestamp
+app_local_put
+txn Sender
+byte "water_count_2"
+txn Sender
+byte "water_count_2"
+app_local_get
+int 1
++
+app_local_put
+txn Sender
+byte "water_count_2"
+app_local_get
+int 10
+>=
+bnz main_l43
+txn Sender
+byte "water_count_2"
+app_local_get
+int 3
+==
+bnz main_l42
+txn Sender
+byte "water_count_2"
+app_local_get
+int 6
+==
+bnz main_l41
+txn Sender
+byte "water_count_2"
+app_local_get
+int 8
+==
+bnz main_l40
+main_l39:
+int 1
+return
+main_l40:
+txn Sender
+byte "stage_2"
+int 4
+app_local_put
+b main_l39
+main_l41:
+txn Sender
+byte "stage_2"
+int 3
+app_local_put
+b main_l39
+main_l42:
+txn Sender
+byte "stage_2"
+int 2
+app_local_put
+b main_l39
+main_l43:
+txn Sender
+byte "stage_2"
+int 5
+app_local_put
+b main_l39
+main_l44:
+txn Sender
+byte "stage_2"
+app_local_get
+int 0
+==
+assert
+txn Sender
+byte "dna_2"
+txn Sender
+global LatestTimestamp
+itob
+concat
+global Round
+itob
+concat
+byte "pod2"
+concat
+sha256
+app_local_put
+txn Sender
+byte "stage_2"
+int 1
+app_local_put
+txn Sender
+byte "start_round_2"
+global Round
+app_local_put
+txn Sender
+byte "water_count_2"
+int 0
+app_local_put
+txn Sender
+byte "last_watered_2"
+int 0
+app_local_put
+txn Sender
+byte "nutrient_count_2"
+int 0
+app_local_put
+txn Sender
+byte "last_nutrients_2"
+int 0
+app_local_put
+txn Sender
+byte "terpene_profile_2"
+byte "terp2"
+txn Sender
+concat
+global LatestTimestamp
+itob
+concat
+sha256
+app_local_put
+txn Sender
+byte "minor_profile_2"
+byte "minor2"
+txn Sender
+concat
+global Round
+itob
+concat
+sha256
+app_local_put
+int 1
+return
+main_l45:
 txn Sender
 byte "stage"
 app_local_get
@@ -143,6 +622,14 @@ byte "last_watered"
 int 0
 app_local_put
 txn Sender
+byte "nutrient_count"
+int 0
+app_local_put
+txn Sender
+byte "last_nutrients"
+int 0
+app_local_put
+txn Sender
 byte "dna"
 byte ""
 app_local_put
@@ -156,64 +643,7 @@ byte ""
 app_local_put
 int 1
 return
-main_l16:
-txn Sender
-byte "stage"
-app_local_get
-int 6
-==
-assert
-byte "terp_asset"
-app_global_get
-int 0
-!=
-assert
-txn Sender
-byte "terpene_profile"
-app_local_get
-txn Sender
-byte "minor_profile"
-app_local_get
-concat
-sha256
-store 2
-load 2
-int 0
-getbyte
-int 32
-<
-bnz main_l18
-main_l17:
-int 1
-return
-main_l18:
-int 5000000000
-int 32
-load 2
-int 0
-getbyte
--
-int 50000000000
-int 5000000000
--
-*
-int 32
-/
-+
-store 1
-itxn_begin
-int axfer
-itxn_field TypeEnum
-byte "terp_asset"
-app_global_get
-itxn_field XferAsset
-load 1
-itxn_field AssetAmount
-txn Sender
-itxn_field AssetReceiver
-itxn_submit
-b main_l17
-main_l19:
+main_l46:
 txn Sender
 byte "stage"
 app_local_get
@@ -232,10 +662,15 @@ byte "water_count"
 app_local_get
 int 10
 >=
-bnz main_l21
-main_l20:
-load 0
-store 0
+bnz main_l50
+main_l47:
+txn Sender
+byte "nutrient_count"
+app_local_get
+int 10
+>=
+bnz main_l49
+main_l48:
 itxn_begin
 int axfer
 itxn_field TypeEnum
@@ -253,7 +688,17 @@ int 6
 app_local_put
 int 1
 return
-main_l21:
+main_l49:
+load 0
+int 250000000
+int 30
+*
+int 100
+/
++
+store 0
+b main_l48
+main_l50:
 load 0
 int 250000000
 int 20
@@ -262,8 +707,49 @@ int 100
 /
 +
 store 0
-b main_l20
-main_l22:
+b main_l47
+main_l51:
+txn Sender
+byte "stage"
+app_local_get
+int 1
+>=
+assert
+txn Sender
+byte "stage"
+app_local_get
+int 4
+<=
+assert
+txn Sender
+byte "last_nutrients"
+app_local_get
+int 0
+==
+global LatestTimestamp
+txn Sender
+byte "last_nutrients"
+app_local_get
+-
+int 21600
+>=
+||
+assert
+txn Sender
+byte "last_nutrients"
+global LatestTimestamp
+app_local_put
+txn Sender
+byte "nutrient_count"
+txn Sender
+byte "nutrient_count"
+app_local_get
+int 1
++
+app_local_put
+int 1
+return
+main_l52:
 txn Sender
 byte "stage"
 app_local_get
@@ -307,53 +793,53 @@ byte "water_count"
 app_local_get
 int 10
 >=
-bnz main_l30
+bnz main_l60
 txn Sender
 byte "water_count"
 app_local_get
 int 3
 ==
-bnz main_l29
+bnz main_l59
 txn Sender
 byte "water_count"
 app_local_get
 int 6
 ==
-bnz main_l28
+bnz main_l58
 txn Sender
 byte "water_count"
 app_local_get
 int 8
 ==
-bnz main_l27
-main_l26:
+bnz main_l57
+main_l56:
 int 1
 return
-main_l27:
+main_l57:
 txn Sender
 byte "stage"
 int 4
 app_local_put
-b main_l26
-main_l28:
+b main_l56
+main_l58:
 txn Sender
 byte "stage"
 int 3
 app_local_put
-b main_l26
-main_l29:
+b main_l56
+main_l59:
 txn Sender
 byte "stage"
 int 2
 app_local_put
-b main_l26
-main_l30:
+b main_l56
+main_l60:
 txn Sender
 byte "stage"
 int 5
 app_local_put
-b main_l26
-main_l31:
+b main_l56
+main_l61:
 txn Sender
 byte "stage"
 app_local_get
@@ -388,6 +874,14 @@ byte "last_watered"
 int 0
 app_local_put
 txn Sender
+byte "nutrient_count"
+int 0
+app_local_put
+txn Sender
+byte "last_nutrients"
+int 0
+app_local_put
+txn Sender
 byte "terpene_profile"
 byte "terp"
 txn Sender
@@ -409,7 +903,7 @@ sha256
 app_local_put
 int 1
 return
-main_l32:
+main_l62:
 txn Sender
 byte "owner"
 app_global_get
@@ -425,7 +919,7 @@ btoi
 app_global_put
 int 1
 return
-main_l33:
+main_l63:
 txn Sender
 byte "owner"
 app_global_get
@@ -493,7 +987,7 @@ itxn CreatedAssetID
 app_global_put
 int 1
 return
-main_l34:
+main_l64:
 txn Sender
 byte "owner"
 app_global_get
@@ -501,7 +995,7 @@ app_global_get
 assert
 int 1
 return
-main_l35:
+main_l65:
 txn Sender
 byte "owner"
 app_global_get
@@ -509,10 +1003,10 @@ app_global_get
 assert
 int 1
 return
-main_l36:
+main_l66:
 int 1
 return
-main_l37:
+main_l67:
 txn Sender
 byte "stage"
 int 0
@@ -523,6 +1017,14 @@ int 0
 app_local_put
 txn Sender
 byte "last_watered"
+int 0
+app_local_put
+txn Sender
+byte "nutrient_count"
+int 0
+app_local_put
+txn Sender
+byte "last_nutrients"
 int 0
 app_local_put
 txn Sender
@@ -541,9 +1043,45 @@ txn Sender
 byte "minor_profile"
 byte ""
 app_local_put
+txn Sender
+byte "stage_2"
+int 0
+app_local_put
+txn Sender
+byte "water_count_2"
+int 0
+app_local_put
+txn Sender
+byte "last_watered_2"
+int 0
+app_local_put
+txn Sender
+byte "nutrient_count_2"
+int 0
+app_local_put
+txn Sender
+byte "last_nutrients_2"
+int 0
+app_local_put
+txn Sender
+byte "dna_2"
+byte ""
+app_local_put
+txn Sender
+byte "start_round_2"
+int 0
+app_local_put
+txn Sender
+byte "terpene_profile_2"
+byte ""
+app_local_put
+txn Sender
+byte "minor_profile_2"
+byte ""
+app_local_put
 int 1
 return
-main_l38:
+main_l68:
 byte "owner"
 txn Sender
 app_global_put

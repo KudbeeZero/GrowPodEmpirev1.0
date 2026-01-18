@@ -9,18 +9,32 @@ GlobalBudAsset = Bytes("bud_asset")  # $BUD ASA ID
 GlobalTerpAsset = Bytes("terp_asset")  # $TERP ASA ID
 GlobalTerpProfileRegistry = Bytes("terp_registry")  # Hash registry for unique profiles
 
-# Local State Keys (per user)
+# Local State Keys - Pod 1 (per user)
 LocalStage = Bytes("stage")  # 0=empty, 1-4=growing, 5=ready, 6=needs_cleanup
 LocalWaterCount = Bytes("water_count")  # Number of successful waterings
 LocalLastWatered = Bytes("last_watered")  # Timestamp of last water
+LocalNutrientCount = Bytes("nutrient_count")  # Number of nutrient applications
+LocalLastNutrients = Bytes("last_nutrients")  # Timestamp of last nutrient
 LocalDna = Bytes("dna")  # Plant genetic hash
 LocalStartRound = Bytes("start_round")  # Round when planted
 LocalTerpeneProfile = Bytes("terpene_profile")  # Terpene hash for rarity check
 LocalMinorProfile = Bytes("minor_profile")  # Minor cannabinoid profile
 
+# Local State Keys - Pod 2 (per user)
+LocalStage2 = Bytes("stage_2")
+LocalWaterCount2 = Bytes("water_count_2")
+LocalLastWatered2 = Bytes("last_watered_2")
+LocalNutrientCount2 = Bytes("nutrient_count_2")
+LocalLastNutrients2 = Bytes("last_nutrients_2")
+LocalDna2 = Bytes("dna_2")
+LocalStartRound2 = Bytes("start_round_2")
+LocalTerpeneProfile2 = Bytes("terpene_profile_2")
+LocalMinorProfile2 = Bytes("minor_profile_2")
+
 # Constants
 BASE_YIELD = Int(250000000)  # 0.25g = 250,000,000 units (6 decimals)
 WATER_COOLDOWN = Int(86400)  # 24 hours in seconds
+NUTRIENT_COOLDOWN = Int(21600)  # 6 hours in seconds
 GROWTH_CYCLE = Int(864000)  # 10 days in seconds
 CLEANUP_BURN = Int(500000000)  # 500 $BUD to burn for cleanup
 BREED_BURN = Int(1000000000)  # 1000 $BUD to burn for breeding
@@ -49,30 +63,42 @@ def approval_program():
         Approve()
     )
 
-    # User opt-in - Initialize local state
+    # User opt-in - Initialize local state for both pods
     handle_optin = Seq(
+        # Pod 1
         App.localPut(Txn.sender(), LocalStage, Int(0)),
         App.localPut(Txn.sender(), LocalWaterCount, Int(0)),
         App.localPut(Txn.sender(), LocalLastWatered, Int(0)),
+        App.localPut(Txn.sender(), LocalNutrientCount, Int(0)),
+        App.localPut(Txn.sender(), LocalLastNutrients, Int(0)),
         App.localPut(Txn.sender(), LocalDna, Bytes("")),
         App.localPut(Txn.sender(), LocalStartRound, Int(0)),
         App.localPut(Txn.sender(), LocalTerpeneProfile, Bytes("")),
         App.localPut(Txn.sender(), LocalMinorProfile, Bytes("")),
+        # Pod 2
+        App.localPut(Txn.sender(), LocalStage2, Int(0)),
+        App.localPut(Txn.sender(), LocalWaterCount2, Int(0)),
+        App.localPut(Txn.sender(), LocalLastWatered2, Int(0)),
+        App.localPut(Txn.sender(), LocalNutrientCount2, Int(0)),
+        App.localPut(Txn.sender(), LocalLastNutrients2, Int(0)),
+        App.localPut(Txn.sender(), LocalDna2, Bytes("")),
+        App.localPut(Txn.sender(), LocalStartRound2, Int(0)),
+        App.localPut(Txn.sender(), LocalTerpeneProfile2, Bytes("")),
+        App.localPut(Txn.sender(), LocalMinorProfile2, Bytes("")),
         Approve()
     )
 
     # Bootstrap ASAs - Create $BUD and $TERP tokens via inner transactions
-    # Only callable by owner, and only if ASAs not yet created
     bootstrap_asas = Seq(
         Assert(is_owner),
         Assert(App.globalGet(GlobalBudAsset) == Int(0)),
         Assert(App.globalGet(GlobalTerpAsset) == Int(0)),
         
-        # Create $BUD ASA - 10 billion total supply with 6 decimals
+        # Create $BUD ASA
         InnerTxnBuilder.Begin(),
         InnerTxnBuilder.SetFields({
             TxnField.type_enum: TxnType.AssetConfig,
-            TxnField.config_asset_total: Int(10000000000000000),  # 10B * 10^6
+            TxnField.config_asset_total: Int(10000000000000000),
             TxnField.config_asset_decimals: Int(6),
             TxnField.config_asset_unit_name: Bytes("BUD"),
             TxnField.config_asset_name: Bytes("GrowPod BUD"),
@@ -85,11 +111,11 @@ def approval_program():
         InnerTxnBuilder.Submit(),
         App.globalPut(GlobalBudAsset, InnerTxn.created_asset_id()),
         
-        # Create $TERP ASA - 100 million fixed supply with 6 decimals
+        # Create $TERP ASA
         InnerTxnBuilder.Begin(),
         InnerTxnBuilder.SetFields({
             TxnField.type_enum: TxnType.AssetConfig,
-            TxnField.config_asset_total: Int(100000000000000),  # 100M * 10^6
+            TxnField.config_asset_total: Int(100000000000000),
             TxnField.config_asset_decimals: Int(6),
             TxnField.config_asset_unit_name: Bytes("TERP"),
             TxnField.config_asset_name: Bytes("GrowPod TERP"),
@@ -105,10 +131,11 @@ def approval_program():
         Approve()
     )
 
-    # Mint Pod - Start growing a new plant (soulbound GrowPod logic placeholder)
+    # ========== POD 1 METHODS ==========
+    
+    # Mint Pod 1 - Start growing a new plant
     mint_pod = Seq(
         Assert(App.localGet(Txn.sender(), LocalStage) == Int(0)),
-        # Generate pseudo-random DNA from transaction data
         App.localPut(Txn.sender(), LocalDna, Sha256(Concat(
             Txn.sender(),
             Itob(Global.latest_timestamp()),
@@ -118,7 +145,8 @@ def approval_program():
         App.localPut(Txn.sender(), LocalStartRound, Global.round()),
         App.localPut(Txn.sender(), LocalWaterCount, Int(0)),
         App.localPut(Txn.sender(), LocalLastWatered, Int(0)),
-        # Generate random terpene and minor profiles
+        App.localPut(Txn.sender(), LocalNutrientCount, Int(0)),
+        App.localPut(Txn.sender(), LocalLastNutrients, Int(0)),
         App.localPut(Txn.sender(), LocalTerpeneProfile, Sha256(Concat(
             Bytes("terp"),
             Txn.sender(),
@@ -132,12 +160,10 @@ def approval_program():
         Approve()
     )
 
-    # Water Action - Water the plant with 24h cooldown
+    # Water Pod 1 - Water the plant with 24h cooldown
     water = Seq(
-        # Must have an active plant (stages 1-4)
         Assert(App.localGet(Txn.sender(), LocalStage) >= Int(1)),
         Assert(App.localGet(Txn.sender(), LocalStage) <= Int(4)),
-        # Enforce 24-hour cooldown
         Assert(
             Or(
                 App.localGet(Txn.sender(), LocalLastWatered) == Int(0),
@@ -148,13 +174,9 @@ def approval_program():
         App.localPut(Txn.sender(), LocalLastWatered, Global.latest_timestamp()),
         App.localPut(Txn.sender(), LocalWaterCount, App.localGet(Txn.sender(), LocalWaterCount) + Int(1)),
         
-        # Progress through growth stages (10 waters = ready to harvest)
         If(
             App.localGet(Txn.sender(), LocalWaterCount) >= Int(10),
-            Seq(
-                App.localPut(Txn.sender(), LocalStage, Int(5)),  # Ready to harvest
-            ),
-            # Increment stage every 2-3 waters
+            App.localPut(Txn.sender(), LocalStage, Int(5)),
             If(
                 App.localGet(Txn.sender(), LocalWaterCount) == Int(3),
                 App.localPut(Txn.sender(), LocalStage, Int(2)),
@@ -171,27 +193,38 @@ def approval_program():
         Approve()
     )
 
-    # Calculate yield based on terpene/minor profiles
-    # Base: 0.25g = 250,000,000 units, adjustable by profile quality
-    calculate_yield = Seq(
-        scratch_yield.store(BASE_YIELD),
-        # Bonus based on water consistency (up to 20% bonus)
-        If(
-            App.localGet(Txn.sender(), LocalWaterCount) >= Int(10),
-            scratch_yield.store(scratch_yield.load() + (BASE_YIELD * Int(20) / Int(100)))
+    # Nutrients Pod 1 - Add nutrients with 6h cooldown
+    nutrients = Seq(
+        Assert(App.localGet(Txn.sender(), LocalStage) >= Int(1)),
+        Assert(App.localGet(Txn.sender(), LocalStage) <= Int(4)),
+        Assert(
+            Or(
+                App.localGet(Txn.sender(), LocalLastNutrients) == Int(0),
+                Global.latest_timestamp() - App.localGet(Txn.sender(), LocalLastNutrients) >= NUTRIENT_COOLDOWN
+            )
         ),
-        scratch_yield.load()
+        
+        App.localPut(Txn.sender(), LocalLastNutrients, Global.latest_timestamp()),
+        App.localPut(Txn.sender(), LocalNutrientCount, App.localGet(Txn.sender(), LocalNutrientCount) + Int(1)),
+        Approve()
     )
 
-    # Harvest Action - Mint $BUD to sender based on yield
+    # Harvest Pod 1
     harvest = Seq(
         Assert(App.localGet(Txn.sender(), LocalStage) == Int(5)),
         Assert(App.globalGet(GlobalBudAsset) != Int(0)),
         
-        # Calculate yield
-        scratch_yield.store(calculate_yield),
+        scratch_yield.store(BASE_YIELD),
+        If(
+            App.localGet(Txn.sender(), LocalWaterCount) >= Int(10),
+            scratch_yield.store(scratch_yield.load() + (BASE_YIELD * Int(20) / Int(100)))
+        ),
+        # Bonus for nutrients (up to 30% extra)
+        If(
+            App.localGet(Txn.sender(), LocalNutrientCount) >= Int(10),
+            scratch_yield.store(scratch_yield.load() + (BASE_YIELD * Int(30) / Int(100)))
+        ),
         
-        # Mint $BUD via inner transaction
         InnerTxnBuilder.Begin(),
         InnerTxnBuilder.SetFields({
             TxnField.type_enum: TxnType.AssetTransfer,
@@ -201,36 +234,180 @@ def approval_program():
         }),
         InnerTxnBuilder.Submit(),
         
-        # Move to cleanup stage
         App.localPut(Txn.sender(), LocalStage, Int(6)),
         Approve()
     )
 
-    # Check and Mint TERP - Reward rare/unique terpene profiles
-    # Hash the profile, check if unique, mint if rare
-    check_and_mint_terp = Seq(
+    # Cleanup Pod 1
+    cleanup = Seq(
+        Assert(App.localGet(Txn.sender(), LocalStage) == Int(6)),
+        Assert(App.globalGet(GlobalBudAsset) != Int(0)),
+        
+        Assert(Gtxn[Txn.group_index() - Int(1)].type_enum() == TxnType.AssetTransfer),
+        Assert(Gtxn[Txn.group_index() - Int(1)].xfer_asset() == App.globalGet(GlobalBudAsset)),
+        Assert(Gtxn[Txn.group_index() - Int(1)].asset_amount() >= CLEANUP_BURN),
+        Assert(Gtxn[Txn.group_index() - Int(1)].asset_receiver() == Global.current_application_address()),
+        
+        App.localPut(Txn.sender(), LocalStage, Int(0)),
+        App.localPut(Txn.sender(), LocalWaterCount, Int(0)),
+        App.localPut(Txn.sender(), LocalLastWatered, Int(0)),
+        App.localPut(Txn.sender(), LocalNutrientCount, Int(0)),
+        App.localPut(Txn.sender(), LocalLastNutrients, Int(0)),
+        App.localPut(Txn.sender(), LocalDna, Bytes("")),
+        App.localPut(Txn.sender(), LocalTerpeneProfile, Bytes("")),
+        App.localPut(Txn.sender(), LocalMinorProfile, Bytes("")),
+        Approve()
+    )
+
+    # ========== POD 2 METHODS ==========
+    
+    # Mint Pod 2
+    mint_pod_2 = Seq(
+        Assert(App.localGet(Txn.sender(), LocalStage2) == Int(0)),
+        App.localPut(Txn.sender(), LocalDna2, Sha256(Concat(
+            Txn.sender(),
+            Itob(Global.latest_timestamp()),
+            Itob(Global.round()),
+            Bytes("pod2")
+        ))),
+        App.localPut(Txn.sender(), LocalStage2, Int(1)),
+        App.localPut(Txn.sender(), LocalStartRound2, Global.round()),
+        App.localPut(Txn.sender(), LocalWaterCount2, Int(0)),
+        App.localPut(Txn.sender(), LocalLastWatered2, Int(0)),
+        App.localPut(Txn.sender(), LocalNutrientCount2, Int(0)),
+        App.localPut(Txn.sender(), LocalLastNutrients2, Int(0)),
+        App.localPut(Txn.sender(), LocalTerpeneProfile2, Sha256(Concat(
+            Bytes("terp2"),
+            Txn.sender(),
+            Itob(Global.latest_timestamp())
+        ))),
+        App.localPut(Txn.sender(), LocalMinorProfile2, Sha256(Concat(
+            Bytes("minor2"),
+            Txn.sender(),
+            Itob(Global.round())
+        ))),
+        Approve()
+    )
+
+    # Water Pod 2
+    water_2 = Seq(
+        Assert(App.localGet(Txn.sender(), LocalStage2) >= Int(1)),
+        Assert(App.localGet(Txn.sender(), LocalStage2) <= Int(4)),
+        Assert(
+            Or(
+                App.localGet(Txn.sender(), LocalLastWatered2) == Int(0),
+                Global.latest_timestamp() - App.localGet(Txn.sender(), LocalLastWatered2) >= WATER_COOLDOWN
+            )
+        ),
+        
+        App.localPut(Txn.sender(), LocalLastWatered2, Global.latest_timestamp()),
+        App.localPut(Txn.sender(), LocalWaterCount2, App.localGet(Txn.sender(), LocalWaterCount2) + Int(1)),
+        
+        If(
+            App.localGet(Txn.sender(), LocalWaterCount2) >= Int(10),
+            App.localPut(Txn.sender(), LocalStage2, Int(5)),
+            If(
+                App.localGet(Txn.sender(), LocalWaterCount2) == Int(3),
+                App.localPut(Txn.sender(), LocalStage2, Int(2)),
+                If(
+                    App.localGet(Txn.sender(), LocalWaterCount2) == Int(6),
+                    App.localPut(Txn.sender(), LocalStage2, Int(3)),
+                    If(
+                        App.localGet(Txn.sender(), LocalWaterCount2) == Int(8),
+                        App.localPut(Txn.sender(), LocalStage2, Int(4))
+                    )
+                )
+            )
+        ),
+        Approve()
+    )
+
+    # Nutrients Pod 2
+    nutrients_2 = Seq(
+        Assert(App.localGet(Txn.sender(), LocalStage2) >= Int(1)),
+        Assert(App.localGet(Txn.sender(), LocalStage2) <= Int(4)),
+        Assert(
+            Or(
+                App.localGet(Txn.sender(), LocalLastNutrients2) == Int(0),
+                Global.latest_timestamp() - App.localGet(Txn.sender(), LocalLastNutrients2) >= NUTRIENT_COOLDOWN
+            )
+        ),
+        
+        App.localPut(Txn.sender(), LocalLastNutrients2, Global.latest_timestamp()),
+        App.localPut(Txn.sender(), LocalNutrientCount2, App.localGet(Txn.sender(), LocalNutrientCount2) + Int(1)),
+        Approve()
+    )
+
+    # Harvest Pod 2
+    harvest_2 = Seq(
+        Assert(App.localGet(Txn.sender(), LocalStage2) == Int(5)),
+        Assert(App.globalGet(GlobalBudAsset) != Int(0)),
+        
+        scratch_yield.store(BASE_YIELD),
+        If(
+            App.localGet(Txn.sender(), LocalWaterCount2) >= Int(10),
+            scratch_yield.store(scratch_yield.load() + (BASE_YIELD * Int(20) / Int(100)))
+        ),
+        If(
+            App.localGet(Txn.sender(), LocalNutrientCount2) >= Int(10),
+            scratch_yield.store(scratch_yield.load() + (BASE_YIELD * Int(30) / Int(100)))
+        ),
+        
+        InnerTxnBuilder.Begin(),
+        InnerTxnBuilder.SetFields({
+            TxnField.type_enum: TxnType.AssetTransfer,
+            TxnField.xfer_asset: App.globalGet(GlobalBudAsset),
+            TxnField.asset_amount: scratch_yield.load(),
+            TxnField.asset_receiver: Txn.sender(),
+        }),
+        InnerTxnBuilder.Submit(),
+        
+        App.localPut(Txn.sender(), LocalStage2, Int(6)),
+        Approve()
+    )
+
+    # Cleanup Pod 2
+    cleanup_2 = Seq(
+        Assert(App.localGet(Txn.sender(), LocalStage2) == Int(6)),
+        Assert(App.globalGet(GlobalBudAsset) != Int(0)),
+        
+        Assert(Gtxn[Txn.group_index() - Int(1)].type_enum() == TxnType.AssetTransfer),
+        Assert(Gtxn[Txn.group_index() - Int(1)].xfer_asset() == App.globalGet(GlobalBudAsset)),
+        Assert(Gtxn[Txn.group_index() - Int(1)].asset_amount() >= CLEANUP_BURN),
+        Assert(Gtxn[Txn.group_index() - Int(1)].asset_receiver() == Global.current_application_address()),
+        
+        App.localPut(Txn.sender(), LocalStage2, Int(0)),
+        App.localPut(Txn.sender(), LocalWaterCount2, Int(0)),
+        App.localPut(Txn.sender(), LocalLastWatered2, Int(0)),
+        App.localPut(Txn.sender(), LocalNutrientCount2, Int(0)),
+        App.localPut(Txn.sender(), LocalLastNutrients2, Int(0)),
+        App.localPut(Txn.sender(), LocalDna2, Bytes("")),
+        App.localPut(Txn.sender(), LocalTerpeneProfile2, Bytes("")),
+        App.localPut(Txn.sender(), LocalMinorProfile2, Bytes("")),
+        Approve()
+    )
+
+    # ========== SHARED METHODS ==========
+
+    # Check and Mint TERP for Pod 1
+    check_terp = Seq(
         Assert(App.localGet(Txn.sender(), LocalStage) == Int(6)),
         Assert(App.globalGet(GlobalTerpAsset) != Int(0)),
         
-        # Create unique profile hash from terpene + minor profiles
         scratch_profile_hash.store(Sha256(Concat(
             App.localGet(Txn.sender(), LocalTerpeneProfile),
             App.localGet(Txn.sender(), LocalMinorProfile)
         ))),
         
-        # Check if profile is rare (first byte < 0x20 = ~12.5% chance)
-        # Lower byte values = rarer = higher reward
         If(
             GetByte(scratch_profile_hash.load(), Int(0)) < Int(32),
             Seq(
-                # Calculate reward based on rarity (lower = more rare = higher reward)
                 scratch_terp_reward.store(
                     MIN_TERP_REWARD + 
                     ((Int(32) - GetByte(scratch_profile_hash.load(), Int(0))) * 
                      (MAX_TERP_REWARD - MIN_TERP_REWARD) / Int(32))
                 ),
                 
-                # Mint $TERP to sender
                 InnerTxnBuilder.Begin(),
                 InnerTxnBuilder.SetFields({
                     TxnField.type_enum: TxnType.AssetTransfer,
@@ -244,42 +421,51 @@ def approval_program():
         Approve()
     )
 
-    # Cleanup Action - Burn $BUD to reset pod for new growth
-    cleanup = Seq(
-        Assert(App.localGet(Txn.sender(), LocalStage) == Int(6)),
-        Assert(App.globalGet(GlobalBudAsset) != Int(0)),
+    # Check and Mint TERP for Pod 2
+    check_terp_2 = Seq(
+        Assert(App.localGet(Txn.sender(), LocalStage2) == Int(6)),
+        Assert(App.globalGet(GlobalTerpAsset) != Int(0)),
         
-        # Verify $BUD burn in grouped transaction (previous txn)
-        Assert(Gtxn[Txn.group_index() - Int(1)].type_enum() == TxnType.AssetTransfer),
-        Assert(Gtxn[Txn.group_index() - Int(1)].xfer_asset() == App.globalGet(GlobalBudAsset)),
-        Assert(Gtxn[Txn.group_index() - Int(1)].asset_amount() >= CLEANUP_BURN),
-        Assert(Gtxn[Txn.group_index() - Int(1)].asset_receiver() == Global.current_application_address()),
+        scratch_profile_hash.store(Sha256(Concat(
+            App.localGet(Txn.sender(), LocalTerpeneProfile2),
+            App.localGet(Txn.sender(), LocalMinorProfile2)
+        ))),
         
-        # Reset local state for new growth
-        App.localPut(Txn.sender(), LocalStage, Int(0)),
-        App.localPut(Txn.sender(), LocalWaterCount, Int(0)),
-        App.localPut(Txn.sender(), LocalLastWatered, Int(0)),
-        App.localPut(Txn.sender(), LocalDna, Bytes("")),
-        App.localPut(Txn.sender(), LocalTerpeneProfile, Bytes("")),
-        App.localPut(Txn.sender(), LocalMinorProfile, Bytes("")),
+        If(
+            GetByte(scratch_profile_hash.load(), Int(0)) < Int(32),
+            Seq(
+                scratch_terp_reward.store(
+                    MIN_TERP_REWARD + 
+                    ((Int(32) - GetByte(scratch_profile_hash.load(), Int(0))) * 
+                     (MAX_TERP_REWARD - MIN_TERP_REWARD) / Int(32))
+                ),
+                
+                InnerTxnBuilder.Begin(),
+                InnerTxnBuilder.SetFields({
+                    TxnField.type_enum: TxnType.AssetTransfer,
+                    TxnField.xfer_asset: App.globalGet(GlobalTerpAsset),
+                    TxnField.asset_amount: scratch_terp_reward.load(),
+                    TxnField.asset_receiver: Txn.sender(),
+                }),
+                InnerTxnBuilder.Submit(),
+            )
+        ),
         Approve()
     )
 
-    # Breed Action - Combine two plants (placeholder for combiner lab)
+    # Breed Action - Combine two plants
     breed = Seq(
         Assert(App.globalGet(GlobalBudAsset) != Int(0)),
         
-        # Verify $BUD burn for breeding in grouped transaction
         Assert(Gtxn[Txn.group_index() - Int(1)].type_enum() == TxnType.AssetTransfer),
         Assert(Gtxn[Txn.group_index() - Int(1)].xfer_asset() == App.globalGet(GlobalBudAsset)),
         Assert(Gtxn[Txn.group_index() - Int(1)].asset_amount() >= BREED_BURN),
         Assert(Gtxn[Txn.group_index() - Int(1)].asset_receiver() == Global.current_application_address()),
         
-        # Breeding logic placeholder - create new seed with combined DNA
         Approve()
     )
 
-    # Set ASA IDs manually (for cases where inner transactions aren't available)
+    # Set ASA IDs manually
     set_asa_ids = Seq(
         Assert(is_owner),
         App.globalPut(GlobalBudAsset, Btoi(Txn.application_args[1])),
@@ -287,7 +473,7 @@ def approval_program():
         Approve()
     )
 
-    # Handle update/delete application (owner only)
+    # Handle update/delete
     handle_update = Seq(
         Assert(is_owner),
         Approve()
@@ -298,20 +484,31 @@ def approval_program():
         Approve()
     )
 
-    # Main router
+    # Main router with all methods
     return Cond(
         [Txn.application_id() == Int(0), handle_creation],
         [Txn.on_completion() == OnComplete.OptIn, handle_optin],
         [Txn.on_completion() == OnComplete.CloseOut, Approve()],
         [Txn.on_completion() == OnComplete.UpdateApplication, handle_update],
         [Txn.on_completion() == OnComplete.DeleteApplication, handle_delete],
+        # Admin methods
         [Txn.application_args[0] == Bytes("bootstrap"), bootstrap_asas],
         [Txn.application_args[0] == Bytes("set_asa_ids"), set_asa_ids],
+        # Pod 1 methods
         [Txn.application_args[0] == Bytes("mint_pod"), mint_pod],
         [Txn.application_args[0] == Bytes("water"), water],
+        [Txn.application_args[0] == Bytes("nutrients"), nutrients],
         [Txn.application_args[0] == Bytes("harvest"), harvest],
-        [Txn.application_args[0] == Bytes("check_terp"), check_and_mint_terp],
         [Txn.application_args[0] == Bytes("cleanup"), cleanup],
+        # Pod 2 methods
+        [Txn.application_args[0] == Bytes("mint_pod_2"), mint_pod_2],
+        [Txn.application_args[0] == Bytes("water_2"), water_2],
+        [Txn.application_args[0] == Bytes("nutrients_2"), nutrients_2],
+        [Txn.application_args[0] == Bytes("harvest_2"), harvest_2],
+        [Txn.application_args[0] == Bytes("cleanup_2"), cleanup_2],
+        # Shared methods
+        [Txn.application_args[0] == Bytes("check_terp"), check_terp],
+        [Txn.application_args[0] == Bytes("check_terp_2"), check_terp_2],
         [Txn.application_args[0] == Bytes("breed"), breed],
     )
 
@@ -338,4 +535,9 @@ if __name__ == "__main__":
     
     print("\nContract compilation complete!")
     print("Global state: owner, period, cleanup_cost, breed_cost, bud_asset, terp_asset, terp_registry")
-    print("Local state: stage, water_count, last_watered, dna, start_round, terpene_profile, minor_profile")
+    print("Local state Pod 1: stage, water_count, last_watered, nutrient_count, last_nutrients, dna, start_round, terpene_profile, minor_profile")
+    print("Local state Pod 2: stage_2, water_count_2, last_watered_2, nutrient_count_2, last_nutrients_2, dna_2, start_round_2, terpene_profile_2, minor_profile_2")
+    print("\nMethods:")
+    print("  Pod 1: mint_pod, water, nutrients, harvest, cleanup")
+    print("  Pod 2: mint_pod_2, water_2, nutrients_2, harvest_2, cleanup_2")
+    print("  Shared: check_terp, check_terp_2, breed, bootstrap, set_asa_ids")

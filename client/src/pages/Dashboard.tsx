@@ -149,10 +149,14 @@ export default function Dashboard() {
     });
     
     try {
-      const txId = await mintPod();
+      // Determine which pod slot to use - find the first empty slot
+      const pod1Empty = pods.find(p => p.id === 1)?.stage === 0 || !pods.find(p => p.id === 1);
+      const podIdToMint = pod1Empty ? 1 : 2;
+      
+      const txId = await mintPod(podIdToMint);
       toast({
         title: "Mystery Seed Planted!",
-        description: `Your new pod is growing! TX: ${txId?.slice(0, 8)}...`,
+        description: `Pod #${podIdToMint} is now growing! TX: ${txId?.slice(0, 8)}...`,
       });
     } catch (error) {
       const errorMessage = error instanceof Error ? error.message : 'Transaction failed';
@@ -278,10 +282,10 @@ export default function Dashboard() {
     });
     
     try {
-      const txId = await harvestPlant();
+      const txId = await harvestPlant(id);
       toast({
         title: "Harvest Complete!",
-        description: `You received $BUD! TX: ${txId?.slice(0, 8)}...`,
+        description: `Pod #${id} harvested! You received $BUD! TX: ${txId?.slice(0, 8)}...`,
       });
     } catch (error) {
       const errorMessage = error instanceof Error ? error.message : 'Transaction failed';
@@ -321,10 +325,10 @@ export default function Dashboard() {
     });
     
     try {
-      const txId = await cleanupPod();
+      const txId = await cleanupPod(id);
       toast({
         title: "Pod Cleaned!",
-        description: `Ready for new planting. TX: ${txId?.slice(0, 8)}...`,
+        description: `Pod #${id} is ready for new planting. TX: ${txId?.slice(0, 8)}...`,
       });
     } catch (error) {
       const errorMessage = error instanceof Error ? error.message : 'Transaction failed';
