@@ -5,7 +5,8 @@ import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Checkbox } from "@/components/ui/checkbox";
 import { useToast } from "@/hooks/use-toast";
-import { Plus, Sprout, Leaf, FlaskConical, Flame, Zap, Sparkles, TestTube2 } from "lucide-react";
+import { Plus, Sprout, Leaf, FlaskConical, Flame, Zap, Sparkles, TestTube2, Info, Coins } from "lucide-react";
+import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
 import { Link } from "wouter";
 import { motion } from "framer-motion";
 import { useState, useEffect } from "react";
@@ -538,6 +539,49 @@ export default function Dashboard() {
                 </div>
                 
                 <div className="mt-4 pt-3 border-t border-white/10">
+                  <div className="flex items-center justify-between gap-2 mb-2">
+                    <div className="flex items-center gap-1.5">
+                      <Coins className="h-3.5 w-3.5 text-yellow-500" />
+                      <span className="text-xs text-muted-foreground">Pod Slots</span>
+                    </div>
+                    <Popover>
+                      <PopoverTrigger asChild>
+                        <button 
+                          className="text-muted-foreground hover:text-foreground transition-colors"
+                          data-testid="button-slot-info"
+                        >
+                          <Info className="h-4 w-4" />
+                        </button>
+                      </PopoverTrigger>
+                      <PopoverContent className="w-80 text-sm" side="top">
+                        <div className="space-y-3">
+                          <h4 className="font-semibold text-foreground flex items-center gap-2">
+                            <Coins className="h-4 w-4 text-yellow-500" />
+                            How Slot Tokens Work
+                          </h4>
+                          <p className="text-muted-foreground">
+                            Slot Tokens let you unlock more grow pod slots (up to 5 total). Here's how to earn them:
+                          </p>
+                          <ol className="list-decimal list-inside space-y-1.5 text-muted-foreground">
+                            <li><span className="text-foreground font-medium">Harvest 5 plants</span> - your harvest count builds up over time</li>
+                            <li><span className="text-foreground font-medium">Burn 2,500 $BUD</span> - pay to claim your Slot Token</li>
+                            <li><span className="text-foreground font-medium">Token appears in wallet</span> - it's a real Algorand asset!</li>
+                            <li><span className="text-foreground font-medium">Burn 1 Slot Token</span> - unlocks a new pod slot</li>
+                          </ol>
+                          <p className="text-xs text-muted-foreground/70 pt-2 border-t border-white/10">
+                            You start with 1 slot and can unlock up to 5 total. Slot Tokens are tradeable ASAs that stay in your wallet until burned.
+                          </p>
+                        </div>
+                      </PopoverContent>
+                    </Popover>
+                  </div>
+                  <div className="flex items-center justify-between text-xs">
+                    <span className="text-muted-foreground">Current Slots:</span>
+                    <span className="font-mono text-yellow-500">{maxPods}/5</span>
+                  </div>
+                </div>
+                
+                <div className="mt-3 pt-3 border-t border-white/10">
                   <label 
                     className="flex items-center gap-2 cursor-pointer group"
                     data-testid="label-fast-mode"
