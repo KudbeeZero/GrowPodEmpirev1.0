@@ -278,14 +278,29 @@ export function useTransactions() {
     return txId;
   };
 
-  // Simple refresh function - uses current values from closure
+  // Helper to get transaction params with retry
+  const getParamsWithRetry = async (retries = 3): Promise<algosdk.SuggestedParams> => {
+    for (let i = 0; i < retries; i++) {
+      try {
+        return await algodClient.getTransactionParams().do();
+      } catch (error) {
+        if (i === retries - 1) throw error;
+        await new Promise(resolve => setTimeout(resolve, 1000 * (i + 1)));
+      }
+    }
+    throw new Error('Failed to get transaction parameters');
+  };
+
+  // Simple refresh function - uses current values from closure (non-blocking)
   const refreshState = () => {
     // Invalidate all balance and state queries to force refresh
     queryClient.invalidateQueries({ queryKey: ['/api/balances', account] });
     queryClient.invalidateQueries({ queryKey: ['/api/local-state', account] });
-    // Also refetch immediately
-    queryClient.refetchQueries({ queryKey: ['/api/balances', account] });
-    queryClient.refetchQueries({ queryKey: ['/api/local-state', account] });
+    // Refetch with a slight delay to allow blockchain to update
+    setTimeout(() => {
+      queryClient.refetchQueries({ queryKey: ['/api/balances', account] });
+      queryClient.refetchQueries({ queryKey: ['/api/local-state', account] });
+    }, 2000);
   };
 
   // Helper to encode string to Uint8Array (browser-safe, no Buffer dependency)
@@ -296,7 +311,7 @@ export function useTransactions() {
     if (!account || !CONTRACT_CONFIG.appId) return null;
     
     try {
-      const suggestedParams = await algodClient.getTransactionParams().do();
+      const suggestedParams = await getParamsWithRetry();
       
       const txn = algosdk.makeApplicationOptInTxnFromObject({
         sender: account,
@@ -319,7 +334,7 @@ export function useTransactions() {
     if (!account || !assetId) return null;
     
     try {
-      const suggestedParams = await algodClient.getTransactionParams().do();
+      const suggestedParams = await getParamsWithRetry();
       
       const txn = algosdk.makeAssetTransferTxnWithSuggestedParamsFromObject({
         sender: account,
@@ -349,7 +364,7 @@ export function useTransactions() {
     }
     
     try {
-      const suggestedParams = await algodClient.getTransactionParams().do();
+      const suggestedParams = await getParamsWithRetry();
       
       // Use different app arg based on pod ID
       const appArg = podId === 2 ? 'mint_pod_2' : 'mint_pod';
@@ -376,7 +391,7 @@ export function useTransactions() {
     if (!account || !CONTRACT_CONFIG.appId) return null;
     
     try {
-      const suggestedParams = await algodClient.getTransactionParams().do();
+      const suggestedParams = await getParamsWithRetry();
       
       // Use different app arg based on pod ID
       const appArg = podId === 2 ? 'water_2' : 'water';
@@ -403,7 +418,7 @@ export function useTransactions() {
     if (!account || !CONTRACT_CONFIG.appId) return null;
     
     try {
-      const suggestedParams = await algodClient.getTransactionParams().do();
+      const suggestedParams = await getParamsWithRetry();
       
       // Use different app arg based on pod ID
       const appArg = podId === 2 ? 'nutrients_2' : 'nutrients';
@@ -430,7 +445,7 @@ export function useTransactions() {
     if (!account || !CONTRACT_CONFIG.appId) return null;
     
     try {
-      const suggestedParams = await algodClient.getTransactionParams().do();
+      const suggestedParams = await getParamsWithRetry();
       
       // Use different app arg based on pod ID
       const appArg = podId === 2 ? 'harvest_2' : 'harvest';
@@ -458,7 +473,7 @@ export function useTransactions() {
     if (!account || !CONTRACT_CONFIG.appId || !CONTRACT_CONFIG.budAssetId) return null;
     
     try {
-      const suggestedParams = await algodClient.getTransactionParams().do();
+      const suggestedParams = await getParamsWithRetry();
       
       // Use different app arg based on pod ID
       const appArg = podId === 2 ? 'cleanup_2' : 'cleanup';
@@ -507,7 +522,7 @@ export function useTransactions() {
     if (!account || !CONTRACT_CONFIG.appId || !CONTRACT_CONFIG.budAssetId) return null;
     
     try {
-      const suggestedParams = await algodClient.getTransactionParams().do();
+      const suggestedParams = await getParamsWithRetry();
       
       // Transaction 1: Burn 1000 $BUD
       const burnTxn = algosdk.makeAssetTransferTxnWithSuggestedParamsFromObject({
