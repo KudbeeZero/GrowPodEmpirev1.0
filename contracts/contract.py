@@ -181,21 +181,10 @@ def approval_program():
         App.localPut(Txn.sender(), LocalLastWatered, Global.latest_timestamp()),
         App.localPut(Txn.sender(), LocalWaterCount, App.localGet(Txn.sender(), LocalWaterCount) + Int(1)),
         
+        # 2-water growth cycle for TestNet testing
         If(
-            App.localGet(Txn.sender(), LocalWaterCount) >= Int(10),
+            App.localGet(Txn.sender(), LocalWaterCount) >= Int(2),
             App.localPut(Txn.sender(), LocalStage, Int(5)),
-            If(
-                App.localGet(Txn.sender(), LocalWaterCount) == Int(3),
-                App.localPut(Txn.sender(), LocalStage, Int(2)),
-                If(
-                    App.localGet(Txn.sender(), LocalWaterCount) == Int(6),
-                    App.localPut(Txn.sender(), LocalStage, Int(3)),
-                    If(
-                        App.localGet(Txn.sender(), LocalWaterCount) == Int(8),
-                        App.localPut(Txn.sender(), LocalStage, Int(4))
-                    )
-                )
-            )
         ),
         Approve()
     )
@@ -223,12 +212,12 @@ def approval_program():
         
         scratch_yield.store(BASE_YIELD),
         If(
-            App.localGet(Txn.sender(), LocalWaterCount) >= Int(10),
+            App.localGet(Txn.sender(), LocalWaterCount) >= Int(2),
             scratch_yield.store(scratch_yield.load() + (BASE_YIELD * Int(20) / Int(100)))
         ),
-        # Bonus for nutrients (up to 30% extra)
+        # Bonus for nutrients (up to 30% extra with 2+ nutrients)
         If(
-            App.localGet(Txn.sender(), LocalNutrientCount) >= Int(10),
+            App.localGet(Txn.sender(), LocalNutrientCount) >= Int(2),
             scratch_yield.store(scratch_yield.load() + (BASE_YIELD * Int(30) / Int(100)))
         ),
         
@@ -318,21 +307,10 @@ def approval_program():
         App.localPut(Txn.sender(), LocalLastWatered2, Global.latest_timestamp()),
         App.localPut(Txn.sender(), LocalWaterCount2, App.localGet(Txn.sender(), LocalWaterCount2) + Int(1)),
         
+        # 2-water growth cycle for TestNet testing
         If(
-            App.localGet(Txn.sender(), LocalWaterCount2) >= Int(10),
+            App.localGet(Txn.sender(), LocalWaterCount2) >= Int(2),
             App.localPut(Txn.sender(), LocalStage2, Int(5)),
-            If(
-                App.localGet(Txn.sender(), LocalWaterCount2) == Int(3),
-                App.localPut(Txn.sender(), LocalStage2, Int(2)),
-                If(
-                    App.localGet(Txn.sender(), LocalWaterCount2) == Int(6),
-                    App.localPut(Txn.sender(), LocalStage2, Int(3)),
-                    If(
-                        App.localGet(Txn.sender(), LocalWaterCount2) == Int(8),
-                        App.localPut(Txn.sender(), LocalStage2, Int(4))
-                    )
-                )
-            )
         ),
         Approve()
     )
@@ -360,11 +338,12 @@ def approval_program():
         
         scratch_yield.store(BASE_YIELD),
         If(
-            App.localGet(Txn.sender(), LocalWaterCount2) >= Int(10),
+            App.localGet(Txn.sender(), LocalWaterCount2) >= Int(2),
             scratch_yield.store(scratch_yield.load() + (BASE_YIELD * Int(20) / Int(100)))
         ),
+        # Bonus for nutrients (up to 30% extra with 2+ nutrients)
         If(
-            App.localGet(Txn.sender(), LocalNutrientCount2) >= Int(10),
+            App.localGet(Txn.sender(), LocalNutrientCount2) >= Int(2),
             scratch_yield.store(scratch_yield.load() + (BASE_YIELD * Int(30) / Int(100)))
         ),
         
