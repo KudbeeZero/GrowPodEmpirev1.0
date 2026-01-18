@@ -252,11 +252,15 @@ name = "repl-nix-workspace"
 version = "0.1.0"
 source = { virtual = "." }
 dependencies = [
+    { name = "py-algorand-sdk" },
     { name = "pyteal" },
 ]
 
 [package.metadata]
-requires-dist = [{ name = "pyteal", specifier = ">=0.27.0" }]
+requires-dist = [
+    { name = "py-algorand-sdk", specifier = ">=2.11.1" },
+    { name = "pyteal", specifier = ">=0.27.0" },
+]
 
 [[package]]
 name = "semantic-version"
