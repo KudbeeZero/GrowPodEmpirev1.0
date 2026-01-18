@@ -99,6 +99,19 @@ Preferred communication style: Simple, everyday language.
 - **$BUD**: 10B total supply cap, 6 decimals, minted only on harvest
 - **$TERP**: 100M fixed supply, 6 decimals, minted on rare profiles (5k-50k reward)
 
+### Visual Growth Stage System (v2.0)
+- Added 7 unique pod images for each growth stage:
+  - Stage 0: Empty pod (generated)
+  - Stage 1: Seedling (user-provided)
+  - Stage 2: Young plant (user-provided)
+  - Stage 3: Vegetative (generated)
+  - Stage 4: Flowering (user-provided)
+  - Stage 5: Harvest ready (user-provided)
+  - Stage 6: Needs cleanup (generated)
+- PodCard displays stage-appropriate images with AnimatePresence transitions
+- Status-based image selection handles null stages for empty/dead/cleanup pods
+- Harvest-ready pods have glowing amber effect
+
 ### Frontend Updates
 - Enhanced `use-algorand.ts` with algosdk v3 API for balance/state queries
 - Added `useTransactions` hook with real blockchain transaction functions:
