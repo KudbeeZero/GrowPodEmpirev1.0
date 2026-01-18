@@ -16,15 +16,15 @@ import { Badge } from "./ui/badge";
 import { motion, AnimatePresence } from "framer-motion";
 import { useEffect, useState } from "react";
 
-// Stage images
-import emptyPodImage from "@assets/generated_images/empty_futuristic_hydroponic_pod.png";
-import seedlingPodImage from "@assets/8FB8A93B-2A96-4974-88BB-83E5EA7E9FA2_1768743434278.png";
+// Stage images - new consistent pod visuals
+import emptyPodImage from "@assets/7E2DCD79-6E12-4293-B9B5-5201C0EFC9EB_1768755213394.png";
 import seedlingAnimation from "@assets/seedling_animation.mp4";
+import seedlingPodImage from "@assets/8FB8A93B-2A96-4974-88BB-83E5EA7E9FA2_1768743434278.png";
 import youngPodImage from "@assets/BCD9AEF2-730A-4176-8342-F462B3B83E92_1768743434278.png";
-import vegetativePodImage from "@assets/generated_images/vegetative_stage_cannabis_in_pod.png";
-import floweringPodImage from "@assets/97632FA9-E545-43B3-9799-79FF9CF27404_1768743434278.png";
-import harvestReadyPodImage from "@assets/IMG_2560_1768743434278.jpeg";
-import cleanupPodImage from "@assets/generated_images/harvested_pod_needs_cleanup.png";
+import vegetativePodImage from "@assets/F322B8F1-F1D1-4058-ABDF-78160DFA37D8_1768755213394.png";
+import floweringPodImage from "@assets/7C542371-F326-4E95-AED7-A466A176000D_1768755213394.png";
+import harvestReadyPodImage from "@assets/5D819CC1-3731-4404-B2D9-B373C29A7C51_1768755213394.png";
+import cleanupPodImage from "@assets/56C0CC72-650C-4187-92E6-0820A9E1C9B2_1768755213394.png";
 
 // Map stage numbers to images
 const stageImages: Record<number, string> = {
