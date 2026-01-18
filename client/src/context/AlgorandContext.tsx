@@ -10,10 +10,10 @@ const ALGOD_TOKEN = '';
 const CHAIN_ID = 416002;
 
 export const CONTRACT_CONFIG = {
-  appId: 753803704,
-  budAssetId: 753803729,
-  terpAssetId: 753803733,
-  appAddress: 'EME2PR6EWPV3KHWCRSHJRF5RPPLNVWMVV4C5BGMA6QFKX4MYQQ3QLZ4KIU',
+  appId: Number(import.meta.env.VITE_GROWPOD_APP_ID) || 753892870,
+  budAssetId: Number(import.meta.env.VITE_BUD_ASSET_ID) || 753892875,
+  terpAssetId: Number(import.meta.env.VITE_TERP_ASSET_ID) || 753892876,
+  appAddress: import.meta.env.VITE_GROWPOD_APP_ADDRESS || 'RFTX2TRC7EGPL57MQXGMR2MGEADE7UDJ4PHK6L6AETFM2Y46S7W7HTEVFQ',
 };
 
 export const algodClient = new algosdk.Algodv2(ALGOD_TOKEN, ALGOD_SERVER, '');
