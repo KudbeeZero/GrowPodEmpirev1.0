@@ -13,9 +13,41 @@ import {
 import { Button } from "./ui/button";
 import { Progress } from "./ui/progress";
 import { Badge } from "./ui/badge";
-import { motion } from "framer-motion";
+import { motion, AnimatePresence } from "framer-motion";
 import { useEffect, useState } from "react";
-import seedlingPodImage from "@assets/8FB8A93B-2A96-4974-88BB-83E5EA7E9FA2_1768610870600.png";
+
+// Stage images
+import emptyPodImage from "@assets/generated_images/empty_futuristic_hydroponic_pod.png";
+import seedlingPodImage from "@assets/8FB8A93B-2A96-4974-88BB-83E5EA7E9FA2_1768743434278.png";
+import youngPodImage from "@assets/BCD9AEF2-730A-4176-8342-F462B3B83E92_1768743434278.png";
+import vegetativePodImage from "@assets/generated_images/vegetative_stage_cannabis_in_pod.png";
+import floweringPodImage from "@assets/97632FA9-E545-43B3-9799-79FF9CF27404_1768743434278.png";
+import harvestReadyPodImage from "@assets/IMG_2560_1768743434278.jpeg";
+import cleanupPodImage from "@assets/generated_images/harvested_pod_needs_cleanup.png";
+
+// Map stage numbers to images
+const stageImages: Record<number, string> = {
+  0: emptyPodImage,
+  1: seedlingPodImage,
+  2: youngPodImage,
+  3: vegetativePodImage,
+  4: floweringPodImage,
+  5: harvestReadyPodImage,
+  6: cleanupPodImage,
+};
+
+// Get the correct image based on pod status and stage
+function getPodImage(pod: { status: string; stage: number | null }): string {
+  // Status-based overrides for special states
+  if (pod.status === 'empty') return emptyPodImage;
+  if (pod.status === 'dead') return cleanupPodImage;
+  if (pod.status === 'needs_cleanup') return cleanupPodImage;
+  if (pod.status === 'harvest_ready') return harvestReadyPodImage;
+  
+  // Use stage-based image for growing plants
+  const stage = pod.stage ?? 1;
+  return stageImages[stage] || seedlingPodImage;
+}
 
 interface PodCardProps {
   pod: GrowPod;
@@ -129,21 +161,30 @@ export function PodCard({ pod, onWater, onNutrients, onHarvest, onCleanup, isLoa
       </div>
 
       <div className="relative h-48 w-full bg-black/40 rounded-lg mb-6 flex items-center justify-center border border-white/5 overflow-hidden group">
-        {isEmpty ? (
-          <div className="text-center">
-            <Sprout className="h-12 w-12 text-muted-foreground/30 mx-auto mb-2" />
-            <p className="text-xs text-muted-foreground">No plant</p>
-          </div>
-        ) : isDead || needsCleanup ? (
-          <Skull className="h-16 w-16 text-muted-foreground/50" />
-        ) : isHarvestReady ? (
-          <Flower className="h-16 w-16 text-amber-400 drop-shadow-[0_0_15px_rgba(251,191,36,0.5)] animate-bounce" />
-        ) : (
-          <img 
-            src={seedlingPodImage} 
-            alt="GrowPod Seedling" 
-            className="h-full w-full object-contain"
+        <AnimatePresence mode="wait">
+          <motion.img
+            key={`${pod.status}-${pod.stage}`}
+            src={getPodImage(pod)}
+            alt={`GrowPod ${getStageLabel()}`}
+            className={cn(
+              "h-full w-full object-contain",
+              isHarvestReady && "drop-shadow-[0_0_20px_rgba(251,191,36,0.4)]"
+            )}
+            initial={{ opacity: 0, scale: 0.9 }}
+            animate={{ opacity: 1, scale: 1 }}
+            exit={{ opacity: 0, scale: 0.9 }}
+            transition={{ duration: 0.4, ease: "easeInOut" }}
+            data-testid={`pod-image-${pod.id}`}
           />
+        </AnimatePresence>
+        {isHarvestReady && (
+          <motion.div 
+            className="absolute inset-0 pointer-events-none"
+            animate={{ opacity: [0.3, 0.6, 0.3] }}
+            transition={{ duration: 2, repeat: Infinity }}
+          >
+            <div className="absolute inset-0 bg-gradient-radial from-amber-500/20 to-transparent" />
+          </motion.div>
         )}
       </div>
 
