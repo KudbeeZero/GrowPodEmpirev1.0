@@ -1,30 +1,9 @@
-import { useState, useEffect, useCallback, useMemo } from 'react';
-import { PeraWalletConnect } from '@perawallet/connect';
+import { useMemo, useCallback } from 'react';
 import algosdk from 'algosdk';
-import { useToast } from './use-toast';
 import { useQuery, useQueryClient } from '@tanstack/react-query';
-import { api } from '@shared/routes';
+import { useAlgorandContext, CONTRACT_CONFIG, algodClient } from '@/context/AlgorandContext';
 
-// Algorand TestNet Configuration
-const ALGOD_SERVER = 'https://testnet-api.algonode.cloud';
-const ALGOD_TOKEN = '';
-const CHAIN_ID = 416002;
-
-// Contract Configuration - deployed on Algorand TestNet
-export const CONTRACT_CONFIG = {
-  appId: 753803704,
-  budAssetId: 753803729,
-  terpAssetId: 753803733,
-  appAddress: 'EME2PR6EWPV3KHWCRSHJRF5RPPLNVWMVV4C5BGMA6QFKX4MYQQ3QLZ4KIU',
-};
-
-// Create Algorand client
-const algodClient = new algosdk.Algodv2(ALGOD_TOKEN, ALGOD_SERVER, '');
-
-// Pera Wallet instance
-const peraWallet = new PeraWalletConnect({
-  chainId: CHAIN_ID,
-});
+export { CONTRACT_CONFIG } from '@/context/AlgorandContext';
 
 // Pod/Plant status types
 export type PodStage = 0 | 1 | 2 | 3 | 4 | 5 | 6;
@@ -75,105 +54,7 @@ const stageToStatus = (stage: number): PodStatus => {
 };
 
 export function useAlgorand() {
-  const [account, setAccount] = useState<string | null>(null);
-  const [isConnected, setIsConnected] = useState(false);
-  const [isConnecting, setIsConnecting] = useState(false);
-  const { toast } = useToast();
-  const queryClient = useQueryClient();
-
-  useEffect(() => {
-    peraWallet.reconnectSession().then(async (accounts) => {
-      if (accounts.length) {
-        const address = accounts[0];
-        setAccount(address);
-        setIsConnected(true);
-        
-        // Sync with backend on reconnect
-        try {
-          await fetch(api.users.login.path, {
-            method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({ walletAddress: address })
-          });
-          queryClient.invalidateQueries({ queryKey: ['/api/users'] });
-        } catch (error) {
-          console.error('Backend sync failed:', error);
-        }
-      }
-    }).catch(console.error);
-  }, [queryClient]);
-
-  const connectWallet = useCallback(async () => {
-    if (isConnecting) return;
-    setIsConnecting(true);
-    
-    try {
-      const accounts = await peraWallet.connect();
-      const address = accounts[0];
-      setAccount(address);
-      setIsConnected(true);
-      
-      await fetch(api.users.login.path, {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ walletAddress: address })
-      });
-      
-      queryClient.invalidateQueries({ queryKey: ['/api/users'] });
-      
-      toast({ 
-        title: "Wallet Connected!", 
-        description: `Connected: ${address.slice(0, 6)}...${address.slice(-4)}` 
-      });
-    } catch (error: unknown) {
-      const errorMessage = error instanceof Error ? error.message : 'Connection failed';
-      if (!errorMessage.includes('CONNECT_MODAL_CLOSED')) {
-        toast({ 
-          title: "Connection Failed", 
-          description: errorMessage,
-          variant: "destructive" 
-        });
-      }
-    } finally {
-      setIsConnecting(false);
-    }
-  }, [isConnecting, queryClient, toast]);
-
-  const disconnectWallet = useCallback(async () => {
-    try {
-      await peraWallet.disconnect();
-      setAccount(null);
-      setIsConnected(false);
-      queryClient.clear();
-      toast({ title: "Wallet Disconnected" });
-    } catch (error) {
-      console.error('Disconnect error:', error);
-    }
-  }, [queryClient, toast]);
-
-  const signTransactions = useCallback(async (txns: algosdk.Transaction[]): Promise<Uint8Array[]> => {
-    if (!account) throw new Error('Wallet not connected');
-    
-    // Pera Wallet expects an array of transaction groups
-    // Each group is an array of { txn: Transaction } objects
-    const signedTxns = await peraWallet.signTransaction([
-      txns.map(txn => ({ txn }))
-    ]);
-    
-    // signedTxns is Uint8Array[] - the signed transaction blobs
-    return signedTxns;
-  }, [account]);
-
-  return { 
-    account, 
-    isConnected, 
-    isConnecting,
-    connectWallet, 
-    disconnectWallet,
-    signTransactions,
-    algodClient,
-    peraWallet
-  };
+  return useAlgorandContext();
 }
 
 export function useTokenBalances(account: string | null): TokenBalances {
