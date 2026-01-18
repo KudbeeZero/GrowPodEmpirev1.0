@@ -2,55 +2,55 @@
 txn ApplicationID
 int 0
 ==
-bnz main_l68
+bnz main_l74
 txn OnCompletion
 int OptIn
 ==
-bnz main_l67
+bnz main_l73
 txn OnCompletion
 int CloseOut
 ==
-bnz main_l66
+bnz main_l72
 txn OnCompletion
 int UpdateApplication
 ==
-bnz main_l65
+bnz main_l71
 txn OnCompletion
 int DeleteApplication
 ==
-bnz main_l64
+bnz main_l70
 txna ApplicationArgs 0
 byte "bootstrap"
 ==
-bnz main_l63
+bnz main_l69
 txna ApplicationArgs 0
 byte "set_asa_ids"
 ==
-bnz main_l62
+bnz main_l68
 txna ApplicationArgs 0
 byte "mint_pod"
 ==
-bnz main_l61
+bnz main_l67
 txna ApplicationArgs 0
 byte "water"
 ==
-bnz main_l52
+bnz main_l55
 txna ApplicationArgs 0
 byte "nutrients"
 ==
-bnz main_l51
+bnz main_l54
 txna ApplicationArgs 0
 byte "harvest"
 ==
-bnz main_l46
+bnz main_l49
 txna ApplicationArgs 0
 byte "cleanup"
 ==
-bnz main_l45
+bnz main_l48
 txna ApplicationArgs 0
 byte "mint_pod_2"
 ==
-bnz main_l44
+bnz main_l47
 txna ApplicationArgs 0
 byte "water_2"
 ==
@@ -413,6 +413,17 @@ app_local_get
 int 4
 <=
 assert
+txn NumAppArgs
+int 1
+>
+bnz main_l46
+int 86400
+store 4
+main_l37:
+load 4
+int 7200
+>=
+assert
 txn Sender
 byte "last_watered_2"
 app_local_get
@@ -423,7 +434,7 @@ txn Sender
 byte "last_watered_2"
 app_local_get
 -
-int 86400
+load 4
 >=
 ||
 assert
@@ -444,53 +455,58 @@ byte "water_count_2"
 app_local_get
 int 10
 >=
-bnz main_l43
+bnz main_l45
 txn Sender
 byte "water_count_2"
 app_local_get
 int 3
 ==
-bnz main_l42
+bnz main_l44
 txn Sender
 byte "water_count_2"
 app_local_get
 int 6
 ==
-bnz main_l41
+bnz main_l43
 txn Sender
 byte "water_count_2"
 app_local_get
 int 8
 ==
-bnz main_l40
-main_l39:
+bnz main_l42
+main_l41:
 int 1
 return
-main_l40:
+main_l42:
 txn Sender
 byte "stage_2"
 int 4
 app_local_put
-b main_l39
-main_l41:
+b main_l41
+main_l43:
 txn Sender
 byte "stage_2"
 int 3
 app_local_put
-b main_l39
-main_l42:
+b main_l41
+main_l44:
 txn Sender
 byte "stage_2"
 int 2
 app_local_put
-b main_l39
-main_l43:
+b main_l41
+main_l45:
 txn Sender
 byte "stage_2"
 int 5
 app_local_put
-b main_l39
-main_l44:
+b main_l41
+main_l46:
+txna ApplicationArgs 1
+btoi
+store 4
+b main_l37
+main_l47:
 txn Sender
 byte "stage_2"
 app_local_get
@@ -546,7 +562,7 @@ sha256
 app_local_put
 int 1
 return
-main_l45:
+main_l48:
 txn Sender
 byte "stage"
 app_local_get
@@ -617,7 +633,7 @@ byte ""
 app_local_put
 int 1
 return
-main_l46:
+main_l49:
 txn Sender
 byte "stage"
 app_local_get
@@ -636,15 +652,15 @@ byte "water_count"
 app_local_get
 int 10
 >=
-bnz main_l50
-main_l47:
+bnz main_l53
+main_l50:
 txn Sender
 byte "nutrient_count"
 app_local_get
 int 10
 >=
-bnz main_l49
-main_l48:
+bnz main_l52
+main_l51:
 itxn_begin
 int axfer
 itxn_field TypeEnum
@@ -662,7 +678,7 @@ int 6
 app_local_put
 int 1
 return
-main_l49:
+main_l52:
 load 0
 int 250000000
 int 30
@@ -671,8 +687,8 @@ int 100
 /
 +
 store 0
-b main_l48
-main_l50:
+b main_l51
+main_l53:
 load 0
 int 250000000
 int 20
@@ -681,8 +697,8 @@ int 100
 /
 +
 store 0
-b main_l47
-main_l51:
+b main_l50
+main_l54:
 txn Sender
 byte "stage"
 app_local_get
@@ -723,7 +739,7 @@ int 1
 app_local_put
 int 1
 return
-main_l52:
+main_l55:
 txn Sender
 byte "stage"
 app_local_get
@@ -736,6 +752,17 @@ app_local_get
 int 4
 <=
 assert
+txn NumAppArgs
+int 1
+>
+bnz main_l66
+int 86400
+store 3
+main_l57:
+load 3
+int 7200
+>=
+assert
 txn Sender
 byte "last_watered"
 app_local_get
@@ -746,7 +773,7 @@ txn Sender
 byte "last_watered"
 app_local_get
 -
-int 86400
+load 3
 >=
 ||
 assert
@@ -767,53 +794,58 @@ byte "water_count"
 app_local_get
 int 10
 >=
-bnz main_l60
+bnz main_l65
 txn Sender
 byte "water_count"
 app_local_get
 int 3
 ==
-bnz main_l59
+bnz main_l64
 txn Sender
 byte "water_count"
 app_local_get
 int 6
 ==
-bnz main_l58
+bnz main_l63
 txn Sender
 byte "water_count"
 app_local_get
 int 8
 ==
-bnz main_l57
-main_l56:
+bnz main_l62
+main_l61:
 int 1
 return
-main_l57:
+main_l62:
 txn Sender
 byte "stage"
 int 4
 app_local_put
-b main_l56
-main_l58:
+b main_l61
+main_l63:
 txn Sender
 byte "stage"
 int 3
 app_local_put
-b main_l56
-main_l59:
+b main_l61
+main_l64:
 txn Sender
 byte "stage"
 int 2
 app_local_put
-b main_l56
-main_l60:
+b main_l61
+main_l65:
 txn Sender
 byte "stage"
 int 5
 app_local_put
-b main_l56
-main_l61:
+b main_l61
+main_l66:
+txna ApplicationArgs 1
+btoi
+store 3
+b main_l57
+main_l67:
 txn Sender
 byte "stage"
 app_local_get
@@ -867,7 +899,7 @@ sha256
 app_local_put
 int 1
 return
-main_l62:
+main_l68:
 txn Sender
 byte "owner"
 app_global_get
@@ -883,7 +915,7 @@ btoi
 app_global_put
 int 1
 return
-main_l63:
+main_l69:
 txn Sender
 byte "owner"
 app_global_get
@@ -951,7 +983,7 @@ itxn CreatedAssetID
 app_global_put
 int 1
 return
-main_l64:
+main_l70:
 txn Sender
 byte "owner"
 app_global_get
@@ -959,7 +991,7 @@ app_global_get
 assert
 int 1
 return
-main_l65:
+main_l71:
 txn Sender
 byte "owner"
 app_global_get
@@ -967,10 +999,10 @@ app_global_get
 assert
 int 1
 return
-main_l66:
+main_l72:
 int 1
 return
-main_l67:
+main_l73:
 txn Sender
 byte "stage"
 int 0
@@ -1037,7 +1069,7 @@ byte ""
 app_local_put
 int 1
 return
-main_l68:
+main_l74:
 byte "owner"
 txn Sender
 app_global_put
