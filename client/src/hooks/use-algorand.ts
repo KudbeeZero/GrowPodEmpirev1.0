@@ -73,13 +73,26 @@ export function useAlgorand() {
   const queryClient = useQueryClient();
 
   useEffect(() => {
-    peraWallet.reconnectSession().then((accounts) => {
+    peraWallet.reconnectSession().then(async (accounts) => {
       if (accounts.length) {
-        setAccount(accounts[0]);
+        const address = accounts[0];
+        setAccount(address);
         setIsConnected(true);
+        
+        // Sync with backend on reconnect
+        try {
+          await fetch(api.users.login.path, {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ walletAddress: address })
+          });
+          queryClient.invalidateQueries({ queryKey: ['/api/users'] });
+        } catch (error) {
+          console.error('Backend sync failed:', error);
+        }
       }
     }).catch(console.error);
-  }, []);
+  }, [queryClient]);
 
   const connectWallet = useCallback(async () => {
     if (isConnecting) return;
@@ -310,10 +323,14 @@ export function useTransactions() {
     return txId;
   };
 
-  const refreshState = () => {
-    queryClient.invalidateQueries({ queryKey: ['/api/balances'] });
-    queryClient.invalidateQueries({ queryKey: ['/api/local-state'] });
-  };
+  const refreshState = useCallback(() => {
+    // Invalidate all balance and state queries to force refresh
+    queryClient.invalidateQueries({ queryKey: ['/api/balances', account] });
+    queryClient.invalidateQueries({ queryKey: ['/api/local-state', account] });
+    // Also refetch immediately
+    queryClient.refetchQueries({ queryKey: ['/api/balances', account] });
+    queryClient.refetchQueries({ queryKey: ['/api/local-state', account] });
+  }, [account, queryClient]);
 
   // Helper to encode string to Uint8Array (browser-safe, no Buffer dependency)
   const encodeArg = (str: string) => new TextEncoder().encode(str);
@@ -339,7 +356,7 @@ export function useTransactions() {
       console.error('Opt-in to app failed:', error);
       throw error;
     }
-  }, [account, signTransactions]);
+  }, [account, signTransactions, refreshState]);
 
   // Opt-in to an ASA (asset)
   const optInToAsset = useCallback(async (assetId: number): Promise<string | null> => {
@@ -364,7 +381,7 @@ export function useTransactions() {
       console.error('Opt-in to asset failed:', error);
       throw error;
     }
-  }, [account, signTransactions]);
+  }, [account, signTransactions, refreshState]);
 
   // Mint a new GrowPod - calls "mint_pod" on the smart contract
   const mintPod = useCallback(async (): Promise<string | null> => {
@@ -393,7 +410,7 @@ export function useTransactions() {
       console.error('Mint pod failed:', error);
       throw error;
     }
-  }, [account, signTransactions]);
+  }, [account, signTransactions, refreshState]);
 
   // Water a plant - calls "water" on the smart contract
   const waterPlant = useCallback(async (): Promise<string | null> => {
@@ -417,7 +434,7 @@ export function useTransactions() {
       console.error('Water plant failed:', error);
       throw error;
     }
-  }, [account, signTransactions]);
+  }, [account, signTransactions, refreshState]);
 
   // Harvest a plant - calls "harvest" on the smart contract
   const harvestPlant = useCallback(async (): Promise<string | null> => {
@@ -442,7 +459,7 @@ export function useTransactions() {
       console.error('Harvest failed:', error);
       throw error;
     }
-  }, [account, signTransactions]);
+  }, [account, signTransactions, refreshState]);
 
   // Cleanup pod - requires burning 500 $BUD + 1 ALGO fee
   const cleanupPod = useCallback(async (): Promise<string | null> => {
@@ -488,7 +505,7 @@ export function useTransactions() {
       console.error('Cleanup failed:', error);
       throw error;
     }
-  }, [account, signTransactions]);
+  }, [account, signTransactions, refreshState]);
 
   // Breed plants - requires burning 1000 $BUD
   const breedPlants = useCallback(async (): Promise<string | null> => {
@@ -526,7 +543,7 @@ export function useTransactions() {
       console.error('Breed failed:', error);
       throw error;
     }
-  }, [account, signTransactions]);
+  }, [account, signTransactions, refreshState]);
 
   // Check if user is opted into the app
   const checkAppOptedIn = useCallback(async (): Promise<boolean> => {
