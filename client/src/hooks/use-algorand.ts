@@ -30,12 +30,19 @@ const peraWallet = new PeraWalletConnect({
 export type PodStage = 0 | 1 | 2 | 3 | 4 | 5 | 6;
 export type PodStatus = 'empty' | 'seedling' | 'vegetative' | 'flowering' | 'mature' | 'harvest_ready' | 'dead' | 'needs_cleanup';
 
+// Constants for cooldowns
+export const WATER_COOLDOWN = 86400; // 24 hours in seconds
+export const NUTRIENT_COOLDOWN = 21600; // 6 hours in seconds
+export const MAX_PODS = 2; // Maximum pods per user
+
 export interface GrowPod {
   id: number;
   name: string;
   stage: PodStage;
   waterCount: number;
+  nutrientCount: number;
   lastWatered: number;
+  lastNutrients: number;
   health: number;
   status: PodStatus;
   dna: string;
@@ -43,7 +50,9 @@ export interface GrowPod {
   minorProfile: string;
   pests: boolean;
   canWater: boolean;
+  canAddNutrients: boolean;
   waterCooldownRemaining: number;
+  nutrientCooldownRemaining: number;
 }
 
 export interface TokenBalances {
@@ -249,36 +258,101 @@ export function useGameState(account: string | null) {
       return [];
     }
     
-    const stage = (localState.stage as number) || 0;
-    const lastWatered = (localState.last_watered as number) || 0;
     const currentTime = Math.floor(Date.now() / 1000);
-    const timeSinceWater = currentTime - lastWatered;
-    const canWater = lastWatered === 0 || timeSinceWater >= 86400;
-    const cooldownRemaining = canWater ? 0 : Math.max(0, 86400 - timeSinceWater);
+    const result: GrowPod[] = [];
     
-    return [{
+    // Helper to safely get number values with defaults
+    const getNum = (key: string): number => {
+      const val = localState[key];
+      return typeof val === 'number' ? val : 0;
+    };
+    const getStr = (key: string): string => {
+      const val = localState[key];
+      return typeof val === 'string' ? val : '';
+    };
+    
+    // Check for pod 1 (primary pod - from original local state keys)
+    const stage1 = getNum('stage');
+    const lastWatered1 = getNum('last_watered');
+    const lastNutrients1 = getNum('last_nutrients');
+    const timeSinceWater1 = lastWatered1 > 0 ? currentTime - lastWatered1 : WATER_COOLDOWN;
+    const timeSinceNutrients1 = lastNutrients1 > 0 ? currentTime - lastNutrients1 : NUTRIENT_COOLDOWN;
+    const canWater1 = lastWatered1 === 0 || timeSinceWater1 >= WATER_COOLDOWN;
+    const canNutrients1 = lastNutrients1 === 0 || timeSinceNutrients1 >= NUTRIENT_COOLDOWN;
+    const waterCooldown1 = canWater1 ? 0 : Math.max(0, WATER_COOLDOWN - timeSinceWater1);
+    const nutrientCooldown1 = canNutrients1 ? 0 : Math.max(0, NUTRIENT_COOLDOWN - timeSinceNutrients1);
+    
+    // Always include pod 1 if stage >= 0 (representing a slot)
+    result.push({
       id: 1,
       name: "GrowPod #001",
-      stage: stage as PodStage,
-      waterCount: (localState.water_count as number) || 0,
-      lastWatered: lastWatered * 1000,
-      health: stage === 6 ? 0 : 100,
-      status: stageToStatus(stage),
-      dna: (localState.dna as string) || '',
-      terpeneProfile: (localState.terpene_profile as string) || '',
-      minorProfile: (localState.minor_profile as string) || '',
+      stage: stage1 as PodStage,
+      waterCount: getNum('water_count'),
+      nutrientCount: getNum('nutrient_count'),
+      lastWatered: lastWatered1 * 1000,
+      lastNutrients: lastNutrients1 * 1000,
+      health: stage1 === 6 ? 0 : 100,
+      status: stageToStatus(stage1),
+      dna: getStr('dna'),
+      terpeneProfile: getStr('terpene_profile'),
+      minorProfile: getStr('minor_profile'),
       pests: false,
-      canWater: canWater && stage >= 1 && stage <= 4,
-      waterCooldownRemaining: cooldownRemaining,
-    }];
+      canWater: canWater1 && stage1 >= 1 && stage1 <= 4,
+      canAddNutrients: canNutrients1 && stage1 >= 1 && stage1 <= 4,
+      waterCooldownRemaining: waterCooldown1,
+      nutrientCooldownRemaining: nutrientCooldown1,
+    });
+    
+    // Check for pod 2 (secondary pod - with "_2" suffix in local state keys)
+    const stage2 = getNum('stage_2');
+    const lastWatered2 = getNum('last_watered_2');
+    const lastNutrients2 = getNum('last_nutrients_2');
+    const timeSinceWater2 = lastWatered2 > 0 ? currentTime - lastWatered2 : WATER_COOLDOWN;
+    const timeSinceNutrients2 = lastNutrients2 > 0 ? currentTime - lastNutrients2 : NUTRIENT_COOLDOWN;
+    const canWater2 = lastWatered2 === 0 || timeSinceWater2 >= WATER_COOLDOWN;
+    const canNutrients2 = lastNutrients2 === 0 || timeSinceNutrients2 >= NUTRIENT_COOLDOWN;
+    const waterCooldown2 = canWater2 ? 0 : Math.max(0, WATER_COOLDOWN - timeSinceWater2);
+    const nutrientCooldown2 = canNutrients2 ? 0 : Math.max(0, NUTRIENT_COOLDOWN - timeSinceNutrients2);
+    
+    // Only add pod 2 if it exists (stage > 0)
+    if (stage2 > 0) {
+      result.push({
+        id: 2,
+        name: "GrowPod #002",
+        stage: stage2 as PodStage,
+        waterCount: getNum('water_count_2'),
+        nutrientCount: getNum('nutrient_count_2'),
+        lastWatered: lastWatered2 * 1000,
+        lastNutrients: lastNutrients2 * 1000,
+        health: stage2 === 6 ? 0 : 100,
+        status: stageToStatus(stage2),
+        dna: getStr('dna_2'),
+        terpeneProfile: getStr('terpene_profile_2'),
+        minorProfile: getStr('minor_profile_2'),
+        pests: false,
+        canWater: canWater2 && stage2 >= 1 && stage2 <= 4,
+        canAddNutrients: canNutrients2 && stage2 >= 1 && stage2 <= 4,
+        waterCooldownRemaining: waterCooldown2,
+        nutrientCooldownRemaining: nutrientCooldown2,
+      });
+    }
+    
+    return result;
   }, [localState]);
+
+  // Calculate active pods count - count any pod with stage > 0 (including needs_cleanup)
+  const activePods = pods.filter(p => p.stage > 0).length;
+  const canMintMorePods = activePods < MAX_PODS;
 
   return { 
     budBalance: balances.budBalance, 
     terpBalance: balances.terpBalance,
     algoBalance: balances.algoBalance,
     pods,
-    localState
+    localState,
+    activePods,
+    canMintMorePods,
+    maxPods: MAX_PODS
   };
 }
 
@@ -414,17 +488,20 @@ export function useTransactions() {
   }, [account, signTransactions]);
 
   // Water a plant - calls "water" on the smart contract
-  const waterPlant = useCallback(async (): Promise<string | null> => {
+  const waterPlant = useCallback(async (podId: number = 1): Promise<string | null> => {
     if (!account || !CONTRACT_CONFIG.appId) return null;
     
     try {
       const suggestedParams = await algodClient.getTransactionParams().do();
       
+      // Use different app arg based on pod ID
+      const appArg = podId === 2 ? 'water_2' : 'water';
+      
       const txn = algosdk.makeApplicationNoOpTxnFromObject({
         sender: account,
         suggestedParams,
         appIndex: CONTRACT_CONFIG.appId,
-        appArgs: [encodeArg('water')],
+        appArgs: [encodeArg(appArg)],
       });
       
       const signedTxns = await signTransactions([txn]);
@@ -433,6 +510,33 @@ export function useTransactions() {
       return txId;
     } catch (error) {
       console.error('Water plant failed:', error);
+      throw error;
+    }
+  }, [account, signTransactions]);
+
+  // Add nutrients to a plant - calls "nutrients" on the smart contract (6h cooldown)
+  const addNutrients = useCallback(async (podId: number = 1): Promise<string | null> => {
+    if (!account || !CONTRACT_CONFIG.appId) return null;
+    
+    try {
+      const suggestedParams = await algodClient.getTransactionParams().do();
+      
+      // Use different app arg based on pod ID
+      const appArg = podId === 2 ? 'nutrients_2' : 'nutrients';
+      
+      const txn = algosdk.makeApplicationNoOpTxnFromObject({
+        sender: account,
+        suggestedParams,
+        appIndex: CONTRACT_CONFIG.appId,
+        appArgs: [encodeArg(appArg)],
+      });
+      
+      const signedTxns = await signTransactions([txn]);
+      const txId = await submitTransaction(signedTxns);
+      refreshState();
+      return txId;
+    } catch (error) {
+      console.error('Add nutrients failed:', error);
       throw error;
     }
   }, [account, signTransactions]);
@@ -577,6 +681,7 @@ export function useTransactions() {
     optInToAsset,
     mintPod,
     waterPlant,
+    addNutrients,
     harvestPlant,
     cleanupPod,
     breedPlants,

@@ -1,4 +1,4 @@
-import { type GrowPod, formatCooldown } from "@/hooks/use-algorand";
+import { type GrowPod, formatCooldown, NUTRIENT_COOLDOWN } from "@/hooks/use-algorand";
 import { cn } from "@/lib/utils";
 import { 
   Droplets, 
@@ -7,7 +7,8 @@ import {
   AlertTriangle, 
   Trash2,
   Sprout,
-  Clock
+  Clock,
+  FlaskRound
 } from "lucide-react";
 import { Button } from "./ui/button";
 import { Progress } from "./ui/progress";
@@ -19,13 +20,15 @@ import seedlingPodImage from "@assets/8FB8A93B-2A96-4974-88BB-83E5EA7E9FA2_17686
 interface PodCardProps {
   pod: GrowPod;
   onWater: (id: number) => void;
+  onNutrients: (id: number) => void;
   onHarvest: (id: number) => void;
   onCleanup?: (id: number) => void;
   isLoading?: boolean;
 }
 
-export function PodCard({ pod, onWater, onHarvest, onCleanup, isLoading = false }: PodCardProps) {
+export function PodCard({ pod, onWater, onNutrients, onHarvest, onCleanup, isLoading = false }: PodCardProps) {
   const [cooldownDisplay, setCooldownDisplay] = useState('');
+  const [nutrientCooldownDisplay, setNutrientCooldownDisplay] = useState('');
   
   const isDead = pod.status === 'dead';
   const isHarvestReady = pod.status === 'harvest_ready';
@@ -34,6 +37,7 @@ export function PodCard({ pod, onWater, onHarvest, onCleanup, isLoading = false 
   
   const growthProgress = isEmpty ? 0 : (Math.min(pod.stage, 5) / 5) * 100;
   const waterProgress = (pod.waterCount / 10) * 100;
+  const nutrientProgress = ((pod.nutrientCount || 0) / 10) * 100;
 
   useEffect(() => {
     if (pod.waterCooldownRemaining <= 0) {
@@ -53,6 +57,25 @@ export function PodCard({ pod, onWater, onHarvest, onCleanup, isLoading = false 
     const interval = setInterval(updateCooldown, 60000);
     return () => clearInterval(interval);
   }, [pod.lastWatered, pod.waterCooldownRemaining]);
+
+  useEffect(() => {
+    if (pod.nutrientCooldownRemaining <= 0) {
+      setNutrientCooldownDisplay('');
+      return;
+    }
+    
+    const updateNutrientCooldown = () => {
+      const now = Date.now();
+      const lastNutrients = pod.lastNutrients || 0;
+      const elapsed = Math.floor((now - lastNutrients) / 1000);
+      const remaining = Math.max(0, NUTRIENT_COOLDOWN - elapsed);
+      setNutrientCooldownDisplay(formatCooldown(remaining));
+    };
+    
+    updateNutrientCooldown();
+    const interval = setInterval(updateNutrientCooldown, 60000);
+    return () => clearInterval(interval);
+  }, [pod.lastNutrients, pod.nutrientCooldownRemaining]);
 
   const getStageLabel = () => {
     switch (pod.status) {
@@ -135,21 +158,41 @@ export function PodCard({ pod, onWater, onHarvest, onCleanup, isLoading = false 
         
         <div className="space-y-1">
           <div className="flex justify-between text-xs">
-            <span className="text-muted-foreground">Water Count</span>
+            <span className="text-muted-foreground flex items-center gap-1">
+              <Droplets className="h-3 w-3 text-blue-400" /> Water Count
+            </span>
             <span className="font-mono text-foreground">{pod.waterCount} / 10</span>
           </div>
           <Progress value={waterProgress} className="h-2 bg-black/40" />
         </div>
 
-        {!pod.canWater && cooldownDisplay && !isHarvestReady && !needsCleanup && !isEmpty && (
-          <div className="flex items-center gap-2 text-xs text-muted-foreground bg-black/20 rounded px-2 py-1">
-            <Clock className="h-3 w-3" />
-            <span>Next water: {cooldownDisplay}</span>
+        <div className="space-y-1">
+          <div className="flex justify-between text-xs">
+            <span className="text-muted-foreground flex items-center gap-1">
+              <FlaskRound className="h-3 w-3 text-green-400" /> Nutrients
+            </span>
+            <span className="font-mono text-foreground">{pod.nutrientCount || 0} / 10</span>
           </div>
-        )}
+          <Progress value={nutrientProgress} className="h-2 bg-black/40" />
+        </div>
+
+        <div className="flex flex-col gap-1">
+          {!pod.canWater && cooldownDisplay && !isHarvestReady && !needsCleanup && !isEmpty && (
+            <div className="flex items-center gap-2 text-xs text-muted-foreground bg-black/20 rounded px-2 py-1">
+              <Clock className="h-3 w-3 text-blue-400" />
+              <span>Next water: {cooldownDisplay}</span>
+            </div>
+          )}
+          {!pod.canAddNutrients && nutrientCooldownDisplay && !isHarvestReady && !needsCleanup && !isEmpty && (
+            <div className="flex items-center gap-2 text-xs text-muted-foreground bg-black/20 rounded px-2 py-1">
+              <Clock className="h-3 w-3 text-green-400" />
+              <span>Next nutrients: {nutrientCooldownDisplay}</span>
+            </div>
+          )}
+        </div>
       </div>
 
-      <div className="mt-6 flex gap-3 relative">
+      <div className="mt-6 flex flex-col gap-3 relative">
         {isHarvestReady ? (
           <Button 
             className="w-full bg-amber-500 hover:bg-amber-600 text-amber-950 font-bold shadow-lg shadow-amber-500/20"
@@ -178,19 +221,34 @@ export function PodCard({ pod, onWater, onHarvest, onCleanup, isLoading = false 
             <Sprout className="mr-2 h-4 w-4" /> Plant a Seed
           </Button>
         ) : (
-          <Button 
-            className={cn(
-              "w-full transition-all", 
-              pod.canWater ? "animate-pulse shadow-lg shadow-blue-500/20" : "opacity-80"
-            )}
-            variant={pod.canWater ? "default" : "secondary"}
-            disabled={!pod.canWater || isLoading}
-            onClick={() => onWater(pod.id)}
-            data-testid={`button-water-${pod.id}`}
-          >
-            <Droplets className={cn("mr-2 h-4 w-4", pod.canWater ? "text-blue-200" : "")} /> 
-            {pod.canWater ? "Water Now" : cooldownDisplay || "Hydrated"}
-          </Button>
+          <div className="flex gap-2">
+            <Button 
+              className={cn(
+                "flex-1 transition-all", 
+                pod.canWater ? "animate-pulse shadow-lg shadow-blue-500/20" : "opacity-80"
+              )}
+              variant={pod.canWater ? "default" : "secondary"}
+              disabled={!pod.canWater || isLoading}
+              onClick={() => onWater(pod.id)}
+              data-testid={`button-water-${pod.id}`}
+            >
+              <Droplets className={cn("mr-1 h-4 w-4", pod.canWater ? "text-blue-200" : "")} /> 
+              {pod.canWater ? "Water" : "Watered"}
+            </Button>
+            <Button 
+              className={cn(
+                "flex-1 transition-all", 
+                pod.canAddNutrients ? "shadow-lg shadow-green-500/20 bg-green-600 hover:bg-green-700" : "opacity-80"
+              )}
+              variant={pod.canAddNutrients ? "default" : "secondary"}
+              disabled={!pod.canAddNutrients || isLoading}
+              onClick={() => onNutrients(pod.id)}
+              data-testid={`button-nutrients-${pod.id}`}
+            >
+              <FlaskRound className={cn("mr-1 h-4 w-4", pod.canAddNutrients ? "text-green-200" : "")} /> 
+              {pod.canAddNutrients ? "Feed" : "Fed"}
+            </Button>
+          </div>
         )}
       </div>
     </motion.div>

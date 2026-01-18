@@ -1,18 +1,18 @@
-import { useAlgorand, useGameState, useTransactions, CONTRACT_CONFIG } from "@/hooks/use-algorand";
+import { useAlgorand, useGameState, useTransactions, CONTRACT_CONFIG, MAX_PODS } from "@/hooks/use-algorand";
 import { CurrencyDisplay } from "@/components/CurrencyDisplay";
 import { PodCard } from "@/components/PodCard";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { useToast } from "@/hooks/use-toast";
-import { Plus, Sprout, Leaf, FlaskConical, Flame, Zap } from "lucide-react";
+import { Plus, Sprout, Leaf, FlaskConical, Flame, Zap, Sparkles } from "lucide-react";
 import { Link } from "wouter";
 import { motion } from "framer-motion";
 import { useState, useEffect } from "react";
 
 export default function Dashboard() {
   const { account, isConnected, connectWallet } = useAlgorand();
-  const { budBalance, terpBalance, algoBalance, pods } = useGameState(account);
-  const { mintPod, waterPlant, harvestPlant, cleanupPod, optInToApp, optInToAsset, checkAppOptedIn, checkAssetOptedIn } = useTransactions();
+  const { budBalance, terpBalance, algoBalance, pods, activePods, canMintMorePods, maxPods } = useGameState(account);
+  const { mintPod, waterPlant, addNutrients, harvestPlant, cleanupPod, optInToApp, optInToAsset, checkAppOptedIn, checkAssetOptedIn } = useTransactions();
   const { toast } = useToast();
   const [isActionLoading, setIsActionLoading] = useState(false);
   const [isOptedInApp, setIsOptedInApp] = useState(false);
@@ -132,18 +132,27 @@ export default function Dashboard() {
       });
       return;
     }
+
+    if (!canMintMorePods) {
+      toast({
+        title: "Pod Limit Reached",
+        description: `You can only have ${maxPods} active pods at a time. Harvest or cleanup existing pods first.`,
+        variant: "destructive",
+      });
+      return;
+    }
     
     setIsActionLoading(true);
     toast({
-      title: "Minting GrowPod...",
+      title: "Minting Mystery Seed...",
       description: "Sign the transaction in your Pera Wallet.",
     });
     
     try {
       const txId = await mintPod();
       toast({
-        title: "GrowPod Minted!",
-        description: `Transaction: ${txId?.slice(0, 8)}...`,
+        title: "Mystery Seed Planted!",
+        description: `Your new pod is growing! TX: ${txId?.slice(0, 8)}...`,
       });
     } catch (error) {
       const errorMessage = error instanceof Error ? error.message : 'Transaction failed';
@@ -183,7 +192,7 @@ export default function Dashboard() {
     });
     
     try {
-      const txId = await waterPlant();
+      const txId = await waterPlant(id);
       toast({
         title: "Watered Successfully!",
         description: `Your plant is growing. Next water in 24h. TX: ${txId?.slice(0, 8)}...`,
@@ -192,6 +201,49 @@ export default function Dashboard() {
       const errorMessage = error instanceof Error ? error.message : 'Transaction failed';
       toast({
         title: "Water Failed",
+        description: errorMessage,
+        variant: "destructive",
+      });
+    } finally {
+      setIsActionLoading(false);
+    }
+  };
+
+  const handleNutrients = async (id: number) => {
+    if (!isConnected) {
+      toast({
+        title: "Wallet Required",
+        description: "Please connect your Pera Wallet first.",
+        variant: "destructive",
+      });
+      return;
+    }
+    
+    if (!isContractConfigured) {
+      toast({
+        title: "Contract Not Deployed",
+        description: "The smart contract has not been deployed yet.",
+        variant: "destructive",
+      });
+      return;
+    }
+    
+    setIsActionLoading(true);
+    toast({
+      title: "Adding Nutrients...",
+      description: `Sign the transaction to feed Pod #${id}.`,
+    });
+    
+    try {
+      const txId = await addNutrients(id);
+      toast({
+        title: "Nutrients Added!",
+        description: `Your plant is getting stronger. Next feed in 6h. TX: ${txId?.slice(0, 8)}...`,
+      });
+    } catch (error) {
+      const errorMessage = error instanceof Error ? error.message : 'Transaction failed';
+      toast({
+        title: "Feed Failed",
         description: errorMessage,
         variant: "destructive",
       });
@@ -384,21 +436,21 @@ export default function Dashboard() {
             <Card className="bg-card/40 border-primary/20">
               <CardHeader className="pb-2">
                 <CardTitle className="text-sm font-medium text-muted-foreground flex items-center gap-2">
-                  <Sprout className="h-4 w-4 text-primary" />
-                  Mint Pod
+                  <Sparkles className="h-4 w-4 text-primary" />
+                  Mint Mystery Seed
                 </CardTitle>
               </CardHeader>
               <CardContent>
                 <Button 
                   className="w-full bg-primary hover:bg-primary/90"
                   onClick={handleMintPod}
-                  disabled={isActionLoading}
+                  disabled={isActionLoading || !canMintMorePods}
                   data-testid="button-mint-pod"
                 >
-                  <Plus className="mr-2 h-4 w-4" /> New GrowPod
+                  <Plus className="mr-2 h-4 w-4" /> Plant Now
                 </Button>
                 <p className="text-xs text-muted-foreground mt-2">
-                  Mint soulbound NFT + plant mystery seed
+                  Pods: {activePods}/{maxPods} {!canMintMorePods && <span className="text-amber-500">(Max reached)</span>}
                 </p>
               </CardContent>
             </Card>
@@ -457,17 +509,21 @@ export default function Dashboard() {
               </CardHeader>
               <CardContent>
                 <div className="space-y-1 text-sm">
-                  <div className="flex justify-between">
+                  <div className="flex justify-between gap-2">
                     <span className="text-muted-foreground">Active Pods:</span>
-                    <span className="font-mono">{pods.filter(p => p.status !== 'empty').length}</span>
+                    <span className="font-mono">{activePods}/{maxPods}</span>
                   </div>
-                  <div className="flex justify-between">
+                  <div className="flex justify-between gap-2">
                     <span className="text-muted-foreground">Ready to Harvest:</span>
                     <span className="font-mono text-amber-500">{pods.filter(p => p.status === 'harvest_ready').length}</span>
                   </div>
-                  <div className="flex justify-between">
+                  <div className="flex justify-between gap-2">
                     <span className="text-muted-foreground">Need Water:</span>
                     <span className="font-mono text-blue-400">{pods.filter(p => p.canWater).length}</span>
+                  </div>
+                  <div className="flex justify-between gap-2">
+                    <span className="text-muted-foreground">Need Nutrients:</span>
+                    <span className="font-mono text-green-400">{pods.filter(p => p.canAddNutrients).length}</span>
                   </div>
                 </div>
               </CardContent>
@@ -495,20 +551,27 @@ export default function Dashboard() {
                 <PodCard 
                   key={pod.id} 
                   pod={pod} 
-                  onWater={handleWater} 
+                  onWater={handleWater}
+                  onNutrients={handleNutrients}
                   onHarvest={handleHarvest}
                   onCleanup={handleCleanup}
                   isLoading={isActionLoading}
                 />
               ))}
               
-              <Link href="/vault" className="group relative border-2 border-dashed border-white/10 rounded-xl p-6 flex flex-col items-center justify-center min-h-[300px] hover:border-primary/50 hover:bg-white/5 transition-all cursor-pointer">
-                <div className="h-16 w-16 rounded-full bg-white/5 flex items-center justify-center mb-4 group-hover:scale-110 transition-transform group-hover:bg-primary/20">
-                  <Plus className="h-8 w-8 text-muted-foreground group-hover:text-primary" />
+              {canMintMorePods && (
+                <div 
+                  onClick={handleMintPod}
+                  className="group relative border-2 border-dashed border-white/10 rounded-xl p-6 flex flex-col items-center justify-center min-h-[300px] hover:border-primary/50 hover:bg-white/5 transition-all cursor-pointer"
+                  data-testid="button-mint-empty-slot"
+                >
+                  <div className="h-16 w-16 rounded-full bg-white/5 flex items-center justify-center mb-4 group-hover:scale-110 transition-transform group-hover:bg-primary/20">
+                    <Plus className="h-8 w-8 text-muted-foreground group-hover:text-primary" />
+                  </div>
+                  <h3 className="font-display font-bold text-muted-foreground group-hover:text-foreground">Mint Mystery Seed</h3>
+                  <p className="text-sm text-muted-foreground/50 mt-1">Click to plant a new seed</p>
                 </div>
-                <h3 className="font-display font-bold text-muted-foreground group-hover:text-foreground">Empty Pod</h3>
-                <p className="text-sm text-muted-foreground/50 mt-1">Plant a seed to start growing</p>
-              </Link>
+              )}
             </div>
           ) : (
             <div className="flex flex-col items-center justify-center py-20 bg-card/20 rounded-2xl border border-white/5">
