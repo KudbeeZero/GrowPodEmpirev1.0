@@ -569,7 +569,7 @@ export default function Dashboard() {
                             <li><span className="text-foreground font-medium">Burn 1 Slot Token</span> - unlocks a new pod slot</li>
                           </ol>
                           <p className="text-xs text-muted-foreground/70 pt-2 border-t border-white/10">
-                            You start with 1 slot and can unlock up to 5 total. Slot Tokens are tradeable ASAs that stay in your wallet until burned.
+                            You start with 2 slots and can unlock up to 5 total. Slot Tokens are tradeable ASAs that stay in your wallet until burned.
                           </p>
                         </div>
                       </PopoverContent>

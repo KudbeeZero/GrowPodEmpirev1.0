@@ -87,9 +87,9 @@ def approval_program():
         App.localPut(Txn.sender(), LocalLastNutrients2, Int(0)),
         App.localPut(Txn.sender(), LocalDna2, Bytes("")),
         App.localPut(Txn.sender(), LocalTerpeneProfile2, Bytes("")),
-        # Slot progression (2 keys) - start with 1 slot
+        # Slot progression (2 keys) - start with 2 slots
         App.localPut(Txn.sender(), LocalHarvestCount, Int(0)),
-        App.localPut(Txn.sender(), LocalPodSlots, Int(1)),
+        App.localPut(Txn.sender(), LocalPodSlots, Int(2)),
         Approve()
     )
 
