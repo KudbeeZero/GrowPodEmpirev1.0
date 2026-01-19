@@ -5,7 +5,8 @@ import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Checkbox } from "@/components/ui/checkbox";
 import { useToast } from "@/hooks/use-toast";
-import { Plus, Sprout, Leaf, FlaskConical, Flame, Zap, Sparkles, TestTube2, Info, Coins, ExternalLink } from "lucide-react";
+import { useNotifications, usePlantNotifications } from "@/hooks/use-notifications";
+import { Plus, Sprout, Leaf, FlaskConical, Flame, Zap, Sparkles, TestTube2, Info, Coins, ExternalLink, Bell, BellOff } from "lucide-react";
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
 import { Link } from "wouter";
 import { motion } from "framer-motion";
@@ -16,6 +17,8 @@ export default function Dashboard() {
   const { budBalance, terpBalance, algoBalance, pods, activePods, canMintMorePods, maxPods } = useGameState(account);
   const { mintPod, waterPlant, addNutrients, harvestPlant, cleanupPod, optInToApp, optInToAsset, checkAppOptedIn, checkAssetOptedIn } = useTransactions();
   const { toast } = useToast();
+  const { permission, isSupported, requestPermission } = useNotifications();
+  const { scheduledCount } = usePlantNotifications(pods, isConnected);
   const [isActionLoading, setIsActionLoading] = useState(false);
   const [isOptedInApp, setIsOptedInApp] = useState(false);
   const [isOptedInBud, setIsOptedInBud] = useState(false);
@@ -24,6 +27,22 @@ export default function Dashboard() {
 
   // Get the active cooldown based on Fast Mode toggle
   const activeWaterCooldown = fastModeEnabled ? WATER_COOLDOWN_TESTNET : WATER_COOLDOWN;
+  
+  const handleEnableNotifications = async () => {
+    const granted = await requestPermission();
+    if (granted) {
+      toast({
+        title: "Notifications Enabled",
+        description: "You'll be reminded when your plants need water or are ready to harvest.",
+      });
+    } else {
+      toast({
+        title: "Notifications Blocked",
+        description: "Enable notifications in your browser settings to receive reminders.",
+        variant: "destructive",
+      });
+    }
+  };
 
   const isContractConfigured = CONTRACT_CONFIG.appId > 0;
 
@@ -614,6 +633,28 @@ export default function Dashboard() {
                     4h water cooldown
                   </p>
                 </div>
+                
+                {isSupported && (
+                  <div className="mt-3 pt-3 border-t border-white/10">
+                    {permission === 'granted' ? (
+                      <div className="flex items-center gap-2 text-xs text-green-400">
+                        <Bell className="h-3.5 w-3.5" />
+                        <span>Reminders on ({scheduledCount} scheduled)</span>
+                      </div>
+                    ) : (
+                      <Button
+                        variant="ghost"
+                        size="sm"
+                        className="w-full text-xs h-7 text-muted-foreground hover:text-foreground"
+                        onClick={handleEnableNotifications}
+                        data-testid="button-enable-notifications"
+                      >
+                        <BellOff className="h-3.5 w-3.5 mr-1.5" />
+                        Enable Water Reminders
+                      </Button>
+                    )}
+                  </div>
+                )}
               </CardContent>
             </Card>
           </div>
