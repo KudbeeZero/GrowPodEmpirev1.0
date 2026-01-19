@@ -73,7 +73,19 @@ Preferred communication style: Simple, everyday language.
 
 ## Recent Changes (January 2026)
 
-### Community Features (Latest)
+### Navigation & Mobile Responsive Improvements (Latest)
+- **Desktop Navigation**: Redesigned with shadcn NavigationMenu dropdowns
+  - Dashboard as standalone link
+  - "Game" dropdown: Seed Vault, Combiner Lab, Supply Store, Cure Vault
+  - "Community" dropdown: Leaderboards, Stats, Achievements, How to Play
+- **Mobile Menu**: Sheet-based slide-out with ScrollArea for scrolling
+  - Section dividers for Game/Community categories
+  - 48px minimum touch targets (exceeds Apple's 44px guideline)
+  - Safe area insets for phones with notches (iPhone X+, modern Android)
+- **CSS Safe Areas**: Added pb-safe, pt-safe, px-safe utility classes
+- **Horizontal Overflow**: Prevented with overflow-x: hidden on html/body
+
+### Community Features
 - **Tutorial Page**: Step-by-step guide for new players at /tutorial
 - **Leaderboards**: Rankings by harvests, $BUD earned, and $TERP earned at /leaderboards
 - **Statistics Dashboard**: Global game metrics at /stats
