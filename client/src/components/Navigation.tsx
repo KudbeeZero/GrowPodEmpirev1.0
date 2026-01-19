@@ -17,11 +17,14 @@ import {
   BookOpen,
   Trophy,
   BarChart3,
-  Award
+  Award,
+  Gamepad2,
+  Users
 } from "lucide-react";
 import { useState } from "react";
 import { Button } from "./ui/button";
 import { Badge } from "./ui/badge";
+import { ScrollArea } from "./ui/scroll-area";
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -30,6 +33,14 @@ import {
   DropdownMenuSeparator,
   DropdownMenuTrigger,
 } from "./ui/dropdown-menu";
+import {
+  NavigationMenu,
+  NavigationMenuContent,
+  NavigationMenuItem,
+  NavigationMenuLink,
+  NavigationMenuList,
+  NavigationMenuTrigger,
+} from "./ui/navigation-menu";
 
 export function Navigation() {
   const [location] = useLocation();
@@ -41,16 +52,24 @@ export function Navigation() {
   const plantsReadyToHarvest = pods.filter(p => p.status === 'harvest_ready').length;
   const totalAttentionNeeded = plantsNeedingWater + plantsReadyToHarvest;
 
-  const navItems = [
+  const gameItems = [
+    { href: "/vault", label: "Seed Vault", icon: Warehouse, description: "Manage your seed collection" },
+    { href: "/lab", label: "Combiner Lab", icon: FlaskConical, description: "Breed and create new strains" },
+    { href: "/store", label: "Supply Store", icon: Store, description: "Buy supplies and upgrades" },
+    { href: "/staking", label: "Cure Vault", icon: Sprout, description: "Stake tokens for rewards" },
+  ];
+
+  const communityItems = [
+    { href: "/leaderboards", label: "Leaderboards", icon: Trophy, description: "See top growers" },
+    { href: "/stats", label: "Stats", icon: BarChart3, description: "Global game statistics" },
+    { href: "/achievements", label: "Achievements", icon: Award, description: "Your milestones" },
+    { href: "/tutorial", label: "How to Play", icon: BookOpen, description: "Learn the basics" },
+  ];
+
+  const allNavItems = [
     { href: "/", label: "Dashboard", icon: LayoutDashboard },
-    { href: "/vault", label: "Seed Vault", icon: Warehouse },
-    { href: "/lab", label: "Combiner Lab", icon: FlaskConical },
-    { href: "/store", label: "Supply Store", icon: Store },
-    { href: "/staking", label: "Cure Vault", icon: Sprout },
-    { href: "/leaderboards", label: "Leaderboards", icon: Trophy },
-    { href: "/stats", label: "Stats", icon: BarChart3 },
-    { href: "/achievements", label: "Achievements", icon: Award },
-    { href: "/tutorial", label: "How to Play", icon: BookOpen },
+    ...gameItems,
+    ...communityItems,
   ];
 
   const truncatedAddress = account 
@@ -68,25 +87,102 @@ export function Navigation() {
           </span>
         </div>
 
-        <nav className="hidden md:flex items-center gap-6">
-          {navItems.map((item) => {
-            const Icon = item.icon;
-            const isActive = location === item.href;
-            return (
-              <Link 
-                key={item.href} 
-                href={item.href} 
-                className={cn(
-                  "flex items-center gap-2 text-sm font-medium transition-all hover:text-primary",
-                  isActive ? "text-primary" : "text-muted-foreground"
-                )}
-                data-testid={`nav-${item.label.toLowerCase().replace(' ', '-')}`}
-              >
-                <Icon className="h-4 w-4" />
-                {item.label}
-              </Link>
-            );
-          })}
+        <nav className="hidden lg:flex items-center">
+          <NavigationMenu>
+            <NavigationMenuList className="gap-1">
+              <NavigationMenuItem>
+                <NavigationMenuLink asChild>
+                  <Link 
+                    href="/"
+                    className={cn(
+                      "group inline-flex h-9 w-max items-center justify-center rounded-md px-4 py-2 text-sm font-medium transition-colors hover:bg-accent hover:text-accent-foreground focus:bg-accent focus:text-accent-foreground focus:outline-none disabled:pointer-events-none disabled:opacity-50",
+                      location === "/" ? "text-primary" : "text-muted-foreground"
+                    )}
+                    data-testid="nav-dashboard"
+                  >
+                    <LayoutDashboard className="h-4 w-4 mr-2" />
+                    Dashboard
+                  </Link>
+                </NavigationMenuLink>
+              </NavigationMenuItem>
+
+              <NavigationMenuItem>
+                <NavigationMenuTrigger className="text-muted-foreground">
+                  <Gamepad2 className="h-4 w-4 mr-2" />
+                  Game
+                </NavigationMenuTrigger>
+                <NavigationMenuContent>
+                  <ul className="grid w-[320px] gap-1 p-2">
+                    {gameItems.map((item) => {
+                      const Icon = item.icon;
+                      return (
+                        <li key={item.href}>
+                          <NavigationMenuLink asChild>
+                            <Link 
+                              href={item.href}
+                              className={cn(
+                                "block select-none rounded-md p-3 leading-none no-underline outline-none transition-colors hover:bg-accent hover:text-accent-foreground focus:bg-accent focus:text-accent-foreground",
+                                location === item.href ? "bg-accent/50" : ""
+                              )}
+                              data-testid={`nav-${item.label.toLowerCase().replace(/\s+/g, '-')}`}
+                            >
+                              <div className="flex items-center gap-3">
+                                <Icon className="h-5 w-5 text-primary" />
+                                <div>
+                                  <div className="text-sm font-medium leading-none">{item.label}</div>
+                                  <p className="text-xs leading-snug text-muted-foreground mt-1">
+                                    {item.description}
+                                  </p>
+                                </div>
+                              </div>
+                            </Link>
+                          </NavigationMenuLink>
+                        </li>
+                      );
+                    })}
+                  </ul>
+                </NavigationMenuContent>
+              </NavigationMenuItem>
+
+              <NavigationMenuItem>
+                <NavigationMenuTrigger className="text-muted-foreground">
+                  <Users className="h-4 w-4 mr-2" />
+                  Community
+                </NavigationMenuTrigger>
+                <NavigationMenuContent>
+                  <ul className="grid w-[320px] gap-1 p-2">
+                    {communityItems.map((item) => {
+                      const Icon = item.icon;
+                      return (
+                        <li key={item.href}>
+                          <NavigationMenuLink asChild>
+                            <Link 
+                              href={item.href}
+                              className={cn(
+                                "block select-none rounded-md p-3 leading-none no-underline outline-none transition-colors hover:bg-accent hover:text-accent-foreground focus:bg-accent focus:text-accent-foreground",
+                                location === item.href ? "bg-accent/50" : ""
+                              )}
+                              data-testid={`nav-${item.label.toLowerCase().replace(/\s+/g, '-')}`}
+                            >
+                              <div className="flex items-center gap-3">
+                                <Icon className="h-5 w-5 text-primary" />
+                                <div>
+                                  <div className="text-sm font-medium leading-none">{item.label}</div>
+                                  <p className="text-xs leading-snug text-muted-foreground mt-1">
+                                    {item.description}
+                                  </p>
+                                </div>
+                              </div>
+                            </Link>
+                          </NavigationMenuLink>
+                        </li>
+                      );
+                    })}
+                  </ul>
+                </NavigationMenuContent>
+              </NavigationMenuItem>
+            </NavigationMenuList>
+          </NavigationMenu>
         </nav>
 
         <div className="flex items-center gap-4">
@@ -173,37 +269,92 @@ export function Navigation() {
           )}
 
           <button 
-            className="md:hidden text-foreground"
+            className="lg:hidden text-foreground p-2 min-w-[44px] min-h-[44px] flex items-center justify-center"
             onClick={() => setMobileMenuOpen(!mobileMenuOpen)}
             data-testid="button-mobile-menu"
+            aria-label="Toggle menu"
           >
-            {mobileMenuOpen ? <X /> : <Menu />}
+            {mobileMenuOpen ? <X className="h-6 w-6" /> : <Menu className="h-6 w-6" />}
           </button>
         </div>
       </div>
 
       {mobileMenuOpen && (
-        <div className="md:hidden border-b border-white/10 bg-background/95 backdrop-blur-xl absolute w-full left-0 top-16 animate-accordion-down">
-          <nav className="flex flex-col p-4 gap-4">
-            {navItems.map((item) => {
-              const Icon = item.icon;
-              const isActive = location === item.href;
-              return (
-                <Link 
-                  key={item.href} 
-                  href={item.href} 
-                  className={cn(
-                    "flex items-center gap-3 p-3 rounded-lg hover:bg-white/5 transition-colors",
-                    isActive ? "text-primary bg-primary/10" : "text-muted-foreground hover:text-primary"
-                  )}
-                  onClick={() => setMobileMenuOpen(false)}
-                >
-                  <Icon className="h-5 w-5" />
-                  {item.label}
-                </Link>
-              );
-            })}
-          </nav>
+        <div className="lg:hidden border-b border-white/10 bg-background/95 backdrop-blur-xl absolute w-full left-0 top-16 animate-accordion-down z-50 shadow-xl">
+          <ScrollArea className="h-[calc(100vh-4rem)] max-h-[70vh]">
+            <nav className="flex flex-col p-4 pb-safe">
+              <Link 
+                href="/"
+                className={cn(
+                  "flex items-center gap-3 p-4 rounded-lg hover:bg-white/5 transition-colors min-h-[48px]",
+                  location === "/" ? "text-primary bg-primary/10" : "text-muted-foreground hover:text-primary"
+                )}
+                onClick={() => setMobileMenuOpen(false)}
+                data-testid="mobile-nav-dashboard"
+              >
+                <LayoutDashboard className="h-5 w-5" />
+                Dashboard
+              </Link>
+
+              <div className="mt-4 mb-2 px-2">
+                <p className="text-xs font-semibold text-muted-foreground/70 uppercase tracking-wider flex items-center gap-2">
+                  <Gamepad2 className="h-3 w-3" />
+                  Game
+                </p>
+              </div>
+              {gameItems.map((item) => {
+                const Icon = item.icon;
+                const isActive = location === item.href;
+                return (
+                  <Link 
+                    key={item.href} 
+                    href={item.href} 
+                    className={cn(
+                      "flex items-center gap-3 p-4 rounded-lg hover:bg-white/5 transition-colors min-h-[48px]",
+                      isActive ? "text-primary bg-primary/10" : "text-muted-foreground hover:text-primary"
+                    )}
+                    onClick={() => setMobileMenuOpen(false)}
+                    data-testid={`mobile-nav-${item.label.toLowerCase().replace(/\s+/g, '-')}`}
+                  >
+                    <Icon className="h-5 w-5" />
+                    <div>
+                      <div className="font-medium">{item.label}</div>
+                      <div className="text-xs text-muted-foreground/70">{item.description}</div>
+                    </div>
+                  </Link>
+                );
+              })}
+
+              <div className="mt-4 mb-2 px-2">
+                <p className="text-xs font-semibold text-muted-foreground/70 uppercase tracking-wider flex items-center gap-2">
+                  <Users className="h-3 w-3" />
+                  Community
+                </p>
+              </div>
+              {communityItems.map((item) => {
+                const Icon = item.icon;
+                const isActive = location === item.href;
+                return (
+                  <Link 
+                    key={item.href} 
+                    href={item.href} 
+                    className={cn(
+                      "flex items-center gap-3 p-4 rounded-lg hover:bg-white/5 transition-colors min-h-[48px]",
+                      isActive ? "text-primary bg-primary/10" : "text-muted-foreground hover:text-primary"
+                    )}
+                    onClick={() => setMobileMenuOpen(false)}
+                    data-testid={`mobile-nav-${item.label.toLowerCase().replace(/\s+/g, '-')}`}
+                  >
+                    <Icon className="h-5 w-5" />
+                    <div>
+                      <div className="font-medium">{item.label}</div>
+                      <div className="text-xs text-muted-foreground/70">{item.description}</div>
+                    </div>
+                  </Link>
+                );
+              })}
+            </nav>
+          </ScrollArea>
         </div>
       )}
     </header>

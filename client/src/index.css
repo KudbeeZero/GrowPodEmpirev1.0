@@ -93,3 +93,40 @@
 .glass-card {
   @apply bg-card/40 backdrop-blur-md border border-white/5 shadow-lg hover:bg-card/60 hover:border-primary/30 transition-all duration-300;
 }
+
+/* Safe area insets for phones with notches */
+@supports (padding: env(safe-area-inset-bottom)) {
+  .pb-safe {
+    padding-bottom: env(safe-area-inset-bottom);
+  }
+  
+  .pt-safe {
+    padding-top: env(safe-area-inset-top);
+  }
+  
+  .px-safe {
+    padding-left: env(safe-area-inset-left);
+    padding-right: env(safe-area-inset-right);
+  }
+}
+
+/* Mobile touch target sizing */
+@layer utilities {
+  .touch-target {
+    min-width: 44px;
+    min-height: 44px;
+  }
+}
+
+/* Prevent horizontal overflow on mobile */
+html, body {
+  overflow-x: hidden;
+  width: 100%;
+}
+
+/* Smooth scrolling for iOS */
+@supports (-webkit-touch-callout: none) {
+  .scroll-touch {
+    -webkit-overflow-scrolling: touch;
+  }
+}
