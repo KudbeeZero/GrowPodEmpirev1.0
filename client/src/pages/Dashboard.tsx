@@ -5,7 +5,7 @@ import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Checkbox } from "@/components/ui/checkbox";
 import { useToast } from "@/hooks/use-toast";
-import { Plus, Sprout, Leaf, FlaskConical, Flame, Zap, Sparkles, TestTube2, Info, Coins } from "lucide-react";
+import { Plus, Sprout, Leaf, FlaskConical, Flame, Zap, Sparkles, TestTube2, Info, Coins, ExternalLink } from "lucide-react";
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
 import { Link } from "wouter";
 import { motion } from "framer-motion";
@@ -419,6 +419,18 @@ export default function Dashboard() {
                 </h3>
                 <p className="text-sm text-muted-foreground mt-1">
                   Opt into the smart contract and tokens to start playing. This is a one-time setup.
+                </p>
+                <p className="text-xs text-muted-foreground mt-2">
+                  Need TestNet ALGO?{' '}
+                  <a 
+                    href="https://bank.testnet.algorand.network/" 
+                    target="_blank" 
+                    rel="noopener noreferrer"
+                    className="text-primary hover:underline inline-flex items-center gap-1"
+                    data-testid="link-faucet"
+                  >
+                    Get free ALGO from the faucet <ExternalLink className="h-3 w-3" />
+                  </a>
                 </p>
                 <div className="flex flex-wrap gap-2 mt-2">
                   <span className={`text-xs px-2 py-1 rounded ${isOptedInApp ? 'bg-green-500/20 text-green-400' : 'bg-muted text-muted-foreground'}`}>
