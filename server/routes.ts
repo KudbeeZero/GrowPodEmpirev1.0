@@ -53,9 +53,76 @@ export async function registerRoutes(
   app.get(api.config.get.path, (_req, res) => {
     res.json({
       network: 'testnet',
-      // In a real scenario, these would come from env vars or database
-      // appId: process.env.APP_ID ? parseInt(process.env.APP_ID) : undefined
     });
+  });
+
+  app.get("/api/leaderboard/harvests", async (_req, res) => {
+    try {
+      const leaderboard = await storage.getHarvestLeaderboard(20);
+      res.json(leaderboard);
+    } catch (err) {
+      console.error("Failed to get harvest leaderboard:", err);
+      res.status(500).json({ message: "Failed to get leaderboard" });
+    }
+  });
+
+  app.get("/api/leaderboard/bud", async (_req, res) => {
+    try {
+      const leaderboard = await storage.getBudLeaderboard(20);
+      res.json(leaderboard);
+    } catch (err) {
+      console.error("Failed to get BUD leaderboard:", err);
+      res.status(500).json({ message: "Failed to get leaderboard" });
+    }
+  });
+
+  app.get("/api/leaderboard/terp", async (_req, res) => {
+    try {
+      const leaderboard = await storage.getTerpLeaderboard(20);
+      res.json(leaderboard);
+    } catch (err) {
+      console.error("Failed to get TERP leaderboard:", err);
+      res.status(500).json({ message: "Failed to get leaderboard" });
+    }
+  });
+
+  app.get("/api/stats/global", async (_req, res) => {
+    try {
+      const stats = await storage.getGlobalStats();
+      res.json(stats);
+    } catch (err) {
+      console.error("Failed to get global stats:", err);
+      res.status(500).json({ message: "Failed to get stats" });
+    }
+  });
+
+  const recordHarvestSchema = z.object({
+    walletAddress: z.string().min(58).max(58),
+    budEarned: z.string().regex(/^\d+$/),
+    terpEarned: z.string().regex(/^\d+$/).default("0"),
+    isRareTerp: z.boolean().default(false),
+  });
+
+  app.post("/api/stats/record-harvest", async (req, res) => {
+    try {
+      const parsed = recordHarvestSchema.parse(req.body);
+      const stats = await storage.recordHarvest(
+        parsed.walletAddress, 
+        parsed.budEarned, 
+        parsed.terpEarned, 
+        parsed.isRareTerp
+      );
+      res.json(stats);
+    } catch (err) {
+      if (err instanceof z.ZodError) {
+        return res.status(400).json({
+          message: err.errors[0].message,
+          field: err.errors[0].path.join('.'),
+        });
+      }
+      console.error("Failed to record harvest:", err);
+      res.status(500).json({ message: "Failed to record harvest" });
+    }
   });
 
   return httpServer;

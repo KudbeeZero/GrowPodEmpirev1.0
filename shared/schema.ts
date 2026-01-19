@@ -11,10 +11,23 @@ export const users = pgTable("users", {
   createdAt: timestamp("created_at").defaultNow(),
 });
 
+export const playerStats = pgTable("player_stats", {
+  id: serial("id").primaryKey(),
+  walletAddress: text("wallet_address").unique().notNull(),
+  totalHarvests: integer("total_harvests").default(0).notNull(),
+  totalBudEarned: text("total_bud_earned").default("0").notNull(),
+  totalTerpEarned: text("total_terp_earned").default("0").notNull(),
+  rareTerpenesFound: integer("rare_terpenes_found").default(0).notNull(),
+  updatedAt: timestamp("updated_at").defaultNow(),
+});
+
 export const insertUserSchema = createInsertSchema(users).omit({ id: true, createdAt: true, lastLogin: true });
+export const insertPlayerStatsSchema = createInsertSchema(playerStats).omit({ id: true, updatedAt: true });
 
 export type User = typeof users.$inferSelect;
 export type InsertUser = z.infer<typeof insertUserSchema>;
+export type PlayerStats = typeof playerStats.$inferSelect;
+export type InsertPlayerStats = z.infer<typeof insertPlayerStatsSchema>;
 
 // Types for Game Data (Frontend <-> Backend)
 export type PodStatus = "empty" | "planted" | "growing" | "ready_harvest" | "dead";

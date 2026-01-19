@@ -1,20 +1,22 @@
 import { useAlgorand, useGameState, useTransactions, CONTRACT_CONFIG, MAX_PODS, WATER_COOLDOWN, WATER_COOLDOWN_TESTNET } from "@/hooks/use-algorand";
 import { CurrencyDisplay } from "@/components/CurrencyDisplay";
 import { PodCard } from "@/components/PodCard";
+import { ShareButtons } from "@/components/ShareButtons";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Checkbox } from "@/components/ui/checkbox";
 import { useToast } from "@/hooks/use-toast";
 import { useNotifications, usePlantNotifications } from "@/hooks/use-notifications";
-import { Plus, Sprout, Leaf, FlaskConical, Flame, Zap, Sparkles, TestTube2, Info, Coins, ExternalLink, Bell, BellOff } from "lucide-react";
+import { Plus, Sprout, Leaf, FlaskConical, Flame, Zap, Sparkles, TestTube2, Info, Coins, ExternalLink, Bell, BellOff, X } from "lucide-react";
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
+import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription } from "@/components/ui/dialog";
 import { Link } from "wouter";
 import { motion } from "framer-motion";
 import { useState, useEffect } from "react";
 
 export default function Dashboard() {
   const { account, isConnected, connectWallet } = useAlgorand();
-  const { budBalance, terpBalance, algoBalance, pods, activePods, canMintMorePods, maxPods } = useGameState(account);
+  const { budBalance, terpBalance, algoBalance, pods, activePods, canMintMorePods, maxPods, harvestCount } = useGameState(account);
   const { mintPod, waterPlant, addNutrients, harvestPlant, cleanupPod, optInToApp, optInToAsset, checkAppOptedIn, checkAssetOptedIn } = useTransactions();
   const { toast } = useToast();
   const { permission, isSupported, requestPermission } = useNotifications();
@@ -24,6 +26,8 @@ export default function Dashboard() {
   const [isOptedInBud, setIsOptedInBud] = useState(false);
   const [isOptedInTerp, setIsOptedInTerp] = useState(false);
   const [fastModeEnabled, setFastModeEnabled] = useState(false);
+  const [harvestDialogOpen, setHarvestDialogOpen] = useState(false);
+  const [lastHarvestData, setLastHarvestData] = useState<{podId: number; budEarned: number; rareTerp: boolean; terpEarned: number} | null>(null);
 
   // Get the active cooldown based on Fast Mode toggle
   const activeWaterCooldown = fastModeEnabled ? WATER_COOLDOWN_TESTNET : WATER_COOLDOWN;
@@ -309,9 +313,22 @@ export default function Dashboard() {
     
     try {
       const txId = await harvestPlant(id);
+      const pod = pods.find(p => p.id === id);
+      const waterBonus = pod && pod.waterCount > 10 ? (pod.waterCount - 10) * 10 : 0;
+      const nutrientBonus = pod && pod.nutrientCount > 10 ? (pod.nutrientCount - 10) * 5 : 0;
+      const estimatedBud = 100 + waterBonus + nutrientBonus;
+      
+      setLastHarvestData({
+        podId: id,
+        budEarned: estimatedBud,
+        rareTerp: false,
+        terpEarned: 0,
+      });
+      setHarvestDialogOpen(true);
+      
       toast({
         title: "Harvest Complete!",
-        description: `Pod #${id} harvested! You received $BUD! TX: ${txId?.slice(0, 8)}...`,
+        description: `Pod #${id} harvested! You received ~${estimatedBud} $BUD! TX: ${txId?.slice(0, 8)}...`,
       });
     } catch (error) {
       const errorMessage = error instanceof Error ? error.message : 'Transaction failed';
@@ -714,6 +731,51 @@ export default function Dashboard() {
           )}
         </div>
       </section>
+
+      <Dialog open={harvestDialogOpen} onOpenChange={setHarvestDialogOpen}>
+        <DialogContent className="sm:max-w-md">
+          <DialogHeader>
+            <DialogTitle className="font-display text-xl flex items-center gap-2">
+              <Sprout className="h-6 w-6 text-primary" />
+              Harvest Complete!
+            </DialogTitle>
+            <DialogDescription>
+              Your estimated rewards are based on care provided during growth.
+            </DialogDescription>
+          </DialogHeader>
+          {lastHarvestData && (
+            <div className="space-y-4">
+              <div className="bg-card rounded-lg p-4 space-y-3">
+                <div className="flex justify-between items-center">
+                  <span className="text-muted-foreground">Pod</span>
+                  <span className="font-bold">#{lastHarvestData.podId}</span>
+                </div>
+                <div className="flex justify-between items-center">
+                  <span className="text-muted-foreground">Est. $BUD Earned</span>
+                  <span className="font-bold text-emerald-400">~{lastHarvestData.budEarned}</span>
+                </div>
+                {lastHarvestData.rareTerp && (
+                  <div className="flex justify-between items-center">
+                    <span className="text-muted-foreground flex items-center gap-1">
+                      <FlaskConical className="h-4 w-4 text-purple-400" />
+                      Rare Terpene!
+                    </span>
+                    <span className="font-bold text-purple-400">+{lastHarvestData.terpEarned} $TERP</span>
+                  </div>
+                )}
+              </div>
+              
+              <div className="pt-2">
+                <p className="text-sm text-muted-foreground mb-3">Share your harvest with the world!</p>
+                <ShareButtons 
+                  harvestAmount={lastHarvestData.budEarned}
+                  harvestCount={harvestCount || 1}
+                />
+              </div>
+            </div>
+          )}
+        </DialogContent>
+      </Dialog>
     </div>
   );
 }

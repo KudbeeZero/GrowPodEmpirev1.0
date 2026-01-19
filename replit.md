@@ -36,8 +36,9 @@ Preferred communication style: Simple, everyday language.
 ### Data Storage
 - **Database**: PostgreSQL via Drizzle ORM
 - **Schema Location**: shared/schema.ts
-- **Key Tables**: users (wallet address, token balances, timestamps)
-- **Migrations**: Drizzle Kit with migrations output to ./migrations directory
+- **Key Tables**: users (wallet address, token balances, timestamps), player_stats (leaderboard tracking)
+- **Database Setup**: Run `npm run db:push` to sync schema from shared/schema.ts to PostgreSQL
+- **Note**: This project uses `db:push` for schema sync rather than migration files
 
 ### Key Design Patterns
 - **Shared Types**: Common schema and route definitions in /shared directory used by both frontend and backend
@@ -72,7 +73,22 @@ Preferred communication style: Simple, everyday language.
 
 ## Recent Changes (January 2026)
 
-### Browser Notification System (Latest)
+### Community Features (Latest)
+- **Tutorial Page**: Step-by-step guide for new players at /tutorial
+- **Leaderboards**: Rankings by harvests, $BUD earned, and $TERP earned at /leaderboards
+- **Statistics Dashboard**: Global game metrics at /stats
+- **Achievements System**: 8 milestone badges tracking player progress at /achievements
+- **Social Sharing**: Share harvest results on X/Twitter with dialog after each harvest
+- **Player Stats Database**: New player_stats table tracking harvests, tokens earned, rare terpenes
+
+### API Endpoints Added
+- GET `/api/leaderboard/harvests` - Top players by harvest count
+- GET `/api/leaderboard/bud` - Top players by $BUD earned
+- GET `/api/leaderboard/terp` - Top players by $TERP earned
+- GET `/api/stats/global` - Global game statistics
+- POST `/api/stats/record-harvest` - Record harvest for leaderboard tracking
+
+### Browser Notification System
 - Push notifications via Web Notification API (browser-based, not Pera Wallet)
 - Dashboard includes "Enable Notifications" button to request permission
 - Scheduled notifications for each pod:

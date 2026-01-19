@@ -1,12 +1,26 @@
-import { users, type User, type InsertUser } from "@shared/schema";
+import { users, playerStats, type User, type InsertUser, type PlayerStats } from "@shared/schema";
 import { db } from "./db";
-import { eq } from "drizzle-orm";
+import { eq, desc, sql } from "drizzle-orm";
+
+export interface LeaderboardEntry {
+  rank: number;
+  wallet: string;
+  value: number;
+  displayValue: string;
+  rawValue?: string;
+}
 
 export interface IStorage {
   getUserByWallet(walletAddress: string): Promise<User | undefined>;
   createUser(user: InsertUser): Promise<User>;
   updateUserLogin(id: number): Promise<User>;
   updateUserBalances(walletAddress: string, bud: string, terp: string): Promise<User>;
+  getOrCreatePlayerStats(walletAddress: string): Promise<PlayerStats>;
+  recordHarvest(walletAddress: string, budEarned: string, terpEarned: string, isRareTerp: boolean): Promise<PlayerStats>;
+  getHarvestLeaderboard(limit?: number): Promise<LeaderboardEntry[]>;
+  getBudLeaderboard(limit?: number): Promise<LeaderboardEntry[]>;
+  getTerpLeaderboard(limit?: number): Promise<LeaderboardEntry[]>;
+  getGlobalStats(): Promise<{ totalHarvests: number; totalBudMinted: string; totalPlayers: number; rareTerpenesFound: number }>;
 }
 
 export class DatabaseStorage implements IStorage {
@@ -35,6 +49,106 @@ export class DatabaseStorage implements IStorage {
       .returning();
     return user;
   }
+
+  async getOrCreatePlayerStats(walletAddress: string): Promise<PlayerStats> {
+    const [existing] = await db.select().from(playerStats).where(eq(playerStats.walletAddress, walletAddress));
+    if (existing) return existing;
+    
+    const [stats] = await db.insert(playerStats).values({ walletAddress }).returning();
+    return stats;
+  }
+
+  async recordHarvest(walletAddress: string, budEarned: string, terpEarned: string, isRareTerp: boolean): Promise<PlayerStats> {
+    const existing = await this.getOrCreatePlayerStats(walletAddress);
+    
+    const newBudTotal = (BigInt(existing.totalBudEarned) + BigInt(budEarned)).toString();
+    const newTerpTotal = (BigInt(existing.totalTerpEarned) + BigInt(terpEarned)).toString();
+    
+    const [updated] = await db.update(playerStats)
+      .set({
+        totalHarvests: existing.totalHarvests + 1,
+        totalBudEarned: newBudTotal,
+        totalTerpEarned: newTerpTotal,
+        rareTerpenesFound: isRareTerp ? existing.rareTerpenesFound + 1 : existing.rareTerpenesFound,
+        updatedAt: new Date(),
+      })
+      .where(eq(playerStats.walletAddress, walletAddress))
+      .returning();
+    
+    return updated;
+  }
+
+  async getHarvestLeaderboard(limit = 10): Promise<LeaderboardEntry[]> {
+    const results = await db.select()
+      .from(playerStats)
+      .orderBy(desc(playerStats.totalHarvests))
+      .limit(limit);
+    
+    return results.map((r, idx) => ({
+      rank: idx + 1,
+      wallet: r.walletAddress,
+      value: r.totalHarvests,
+      displayValue: r.totalHarvests.toString(),
+    }));
+  }
+
+  async getBudLeaderboard(limit = 10): Promise<LeaderboardEntry[]> {
+    const results = await db.select()
+      .from(playerStats)
+      .orderBy(desc(sql`CAST(${playerStats.totalBudEarned} AS NUMERIC)`))
+      .limit(limit);
+    
+    return results.map((r, idx) => ({
+      rank: idx + 1,
+      wallet: r.walletAddress,
+      value: 0,
+      displayValue: formatTokenAmount(r.totalBudEarned),
+      rawValue: r.totalBudEarned,
+    }));
+  }
+
+  async getTerpLeaderboard(limit = 10): Promise<LeaderboardEntry[]> {
+    const results = await db.select()
+      .from(playerStats)
+      .orderBy(desc(sql`CAST(${playerStats.totalTerpEarned} AS NUMERIC)`))
+      .limit(limit);
+    
+    return results.map((r, idx) => ({
+      rank: idx + 1,
+      wallet: r.walletAddress,
+      value: 0,
+      displayValue: formatTokenAmount(r.totalTerpEarned),
+      rawValue: r.totalTerpEarned,
+    }));
+  }
+
+  async getGlobalStats(): Promise<{ totalHarvests: number; totalBudMinted: string; totalPlayers: number; rareTerpenesFound: number }> {
+    const [stats] = await db.select({
+      totalHarvests: sql<number>`COALESCE(SUM(${playerStats.totalHarvests}), 0)`,
+      totalBudMinted: sql<string>`COALESCE(SUM(CAST(${playerStats.totalBudEarned} AS NUMERIC)), 0)::TEXT`,
+      totalPlayers: sql<number>`COUNT(*)`,
+      rareTerpenesFound: sql<number>`COALESCE(SUM(${playerStats.rareTerpenesFound}), 0)`,
+    }).from(playerStats);
+    
+    return {
+      totalHarvests: Number(stats.totalHarvests) || 0,
+      totalBudMinted: stats.totalBudMinted || "0",
+      totalPlayers: Number(stats.totalPlayers) || 0,
+      rareTerpenesFound: Number(stats.rareTerpenesFound) || 0,
+    };
+  }
+}
+
+function formatTokenAmount(amount: string): string {
+  const num = BigInt(amount);
+  const decimals = BigInt(1000000);
+  const whole = num / decimals;
+  if (whole >= BigInt(1000000)) {
+    return `${(Number(whole) / 1000000).toFixed(1)}M`;
+  } else if (whole >= BigInt(1000)) {
+    return `${(Number(whole) / 1000).toFixed(1)}K`;
+  }
+  return whole.toString();
 }
 
 export const storage = new DatabaseStorage();

@@ -13,7 +13,11 @@ import {
   X,
   LogOut,
   Loader2,
-  Droplets
+  Droplets,
+  BookOpen,
+  Trophy,
+  BarChart3,
+  Award
 } from "lucide-react";
 import { useState } from "react";
 import { Button } from "./ui/button";
@@ -43,6 +47,10 @@ export function Navigation() {
     { href: "/lab", label: "Combiner Lab", icon: FlaskConical },
     { href: "/store", label: "Supply Store", icon: Store },
     { href: "/staking", label: "Cure Vault", icon: Sprout },
+    { href: "/leaderboards", label: "Leaderboards", icon: Trophy },
+    { href: "/stats", label: "Stats", icon: BarChart3 },
+    { href: "/achievements", label: "Achievements", icon: Award },
+    { href: "/tutorial", label: "How to Play", icon: BookOpen },
   ];
 
   const truncatedAddress = account 

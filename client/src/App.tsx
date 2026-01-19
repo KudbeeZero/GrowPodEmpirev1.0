@@ -10,6 +10,10 @@ import SeedVault from "@/pages/SeedVault";
 import CombinerLab from "@/pages/CombinerLab";
 import Store from "@/pages/Store";
 import CureVault from "@/pages/CureVault";
+import Tutorial from "@/pages/Tutorial";
+import Leaderboards from "@/pages/Leaderboards";
+import Stats from "@/pages/Stats";
+import Achievements from "@/pages/Achievements";
 import NotFound from "@/pages/not-found";
 
 function Router() {
@@ -22,6 +26,10 @@ function Router() {
         <Route path="/lab" component={CombinerLab} />
         <Route path="/store" component={Store} />
         <Route path="/staking" component={CureVault} />
+        <Route path="/tutorial" component={Tutorial} />
+        <Route path="/leaderboards" component={Leaderboards} />
+        <Route path="/stats" component={Stats} />
+        <Route path="/achievements" component={Achievements} />
         <Route component={NotFound} />
       </Switch>
     </div>
