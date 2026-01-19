@@ -74,36 +74,81 @@ export function useNotifications() {
   };
 }
 
+const THIRTY_MINUTES_MS = 30 * 60 * 1000;
+const MAX_SCHEDULE_TIME = 24 * 60 * 60 * 1000;
+
 export function usePlantNotifications(
-  pods: Array<{ id: number; status: string; waterCooldownRemaining: number; canWater: boolean }>,
+  pods: Array<{ 
+    id: number; 
+    status: string; 
+    waterCooldownRemaining: number; 
+    nutrientCooldownRemaining: number;
+    canWater: boolean;
+    canAddNutrients: boolean;
+  }>,
   isConnected: boolean
 ) {
   const { permission, isSupported, scheduleNotification } = useNotifications();
-  const [scheduledNotifications, setScheduledNotifications] = useState<Map<number, NodeJS.Timeout>>(new Map());
+  const [scheduledNotifications, setScheduledNotifications] = useState<Map<string, NodeJS.Timeout>>(new Map());
 
   useEffect(() => {
     if (!isConnected || !isSupported || permission !== 'granted') return;
 
     scheduledNotifications.forEach(timeoutId => clearTimeout(timeoutId));
-    const newScheduled = new Map<number, NodeJS.Timeout>();
+    const newScheduled = new Map<string, NodeJS.Timeout>();
 
     pods.forEach(pod => {
-      if (pod.status !== 'empty' && pod.status !== 'needs_cleanup' && pod.waterCooldownRemaining > 0) {
-        const delayMs = pod.waterCooldownRemaining * 1000;
-        
-        if (delayMs > 0 && delayMs < 24 * 60 * 60 * 1000) {
-          const timeoutId = scheduleNotification(
-            `Pod #${pod.id} needs water!`,
+      if (pod.status === 'empty' || pod.status === 'needs_cleanup') return;
+
+      const waterDelayMs = pod.waterCooldownRemaining * 1000;
+      if (waterDelayMs > 0 && waterDelayMs < MAX_SCHEDULE_TIME) {
+        const waterReadyId = scheduleNotification(
+          `Pod #${pod.id} needs water!`,
+          { 
+            body: 'Your plant is thirsty. Water it now to keep growing!',
+            tag: `water-ready-${pod.id}`,
+          },
+          waterDelayMs
+        );
+        if (waterReadyId) newScheduled.set(`water-ready-${pod.id}`, waterReadyId);
+
+        const waterReminderDelayMs = waterDelayMs - THIRTY_MINUTES_MS;
+        if (waterReminderDelayMs > 0) {
+          const waterReminderId = scheduleNotification(
+            `Pod #${pod.id} water in 30 min`,
             { 
-              body: 'Your plant is thirsty. Water it now to keep growing!',
-              tag: `water-${pod.id}`,
+              body: 'Get ready! Your plant will need water soon.',
+              tag: `water-reminder-${pod.id}`,
             },
-            delayMs
+            waterReminderDelayMs
           );
-          
-          if (timeoutId) {
-            newScheduled.set(pod.id, timeoutId);
-          }
+          if (waterReminderId) newScheduled.set(`water-reminder-${pod.id}`, waterReminderId);
+        }
+      }
+
+      const nutrientDelayMs = pod.nutrientCooldownRemaining * 1000;
+      if (nutrientDelayMs > 0 && nutrientDelayMs < MAX_SCHEDULE_TIME) {
+        const nutrientReadyId = scheduleNotification(
+          `Pod #${pod.id} ready for nutrients!`,
+          { 
+            body: 'Your plant can receive nutrients now for bonus yield!',
+            tag: `nutrient-ready-${pod.id}`,
+          },
+          nutrientDelayMs
+        );
+        if (nutrientReadyId) newScheduled.set(`nutrient-ready-${pod.id}`, nutrientReadyId);
+
+        const nutrientReminderDelayMs = nutrientDelayMs - THIRTY_MINUTES_MS;
+        if (nutrientReminderDelayMs > 0) {
+          const nutrientReminderId = scheduleNotification(
+            `Pod #${pod.id} nutrients in 30 min`,
+            { 
+              body: 'Get ready! Your plant will be ready for nutrients soon.',
+              tag: `nutrient-reminder-${pod.id}`,
+            },
+            nutrientReminderDelayMs
+          );
+          if (nutrientReminderId) newScheduled.set(`nutrient-reminder-${pod.id}`, nutrientReminderId);
         }
       }
     });

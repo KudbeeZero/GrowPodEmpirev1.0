@@ -72,8 +72,19 @@ Preferred communication style: Simple, everyday language.
 
 ## Recent Changes (January 2026)
 
-### Pod Slot Progression System (Latest)
-- Players now start with 1 pod slot and can unlock up to 5 total slots
+### Browser Notification System (Latest)
+- Push notifications via Web Notification API (browser-based, not Pera Wallet)
+- Dashboard includes "Enable Notifications" button to request permission
+- Scheduled notifications for each pod:
+  - **30 min before water ready**: "Pod #X water in 30 min"
+  - **Water ready**: "Pod #X needs water!"
+  - **30 min before nutrients ready**: "Pod #X nutrients in 30 min"
+  - **Nutrient ready**: "Pod #X ready for nutrients!"
+- Navigation bar shows badge when plants need attention (water or harvest ready)
+- Notifications use unique tags to prevent duplicates per pod
+
+### Pod Slot Progression System
+- Players now start with 2 pod slots and can unlock up to 5 total slots
 - After every 5 harvests, players can claim 1 Slot Token
 - Claiming a Slot Token requires burning 2,500 $BUD
 - Burning 1 Slot Token unlocks 1 new pod slot
