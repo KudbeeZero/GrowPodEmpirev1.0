@@ -12,10 +12,12 @@ import {
   Menu,
   X,
   LogOut,
-  Loader2
+  Loader2,
+  Droplets
 } from "lucide-react";
 import { useState } from "react";
 import { Button } from "./ui/button";
+import { Badge } from "./ui/badge";
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -28,8 +30,12 @@ import {
 export function Navigation() {
   const [location] = useLocation();
   const { isConnected, isConnecting, connectWallet, disconnectWallet, account } = useAlgorand();
-  const { budBalance, terpBalance } = useGameState(account);
+  const { budBalance, terpBalance, pods } = useGameState(account);
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
+
+  const plantsNeedingWater = pods.filter(p => p.canWater && p.status !== 'empty' && p.status !== 'needs_cleanup').length;
+  const plantsReadyToHarvest = pods.filter(p => p.status === 'harvest_ready').length;
+  const totalAttentionNeeded = plantsNeedingWater + plantsReadyToHarvest;
 
   const navItems = [
     { href: "/", label: "Dashboard", icon: LayoutDashboard },
@@ -76,6 +82,19 @@ export function Navigation() {
         </nav>
 
         <div className="flex items-center gap-4">
+          {isConnected && totalAttentionNeeded > 0 && (
+            <Link href="/">
+              <Badge 
+                variant="secondary" 
+                className="bg-blue-500/20 text-blue-400 border-blue-500/30 cursor-pointer hover:bg-blue-500/30"
+                data-testid="badge-attention-needed"
+              >
+                <Droplets className="h-3 w-3 mr-1" />
+                {totalAttentionNeeded} need attention
+              </Badge>
+            </Link>
+          )}
+          
           {isConnected && (
             <div className="hidden lg:block">
               <CurrencyDisplay 
