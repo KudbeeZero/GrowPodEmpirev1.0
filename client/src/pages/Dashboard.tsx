@@ -537,13 +537,13 @@ export default function Dashboard() {
               <CardHeader className="pb-2">
                 <CardTitle className="text-sm font-medium text-muted-foreground flex items-center gap-2">
                   <Sparkles className="h-4 w-4 text-primary" />
-                  Mint Mystery Seed
+                  Plant a Seed
                 </CardTitle>
               </CardHeader>
               <CardContent>
                 <Button 
                   className="w-full bg-primary hover:bg-primary/90"
-                  onClick={handleMintPod}
+                  onClick={openSeedSelect}
                   disabled={isActionLoading || !canMintMorePods}
                   data-testid="button-mint-pod"
                 >
@@ -748,15 +748,15 @@ export default function Dashboard() {
               
               {canMintMorePods && (
                 <div 
-                  onClick={handleMintPod}
+                  onClick={openSeedSelect}
                   className="group relative border-2 border-dashed border-white/10 rounded-xl p-6 flex flex-col items-center justify-center min-h-[300px] hover:border-primary/50 hover:bg-white/5 transition-all cursor-pointer"
                   data-testid="button-mint-empty-slot"
                 >
                   <div className="h-16 w-16 rounded-full bg-white/5 flex items-center justify-center mb-4 group-hover:scale-110 transition-transform group-hover:bg-primary/20">
                     <Plus className="h-8 w-8 text-muted-foreground group-hover:text-primary" />
                   </div>
-                  <h3 className="font-display font-bold text-muted-foreground group-hover:text-foreground">Mint Mystery Seed</h3>
-                  <p className="text-sm text-muted-foreground/50 mt-1">Click to plant a new seed</p>
+                  <h3 className="font-display font-bold text-muted-foreground group-hover:text-foreground">Plant a Seed</h3>
+                  <p className="text-sm text-muted-foreground/50 mt-1">Choose mystery or premium seeds</p>
                 </div>
               )}
             </div>
@@ -765,8 +765,8 @@ export default function Dashboard() {
               <Sprout className="h-16 w-16 text-muted-foreground/30 mb-4" />
               <h3 className="text-xl font-bold text-muted-foreground">No Active Pods</h3>
               <p className="text-muted-foreground/70 mt-2 mb-6">Your hydroponic garden is empty.</p>
-              <Button onClick={handleMintPod} data-testid="button-mint-first-pod">
-                <Plus className="mr-2 h-4 w-4" /> Mint Your First Pod
+              <Button onClick={openSeedSelect} data-testid="button-mint-first-pod">
+                <Plus className="mr-2 h-4 w-4" /> Plant Your First Seed
               </Button>
             </div>
           )}
@@ -815,6 +815,101 @@ export default function Dashboard() {
               </div>
             </div>
           )}
+        </DialogContent>
+      </Dialog>
+
+      <Dialog open={seedSelectOpen} onOpenChange={setSeedSelectOpen}>
+        <DialogContent className="max-w-md max-h-[85vh] overflow-y-auto">
+          <DialogHeader>
+            <DialogTitle className="font-display text-xl flex items-center gap-2">
+              <Sprout className="h-6 w-6 text-primary" />
+              Choose Your Seed
+            </DialogTitle>
+            <DialogDescription>
+              Plant a mystery seed for free, or use one from your collection.
+            </DialogDescription>
+          </DialogHeader>
+          
+          <div className="space-y-3 mt-4">
+            <Button
+              className="w-full justify-start h-auto p-4 bg-gradient-to-r from-primary/20 to-primary/5 border border-primary/30 hover:border-primary/50"
+              variant="outline"
+              onClick={() => handleMintPod(null)}
+              disabled={isActionLoading}
+              data-testid="button-plant-mystery"
+            >
+              <div className="flex items-center gap-3 w-full">
+                <div className="w-12 h-12 rounded-full bg-primary/20 flex items-center justify-center shrink-0">
+                  <Sparkles className="h-6 w-6 text-primary" />
+                </div>
+                <div className="text-left flex-1">
+                  <p className="font-medium text-foreground">Mystery Seed</p>
+                  <p className="text-xs text-muted-foreground">Random genetics - Free to plant</p>
+                </div>
+                <Badge variant="secondary">Free</Badge>
+              </div>
+            </Button>
+
+            {loadingSeeds ? (
+              <div className="flex items-center justify-center py-8">
+                <Loader2 className="h-6 w-6 animate-spin text-muted-foreground" />
+              </div>
+            ) : userSeeds.length > 0 ? (
+              <>
+                <div className="flex items-center gap-2 pt-2">
+                  <div className="h-px flex-1 bg-border" />
+                  <span className="text-xs text-muted-foreground">Your Seeds</span>
+                  <div className="h-px flex-1 bg-border" />
+                </div>
+                {userSeeds.map((userSeed) => (
+                  <Button
+                    key={userSeed.id}
+                    className="w-full justify-start h-auto p-4 border hover:border-primary/50"
+                    variant="outline"
+                    onClick={() => handleMintPod(userSeed)}
+                    disabled={isActionLoading || userSeed.quantity <= 0}
+                    style={{ borderColor: `${userSeed.seed.glowColor || "#a855f7"}40` }}
+                    data-testid={`button-plant-seed-${userSeed.seedId}`}
+                  >
+                    <div className="flex items-center gap-3 w-full">
+                      <div 
+                        className="w-12 h-12 rounded-full flex items-center justify-center shrink-0"
+                        style={{ backgroundColor: `${userSeed.seed.glowColor || "#a855f7"}20` }}
+                      >
+                        <Leaf className="h-6 w-6" style={{ color: userSeed.seed.glowColor || "#a855f7" }} />
+                      </div>
+                      <div className="text-left flex-1 min-w-0">
+                        <p 
+                          className="font-medium truncate"
+                          style={{ color: userSeed.seed.glowColor || undefined }}
+                        >
+                          {userSeed.seed.name}
+                        </p>
+                        <p className="text-xs text-muted-foreground">
+                          {userSeed.seed.growthBonus && userSeed.seed.growthBonus > 0 
+                            ? `+${userSeed.seed.growthBonus}% yield bonus` 
+                            : userSeed.seed.rarity}
+                        </p>
+                      </div>
+                      <Badge variant="outline" className="shrink-0">
+                        x{userSeed.quantity}
+                      </Badge>
+                    </div>
+                  </Button>
+                ))}
+              </>
+            ) : (
+              <div className="text-center py-6 text-muted-foreground">
+                <Leaf className="h-8 w-8 mx-auto mb-2 opacity-30" />
+                <p className="text-sm">No seeds in your collection</p>
+                <Link href="/seed-bank">
+                  <Button variant="ghost" className="text-primary mt-2">
+                    Visit the Seed Bank
+                  </Button>
+                </Link>
+              </div>
+            )}
+          </div>
         </DialogContent>
       </Dialog>
     </div>
