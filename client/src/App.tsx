@@ -1,4 +1,4 @@
-import { useState, useEffect } from "react";
+import { useState, useEffect, type ReactNode } from "react";
 import { Switch, Route } from "wouter";
 import { queryClient, apiRequest } from "./lib/queryClient";
 import { QueryClientProvider, useQuery, useMutation } from "@tanstack/react-query";
@@ -28,7 +28,7 @@ interface AnnouncementCheckResponse {
   announcement: AnnouncementVideo | null;
 }
 
-function AnnouncementWrapper({ children }: { children: React.ReactNode }) {
+function AnnouncementWrapper({ children }: { children: ReactNode }) {
   const { account } = useAlgorand();
   const [dismissed, setDismissed] = useState(false);
 

@@ -73,7 +73,20 @@ Preferred communication style: Simple, everyday language.
 
 ## Recent Changes (January 2026)
 
-### Jukebox Feature (Latest)
+### Announcement Video System (Latest)
+- **Mandatory Video Announcements**: Admin-uploaded videos shown to users as fullscreen modal
+- **Fullscreen Modal**: Video plays in centered modal with cyberpunk styling, close button only appears after video ends
+- **Per-User Watch Tracking**: Database tracks which users have watched each announcement via lastSeenAnnouncementId
+- **Account-Aware**: Modal resets when wallet account changes, ensuring each user must watch
+- **Admin Page**: /admin route (protected by ADMIN_WALLET_ADDRESS env var) for uploading announcement videos
+- **Object Storage Integration**: Videos stored via Replit Object Storage with signed URLs
+- **Database**: New `announcement_videos` table (id, objectPath, createdAt), users table gets lastSeenAnnouncementId field
+- **API Endpoints**:
+  - GET `/api/announcement/check?walletAddress=` - Check if user needs to watch (returns needsToWatch, announcement)
+  - POST `/api/announcements` - Upload new announcement (admin only)
+  - POST `/api/announcement/:id/watched?walletAddress=` - Mark announcement as watched for user
+
+### Jukebox Feature
 - **Music Player**: Full-featured audio player at /jukebox with cyberpunk aesthetic
 - **Audio Visualizer**: Real-time frequency visualization using Canvas API with neon effects
 - **Player Controls**: Play/pause, skip, shuffle, repeat modes, volume control with progress bar
