@@ -21,13 +21,28 @@ export const playerStats = pgTable("player_stats", {
   updatedAt: timestamp("updated_at").defaultNow(),
 });
 
+export const songs = pgTable("songs", {
+  id: serial("id").primaryKey(),
+  title: text("title").notNull(),
+  artist: text("artist").notNull(),
+  objectPath: text("object_path").notNull(),
+  duration: integer("duration").default(0),
+  genre: text("genre").default("chill"),
+  coverArt: text("cover_art"),
+  playCount: integer("play_count").default(0).notNull(),
+  createdAt: timestamp("created_at").defaultNow(),
+});
+
 export const insertUserSchema = createInsertSchema(users).omit({ id: true, createdAt: true, lastLogin: true });
 export const insertPlayerStatsSchema = createInsertSchema(playerStats).omit({ id: true, updatedAt: true });
+export const insertSongSchema = createInsertSchema(songs).omit({ id: true, createdAt: true, playCount: true });
 
 export type User = typeof users.$inferSelect;
 export type InsertUser = z.infer<typeof insertUserSchema>;
 export type PlayerStats = typeof playerStats.$inferSelect;
 export type InsertPlayerStats = z.infer<typeof insertPlayerStatsSchema>;
+export type Song = typeof songs.$inferSelect;
+export type InsertSong = z.infer<typeof insertSongSchema>;
 
 // Types for Game Data (Frontend <-> Backend)
 export type PodStatus = "empty" | "planted" | "growing" | "ready_harvest" | "dead";

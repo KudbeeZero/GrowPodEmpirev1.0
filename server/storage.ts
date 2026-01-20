@@ -1,4 +1,4 @@
-import { users, playerStats, type User, type InsertUser, type PlayerStats } from "@shared/schema";
+import { users, playerStats, songs, type User, type InsertUser, type PlayerStats, type Song, type InsertSong } from "@shared/schema";
 import { db } from "./db";
 import { eq, desc, sql } from "drizzle-orm";
 
@@ -21,6 +21,11 @@ export interface IStorage {
   getBudLeaderboard(limit?: number): Promise<LeaderboardEntry[]>;
   getTerpLeaderboard(limit?: number): Promise<LeaderboardEntry[]>;
   getGlobalStats(): Promise<{ totalHarvests: number; totalBudMinted: string; totalPlayers: number; rareTerpenesFound: number }>;
+  getAllSongs(): Promise<Song[]>;
+  getSongById(id: number): Promise<Song | undefined>;
+  createSong(song: InsertSong): Promise<Song>;
+  deleteSong(id: number): Promise<void>;
+  incrementPlayCount(id: number): Promise<Song | undefined>;
 }
 
 export class DatabaseStorage implements IStorage {
@@ -136,6 +141,33 @@ export class DatabaseStorage implements IStorage {
       totalPlayers: Number(stats.totalPlayers) || 0,
       rareTerpenesFound: Number(stats.rareTerpenesFound) || 0,
     };
+  }
+
+  async getAllSongs(): Promise<Song[]> {
+    const results = await db.select().from(songs).orderBy(desc(songs.createdAt));
+    return results;
+  }
+
+  async getSongById(id: number): Promise<Song | undefined> {
+    const [song] = await db.select().from(songs).where(eq(songs.id, id));
+    return song;
+  }
+
+  async createSong(song: InsertSong): Promise<Song> {
+    const [created] = await db.insert(songs).values(song).returning();
+    return created;
+  }
+
+  async deleteSong(id: number): Promise<void> {
+    await db.delete(songs).where(eq(songs.id, id));
+  }
+
+  async incrementPlayCount(id: number): Promise<Song | undefined> {
+    const [updated] = await db.update(songs)
+      .set({ playCount: sql`${songs.playCount} + 1` })
+      .where(eq(songs.id, id))
+      .returning();
+    return updated;
   }
 }
 

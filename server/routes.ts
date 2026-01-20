@@ -3,11 +3,15 @@ import type { Server } from "http";
 import { storage } from "./storage";
 import { api } from "@shared/routes";
 import { z } from "zod";
+import { registerObjectStorageRoutes } from "./replit_integrations/object_storage";
+import { insertSongSchema } from "@shared/schema";
 
 export async function registerRoutes(
   httpServer: Server,
   app: Express
 ): Promise<Server> {
+  
+  registerObjectStorageRoutes(app);
   
   app.post(api.users.login.path, async (req, res) => {
     try {
@@ -122,6 +126,65 @@ export async function registerRoutes(
       }
       console.error("Failed to record harvest:", err);
       res.status(500).json({ message: "Failed to record harvest" });
+    }
+  });
+
+  // Jukebox API endpoints
+  app.get("/api/jukebox/songs", async (_req, res) => {
+    try {
+      const songs = await storage.getAllSongs();
+      res.json(songs);
+    } catch (err) {
+      console.error("Failed to get songs:", err);
+      res.status(500).json({ message: "Failed to get songs" });
+    }
+  });
+
+  app.post("/api/jukebox/songs", async (req, res) => {
+    try {
+      const songData = insertSongSchema.parse(req.body);
+      const song = await storage.createSong(songData);
+      res.status(201).json(song);
+    } catch (err) {
+      if (err instanceof z.ZodError) {
+        return res.status(400).json({
+          message: err.errors[0].message,
+          field: err.errors[0].path.join('.'),
+        });
+      }
+      console.error("Failed to create song:", err);
+      res.status(500).json({ message: "Failed to create song" });
+    }
+  });
+
+  app.delete("/api/jukebox/songs/:id", async (req, res) => {
+    try {
+      const id = parseInt(req.params.id);
+      if (isNaN(id)) {
+        return res.status(400).json({ message: "Invalid song ID" });
+      }
+      await storage.deleteSong(id);
+      res.status(204).send();
+    } catch (err) {
+      console.error("Failed to delete song:", err);
+      res.status(500).json({ message: "Failed to delete song" });
+    }
+  });
+
+  app.post("/api/jukebox/songs/:id/play", async (req, res) => {
+    try {
+      const id = parseInt(req.params.id);
+      if (isNaN(id)) {
+        return res.status(400).json({ message: "Invalid song ID" });
+      }
+      const song = await storage.incrementPlayCount(id);
+      if (!song) {
+        return res.status(404).json({ message: "Song not found" });
+      }
+      res.json(song);
+    } catch (err) {
+      console.error("Failed to update play count:", err);
+      res.status(500).json({ message: "Failed to update play count" });
     }
   });
 
