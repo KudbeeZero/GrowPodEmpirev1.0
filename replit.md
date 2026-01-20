@@ -79,9 +79,16 @@ Preferred communication style: Simple, everyday language.
 - **Seed Attributes**: Custom terpene profiles, effects, flavor notes, THC/CBD ranges, growth bonuses
 - **Glow Effects**: Each seed has customizable glow color for visual distinction
 - **Limited Supply**: Seeds can have optional total supply limits
+- **Per-User Limits**: maxPerUser field enforces purchase limits (legendaries/mythics = 1 per player)
 - **Admin Controls**: Seed creation and deletion available in Admin page
 - **Database**: seed_bank table (seed metadata), user_seeds table (player inventory) with foreign key references
-- **Purple Diddy Punch**: First legendary seed with 25-30% THC, grape/berry flavors, 15% growth bonus
+- **Seed Usage**: Players can use purchased seeds when planting in pods (instead of mystery seeds). Uses POST /api/user-seeds/:seedId/use endpoint
+- **Available Seeds** (10 total):
+  - **Common**: Crystal Cookies (500 $BUD), Strawberry Fields (600 $BUD)
+  - **Uncommon**: Midnight Mango (1K $BUD), Electric Lemonade (1.2K $BUD), Golden Sunset (1.5K $BUD)
+  - **Rare**: Neon Nebula (2.5K $BUD), Arctic Thunder (3K $BUD)
+  - **Legendary**: Purple Diddy Punch (5K $BUD), Quantum Kush (7.5K $BUD)
+  - **Mythic**: Void Walker (15K $BUD)
 - **API Endpoints**:
   - GET `/api/seed-bank` - List all available seeds
   - GET `/api/seed-bank/:id` - Get specific seed details
