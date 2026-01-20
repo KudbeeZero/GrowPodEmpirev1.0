@@ -73,7 +73,21 @@ Preferred communication style: Simple, everyday language.
 
 ## Recent Changes (January 2026)
 
-### Navigation & Mobile Responsive Improvements (Latest)
+### Jukebox Feature (Latest)
+- **Music Player**: Full-featured audio player at /jukebox with cyberpunk aesthetic
+- **Audio Visualizer**: Real-time frequency visualization using Canvas API with neon effects
+- **Player Controls**: Play/pause, skip, shuffle, repeat modes, volume control with progress bar
+- **Song Management**: Add songs via dialog with title, artist, and audio file upload
+- **Object Storage Integration**: Audio files stored via Replit Object Storage with signed URLs
+- **Database**: New `songs` table tracking title, artist, objectPath, playCount
+- **Navigation**: Added to Game dropdown (desktop) and Game section (mobile)
+- **API Endpoints**:
+  - GET `/api/jukebox/songs` - List all songs
+  - POST `/api/jukebox/songs` - Add song (title, artist, objectPath)
+  - POST `/api/jukebox/songs/:id/play` - Increment play count
+  - DELETE `/api/jukebox/songs/:id` - Remove song
+
+### Navigation & Mobile Responsive Improvements
 - **Desktop Navigation**: Redesigned with shadcn NavigationMenu dropdowns
   - Dashboard as standalone link
   - "Game" dropdown: Seed Vault, Combiner Lab, Supply Store, Cure Vault
