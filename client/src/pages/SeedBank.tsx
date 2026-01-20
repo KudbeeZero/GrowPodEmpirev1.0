@@ -18,7 +18,6 @@ import {
   Info,
   Loader2
 } from "lucide-react";
-import { motion, AnimatePresence } from "framer-motion";
 import { cn } from "@/lib/utils";
 import { useAlgorand } from "@/hooks/use-algorand";
 import { useToast } from "@/hooks/use-toast";
@@ -82,13 +81,7 @@ function SeedCard({
   const isSoldOut = seed.totalSupply !== null && seed.mintedCount >= seed.totalSupply;
   
   return (
-    <motion.div
-      initial={{ opacity: 0, y: 20 }}
-      animate={{ opacity: 1, y: 0 }}
-      whileHover={{ scale: 1.02, y: -4 }}
-      transition={{ duration: 0.2 }}
-      className="group"
-    >
+    <div className="group">
       <Card 
         className={cn(
           "relative overflow-hidden border-2 transition-all duration-300",
@@ -265,7 +258,7 @@ function SeedCard({
           </div>
         </CardContent>
       </Card>
-    </motion.div>
+    </div>
   );
 }
 
@@ -396,11 +389,7 @@ function InventoryCard({
   const rarity = RARITY_CONFIG[seed.rarity as keyof typeof RARITY_CONFIG] || RARITY_CONFIG.common;
 
   return (
-    <motion.div
-      initial={{ opacity: 0, scale: 0.95 }}
-      animate={{ opacity: 1, scale: 1 }}
-      className="group"
-    >
+    <div className="group">
       <Card 
         className="relative overflow-hidden border transition-all"
         style={{ borderColor: `${seed.glowColor || "#a855f7"}40` }}
@@ -444,7 +433,7 @@ function InventoryCard({
           </Button>
         </CardContent>
       </Card>
-    </motion.div>
+    </div>
   );
 }
 
@@ -536,27 +525,25 @@ export default function SeedBank() {
             </div>
           ) : (
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
-              <AnimatePresence>
-                {seeds.map((seed) => (
-                  <SeedCard
-                    key={seed.id}
-                    seed={seed}
-                    onPurchase={() => {
-                      if (!address) {
-                        toast({ 
-                          title: "Wallet Required", 
-                          description: "Connect your wallet to purchase seeds",
-                          variant: "destructive"
-                        });
-                        return;
-                      }
-                      purchaseMutation.mutate(seed.id);
-                    }}
-                    isPurchasing={purchasingSeedId === seed.id}
-                    onViewDetails={() => setSelectedSeed(seed)}
-                  />
-                ))}
-              </AnimatePresence>
+              {seeds.map((seed) => (
+                <SeedCard
+                  key={seed.id}
+                  seed={seed}
+                  onPurchase={() => {
+                    if (!address) {
+                      toast({ 
+                        title: "Wallet Required", 
+                        description: "Connect your wallet to purchase seeds",
+                        variant: "destructive"
+                      });
+                      return;
+                    }
+                    purchaseMutation.mutate(seed.id);
+                  }}
+                  isPurchasing={purchasingSeedId === seed.id}
+                  onViewDetails={() => setSelectedSeed(seed)}
+                />
+              ))}
             </div>
           )}
         </TabsContent>

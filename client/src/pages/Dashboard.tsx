@@ -435,7 +435,7 @@ export default function Dashboard() {
 
   return (
     <div className="min-h-screen pb-20">
-      <section className="relative pt-12 pb-12 px-4 overflow-hidden">
+      <section className="relative pt-12 pb-12 px-4">
         <div className="container mx-auto">
           <div className="flex flex-col md:flex-row justify-between items-end gap-6 mb-8">
             <div className="space-y-2">
