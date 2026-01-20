@@ -18,6 +18,7 @@ import Leaderboards from "@/pages/Leaderboards";
 import Stats from "@/pages/Stats";
 import Achievements from "@/pages/Achievements";
 import Jukebox from "@/pages/Jukebox";
+import SeedBank from "@/pages/SeedBank";
 import Admin from "@/pages/Admin";
 import { MiniPlayer } from "@/components/MiniPlayer";
 import NotFound from "@/pages/not-found";
@@ -95,6 +96,7 @@ function Router() {
           <Route path="/stats" component={Stats} />
           <Route path="/achievements" component={Achievements} />
           <Route path="/jukebox" component={Jukebox} />
+          <Route path="/seed-bank" component={SeedBank} />
           <Route path="/admin" component={Admin} />
           <Route component={NotFound} />
         </Switch>

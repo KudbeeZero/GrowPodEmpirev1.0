@@ -4,7 +4,7 @@ import { storage } from "./storage";
 import { api } from "@shared/routes";
 import { z } from "zod";
 import { registerObjectStorageRoutes } from "./replit_integrations/object_storage";
-import { insertSongSchema, insertAnnouncementVideoSchema } from "@shared/schema";
+import { insertSongSchema, insertAnnouncementVideoSchema, insertSeedBankSchema } from "@shared/schema";
 
 const ADMIN_WALLET = process.env.ADMIN_WALLET_ADDRESS || "";
 
@@ -271,6 +271,141 @@ export async function registerRoutes(
     const { walletAddress } = req.params;
     const isAdmin = ADMIN_WALLET ? walletAddress === ADMIN_WALLET : true;
     res.json({ isAdmin });
+  });
+
+  // Seed Bank API endpoints
+  app.get("/api/seed-bank", async (_req, res) => {
+    try {
+      const seeds = await storage.getAllSeeds();
+      res.json(seeds);
+    } catch (err) {
+      console.error("Failed to get seeds:", err);
+      res.status(500).json({ message: "Failed to get seeds" });
+    }
+  });
+
+  app.get("/api/seed-bank/:id", async (req, res) => {
+    try {
+      const id = parseInt(req.params.id);
+      if (isNaN(id)) {
+        return res.status(400).json({ message: "Invalid seed ID" });
+      }
+      const seed = await storage.getSeedById(id);
+      if (!seed) {
+        return res.status(404).json({ message: "Seed not found" });
+      }
+      res.json(seed);
+    } catch (err) {
+      console.error("Failed to get seed:", err);
+      res.status(500).json({ message: "Failed to get seed" });
+    }
+  });
+
+  app.post("/api/seed-bank", async (req, res) => {
+    try {
+      const { walletAddress } = req.body;
+      
+      if (ADMIN_WALLET && walletAddress !== ADMIN_WALLET) {
+        return res.status(403).json({ message: "Only admin can create seeds" });
+      }
+      
+      const seedData = insertSeedBankSchema.parse(req.body);
+      const seed = await storage.createSeed(seedData);
+      res.status(201).json(seed);
+    } catch (err) {
+      if (err instanceof z.ZodError) {
+        return res.status(400).json({
+          message: err.errors[0].message,
+          field: err.errors[0].path.join('.'),
+        });
+      }
+      console.error("Failed to create seed:", err);
+      res.status(500).json({ message: "Failed to create seed" });
+    }
+  });
+
+  app.delete("/api/seed-bank/:id", async (req, res) => {
+    try {
+      const { walletAddress } = req.body;
+      
+      if (ADMIN_WALLET && walletAddress !== ADMIN_WALLET) {
+        return res.status(403).json({ message: "Only admin can delete seeds" });
+      }
+      
+      const id = parseInt(req.params.id);
+      if (isNaN(id)) {
+        return res.status(400).json({ message: "Invalid seed ID" });
+      }
+      await storage.deleteSeed(id);
+      res.status(204).send();
+    } catch (err) {
+      console.error("Failed to delete seed:", err);
+      res.status(500).json({ message: "Failed to delete seed" });
+    }
+  });
+
+  app.post("/api/seed-bank/:id/purchase", async (req, res) => {
+    try {
+      const { walletAddress } = req.body;
+      if (!walletAddress) {
+        return res.status(400).json({ message: "Wallet address required" });
+      }
+      
+      const id = parseInt(req.params.id);
+      if (isNaN(id)) {
+        return res.status(400).json({ message: "Invalid seed ID" });
+      }
+      
+      const seed = await storage.getSeedById(id);
+      if (!seed) {
+        return res.status(404).json({ message: "Seed not found" });
+      }
+      
+      // Check supply limit
+      if (seed.totalSupply !== null && seed.mintedCount >= seed.totalSupply) {
+        return res.status(400).json({ message: "Seed sold out" });
+      }
+      
+      const userSeed = await storage.purchaseSeed(walletAddress, id);
+      res.status(201).json(userSeed);
+    } catch (err) {
+      console.error("Failed to purchase seed:", err);
+      res.status(500).json({ message: "Failed to purchase seed" });
+    }
+  });
+
+  app.get("/api/user-seeds/:walletAddress", async (req, res) => {
+    try {
+      const { walletAddress } = req.params;
+      const userSeeds = await storage.getUserSeeds(walletAddress);
+      res.json(userSeeds);
+    } catch (err) {
+      console.error("Failed to get user seeds:", err);
+      res.status(500).json({ message: "Failed to get user seeds" });
+    }
+  });
+
+  app.post("/api/user-seeds/:seedId/use", async (req, res) => {
+    try {
+      const { walletAddress } = req.body;
+      if (!walletAddress) {
+        return res.status(400).json({ message: "Wallet address required" });
+      }
+      
+      const seedId = parseInt(req.params.seedId);
+      if (isNaN(seedId)) {
+        return res.status(400).json({ message: "Invalid seed ID" });
+      }
+      
+      const success = await storage.useUserSeed(walletAddress, seedId);
+      if (!success) {
+        return res.status(400).json({ message: "No seeds available to use" });
+      }
+      res.json({ success: true });
+    } catch (err) {
+      console.error("Failed to use seed:", err);
+      res.status(500).json({ message: "Failed to use seed" });
+    }
   });
 
   return httpServer;

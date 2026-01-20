@@ -1,6 +1,6 @@
-import { users, playerStats, songs, announcementVideos, type User, type InsertUser, type PlayerStats, type Song, type InsertSong, type AnnouncementVideo, type InsertAnnouncementVideo } from "@shared/schema";
+import { users, playerStats, songs, announcementVideos, seedBank, userSeeds, type User, type InsertUser, type PlayerStats, type Song, type InsertSong, type AnnouncementVideo, type InsertAnnouncementVideo, type SeedBankItem, type InsertSeedBankItem, type UserSeed, type InsertUserSeed } from "@shared/schema";
 import { db } from "./db";
-import { eq, desc, sql } from "drizzle-orm";
+import { eq, desc, sql, and } from "drizzle-orm";
 
 export interface LeaderboardEntry {
   rank: number;
@@ -31,6 +31,15 @@ export interface IStorage {
   deactivateAllAnnouncements(): Promise<void>;
   markAnnouncementWatched(walletAddress: string, announcementId: number): Promise<User | undefined>;
   hasUserWatchedAnnouncement(walletAddress: string, announcementId: number): Promise<boolean>;
+  // Seed Bank
+  getAllSeeds(): Promise<SeedBankItem[]>;
+  getSeedById(id: number): Promise<SeedBankItem | undefined>;
+  createSeed(seed: InsertSeedBankItem): Promise<SeedBankItem>;
+  updateSeed(id: number, seed: Partial<InsertSeedBankItem>): Promise<SeedBankItem | undefined>;
+  deleteSeed(id: number): Promise<void>;
+  purchaseSeed(walletAddress: string, seedId: number): Promise<UserSeed>;
+  getUserSeeds(walletAddress: string): Promise<(UserSeed & { seed: SeedBankItem })[]>;
+  useUserSeed(walletAddress: string, seedId: number): Promise<boolean>;
 }
 
 export class DatabaseStorage implements IStorage {
@@ -205,6 +214,89 @@ export class DatabaseStorage implements IStorage {
     const user = await this.getUserByWallet(walletAddress);
     if (!user) return false;
     return user.lastSeenAnnouncementId === announcementId;
+  }
+
+  // Seed Bank methods
+  async getAllSeeds(): Promise<SeedBankItem[]> {
+    const results = await db.select().from(seedBank).where(eq(seedBank.isActive, true)).orderBy(desc(seedBank.createdAt));
+    return results;
+  }
+
+  async getSeedById(id: number): Promise<SeedBankItem | undefined> {
+    const [seed] = await db.select().from(seedBank).where(eq(seedBank.id, id));
+    return seed;
+  }
+
+  async createSeed(seed: InsertSeedBankItem): Promise<SeedBankItem> {
+    const [created] = await db.insert(seedBank).values(seed as any).returning();
+    return created;
+  }
+
+  async updateSeed(id: number, seed: Partial<InsertSeedBankItem>): Promise<SeedBankItem | undefined> {
+    const [updated] = await db.update(seedBank).set(seed as any).where(eq(seedBank.id, id)).returning();
+    return updated;
+  }
+
+  async deleteSeed(id: number): Promise<void> {
+    await db.update(seedBank).set({ isActive: false }).where(eq(seedBank.id, id));
+  }
+
+  async purchaseSeed(walletAddress: string, seedId: number): Promise<UserSeed> {
+    // Increment minted count
+    await db.update(seedBank)
+      .set({ mintedCount: sql`${seedBank.mintedCount} + 1` })
+      .where(eq(seedBank.id, seedId));
+
+    // Check if user already has this seed
+    const [existing] = await db.select().from(userSeeds)
+      .where(and(
+        eq(userSeeds.walletAddress, walletAddress),
+        eq(userSeeds.seedId, seedId)
+      ));
+
+    if (existing) {
+      const [updated] = await db.update(userSeeds)
+        .set({ quantity: existing.quantity + 1 })
+        .where(eq(userSeeds.id, existing.id))
+        .returning();
+      return updated;
+    }
+
+    const [created] = await db.insert(userSeeds)
+      .values({ walletAddress, seedId, quantity: 1 })
+      .returning();
+    return created;
+  }
+
+  async getUserSeeds(walletAddress: string): Promise<(UserSeed & { seed: SeedBankItem })[]> {
+    const results = await db.select()
+      .from(userSeeds)
+      .innerJoin(seedBank, eq(userSeeds.seedId, seedBank.id))
+      .where(eq(userSeeds.walletAddress, walletAddress));
+    
+    return results.map(r => ({
+      ...r.user_seeds,
+      seed: r.seed_bank,
+    }));
+  }
+
+  async useUserSeed(walletAddress: string, seedId: number): Promise<boolean> {
+    const [existing] = await db.select().from(userSeeds)
+      .where(and(
+        eq(userSeeds.walletAddress, walletAddress),
+        eq(userSeeds.seedId, seedId)
+      ));
+
+    if (!existing || existing.quantity <= 0) return false;
+
+    if (existing.quantity === 1) {
+      await db.delete(userSeeds).where(eq(userSeeds.id, existing.id));
+    } else {
+      await db.update(userSeeds)
+        .set({ quantity: existing.quantity - 1 })
+        .where(eq(userSeeds.id, existing.id));
+    }
+    return true;
   }
 }
 

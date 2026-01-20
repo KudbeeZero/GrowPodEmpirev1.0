@@ -42,10 +42,42 @@ export const announcementVideos = pgTable("announcement_videos", {
   createdAt: timestamp("created_at").defaultNow(),
 });
 
+// Seed Bank - Special seeds with custom attributes
+export const seedBank = pgTable("seed_bank", {
+  id: serial("id").primaryKey(),
+  name: text("name").notNull(),
+  description: text("description").notNull(),
+  rarity: text("rarity").notNull().default("common"), // common, uncommon, rare, legendary, mythic
+  terpeneProfile: jsonb("terpene_profile").$type<string[]>().default([]),
+  effects: jsonb("effects").$type<string[]>().default([]),
+  flavorNotes: jsonb("flavor_notes").$type<string[]>().default([]),
+  thcRange: text("thc_range").default("15-20%"),
+  cbdRange: text("cbd_range").default("0-1%"),
+  growthBonus: integer("growth_bonus").default(0), // Percentage bonus to yields
+  budPrice: text("bud_price").notNull().default("1000"), // Cost in $BUD
+  imagePath: text("image_path"), // Custom artwork
+  glowColor: text("glow_color").default("#a855f7"), // Primary glow color for card
+  totalSupply: integer("total_supply"), // null = unlimited
+  mintedCount: integer("minted_count").default(0).notNull(),
+  isActive: boolean("is_active").default(true).notNull(),
+  createdAt: timestamp("created_at").defaultNow(),
+});
+
+// User's owned seeds from seed bank
+export const userSeeds = pgTable("user_seeds", {
+  id: serial("id").primaryKey(),
+  walletAddress: text("wallet_address").notNull().references(() => users.walletAddress),
+  seedId: integer("seed_id").notNull().references(() => seedBank.id),
+  quantity: integer("quantity").default(1).notNull(),
+  purchasedAt: timestamp("purchased_at").defaultNow(),
+});
+
 export const insertUserSchema = createInsertSchema(users).omit({ id: true, createdAt: true, lastLogin: true });
 export const insertPlayerStatsSchema = createInsertSchema(playerStats).omit({ id: true, updatedAt: true });
 export const insertSongSchema = createInsertSchema(songs).omit({ id: true, createdAt: true, playCount: true });
 export const insertAnnouncementVideoSchema = createInsertSchema(announcementVideos).omit({ id: true, createdAt: true });
+export const insertSeedBankSchema = createInsertSchema(seedBank).omit({ id: true, createdAt: true, mintedCount: true });
+export const insertUserSeedSchema = createInsertSchema(userSeeds).omit({ id: true, purchasedAt: true });
 
 export type User = typeof users.$inferSelect;
 export type InsertUser = z.infer<typeof insertUserSchema>;
@@ -55,6 +87,10 @@ export type Song = typeof songs.$inferSelect;
 export type InsertSong = z.infer<typeof insertSongSchema>;
 export type AnnouncementVideo = typeof announcementVideos.$inferSelect;
 export type InsertAnnouncementVideo = z.infer<typeof insertAnnouncementVideoSchema>;
+export type SeedBankItem = typeof seedBank.$inferSelect;
+export type InsertSeedBankItem = z.infer<typeof insertSeedBankSchema>;
+export type UserSeed = typeof userSeeds.$inferSelect;
+export type InsertUserSeed = z.infer<typeof insertUserSeedSchema>;
 
 // Types for Game Data (Frontend <-> Backend)
 export type PodStatus = "empty" | "planted" | "growing" | "ready_harvest" | "dead";

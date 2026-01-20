@@ -73,7 +73,24 @@ Preferred communication style: Simple, everyday language.
 
 ## Recent Changes (January 2026)
 
-### Announcement Video System (Latest)
+### Seed Bank System (Latest)
+- **Seed Bank Page**: Premium genetics marketplace at /seed-bank with stylish seed profile cards
+- **Rarity Tiers**: Common, Uncommon, Rare, Legendary, Mythic with distinct visual styles
+- **Seed Attributes**: Custom terpene profiles, effects, flavor notes, THC/CBD ranges, growth bonuses
+- **Glow Effects**: Each seed has customizable glow color for visual distinction
+- **Limited Supply**: Seeds can have optional total supply limits
+- **Admin Controls**: Seed creation and deletion available in Admin page
+- **Database**: seed_bank table (seed metadata), user_seeds table (player inventory) with foreign key references
+- **Purple Diddy Punch**: First legendary seed with 25-30% THC, grape/berry flavors, 15% growth bonus
+- **API Endpoints**:
+  - GET `/api/seed-bank` - List all available seeds
+  - GET `/api/seed-bank/:id` - Get specific seed details
+  - POST `/api/seed-bank` - Create seed (admin only)
+  - DELETE `/api/seed-bank/:id` - Delete seed (admin only)
+  - POST `/api/seed-bank/:id/purchase` - Purchase seed with $BUD
+  - GET `/api/seed-bank/user/:walletAddress` - Get user's seed inventory
+
+### Announcement Video System
 - **Mandatory Video Announcements**: Admin-uploaded videos shown to users as fullscreen modal
 - **Fullscreen Modal**: Video plays in centered modal with cyberpunk styling, close button only appears after video ends
 - **Per-User Watch Tracking**: Database tracks which users have watched each announcement via lastSeenAnnouncementId

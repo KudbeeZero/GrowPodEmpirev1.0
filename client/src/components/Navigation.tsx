@@ -19,7 +19,8 @@ import {
   BarChart3,
   Award,
   Gamepad2,
-  Users
+  Users,
+  Sparkles
 } from "lucide-react";
 import { useState } from "react";
 import { Button } from "./ui/button";
@@ -53,6 +54,7 @@ export function Navigation() {
   const totalAttentionNeeded = plantsNeedingWater + plantsReadyToHarvest;
 
   const gameItems = [
+    { href: "/seed-bank", label: "Seed Bank", icon: Sparkles, description: "Premium genetics for your grow" },
     { href: "/vault", label: "Seed Vault", icon: Warehouse, description: "Manage your seed collection" },
     { href: "/lab", label: "Combiner Lab", icon: FlaskConical, description: "Breed and create new strains" },
     { href: "/store", label: "Supply Store", icon: Store, description: "Buy supplies and upgrades" },
