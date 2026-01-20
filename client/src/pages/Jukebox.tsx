@@ -155,7 +155,7 @@ function SongListItem({
       initial={{ opacity: 0, x: -20 }}
       animate={{ opacity: 1, x: 0 }}
       className={cn(
-        "flex items-center gap-4 p-3 rounded-lg cursor-pointer transition-all",
+        "group flex items-center gap-4 p-3 rounded-lg cursor-pointer transition-all",
         isActive 
           ? "bg-primary/20 border border-primary/30" 
           : "bg-card/50 border border-transparent hover:bg-card hover:border-white/10"
@@ -333,12 +333,22 @@ export default function Jukebox() {
   }, [repeat, playNext]);
 
   useEffect(() => {
-    if (currentSong && audioRef.current) {
-      audioRef.current.src = currentSong.objectPath;
-      if (isPlaying) {
-        audioRef.current.play().catch(() => {});
+    const loadAudio = async () => {
+      if (currentSong && audioRef.current) {
+        // Fetch signed URL from object storage
+        const encodedPath = encodeURIComponent(currentSong.objectPath);
+        const response = await fetch(`/api/uploads/media/${encodedPath}`);
+        if (response.ok) {
+          const blob = await response.blob();
+          const url = URL.createObjectURL(blob);
+          audioRef.current.src = url;
+          if (isPlaying) {
+            audioRef.current.play().catch(() => {});
+          }
+        }
       }
-    }
+    };
+    loadAudio();
   }, [currentSong, isPlaying]);
 
   const formatTime = (seconds: number) => {
