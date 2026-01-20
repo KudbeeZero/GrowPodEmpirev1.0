@@ -1,4 +1,4 @@
-import { users, playerStats, songs, type User, type InsertUser, type PlayerStats, type Song, type InsertSong } from "@shared/schema";
+import { users, playerStats, songs, announcementVideos, type User, type InsertUser, type PlayerStats, type Song, type InsertSong, type AnnouncementVideo, type InsertAnnouncementVideo } from "@shared/schema";
 import { db } from "./db";
 import { eq, desc, sql } from "drizzle-orm";
 
@@ -26,6 +26,11 @@ export interface IStorage {
   createSong(song: InsertSong): Promise<Song>;
   deleteSong(id: number): Promise<void>;
   incrementPlayCount(id: number): Promise<Song | undefined>;
+  getActiveAnnouncement(): Promise<AnnouncementVideo | undefined>;
+  createAnnouncement(video: InsertAnnouncementVideo): Promise<AnnouncementVideo>;
+  deactivateAllAnnouncements(): Promise<void>;
+  markAnnouncementWatched(walletAddress: string, announcementId: number): Promise<User | undefined>;
+  hasUserWatchedAnnouncement(walletAddress: string, announcementId: number): Promise<boolean>;
 }
 
 export class DatabaseStorage implements IStorage {
@@ -168,6 +173,38 @@ export class DatabaseStorage implements IStorage {
       .where(eq(songs.id, id))
       .returning();
     return updated;
+  }
+
+  async getActiveAnnouncement(): Promise<AnnouncementVideo | undefined> {
+    const [video] = await db.select()
+      .from(announcementVideos)
+      .where(eq(announcementVideos.isActive, true))
+      .orderBy(desc(announcementVideos.createdAt))
+      .limit(1);
+    return video;
+  }
+
+  async createAnnouncement(video: InsertAnnouncementVideo): Promise<AnnouncementVideo> {
+    const [created] = await db.insert(announcementVideos).values(video).returning();
+    return created;
+  }
+
+  async deactivateAllAnnouncements(): Promise<void> {
+    await db.update(announcementVideos).set({ isActive: false });
+  }
+
+  async markAnnouncementWatched(walletAddress: string, announcementId: number): Promise<User | undefined> {
+    const [updated] = await db.update(users)
+      .set({ lastSeenAnnouncementId: announcementId })
+      .where(eq(users.walletAddress, walletAddress))
+      .returning();
+    return updated;
+  }
+
+  async hasUserWatchedAnnouncement(walletAddress: string, announcementId: number): Promise<boolean> {
+    const user = await this.getUserByWallet(walletAddress);
+    if (!user) return false;
+    return user.lastSeenAnnouncementId === announcementId;
   }
 }
 

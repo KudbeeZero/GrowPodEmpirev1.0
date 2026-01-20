@@ -7,6 +7,7 @@ export const users = pgTable("users", {
   walletAddress: text("wallet_address").unique().notNull(),
   budBalance: text("bud_balance").default("0"),
   terpBalance: text("terp_balance").default("0"),
+  lastSeenAnnouncementId: integer("last_seen_announcement_id"),
   lastLogin: timestamp("last_login").defaultNow(),
   createdAt: timestamp("created_at").defaultNow(),
 });
@@ -33,9 +34,18 @@ export const songs = pgTable("songs", {
   createdAt: timestamp("created_at").defaultNow(),
 });
 
+export const announcementVideos = pgTable("announcement_videos", {
+  id: serial("id").primaryKey(),
+  title: text("title").notNull(),
+  objectPath: text("object_path").notNull(),
+  isActive: boolean("is_active").default(true).notNull(),
+  createdAt: timestamp("created_at").defaultNow(),
+});
+
 export const insertUserSchema = createInsertSchema(users).omit({ id: true, createdAt: true, lastLogin: true });
 export const insertPlayerStatsSchema = createInsertSchema(playerStats).omit({ id: true, updatedAt: true });
 export const insertSongSchema = createInsertSchema(songs).omit({ id: true, createdAt: true, playCount: true });
+export const insertAnnouncementVideoSchema = createInsertSchema(announcementVideos).omit({ id: true, createdAt: true });
 
 export type User = typeof users.$inferSelect;
 export type InsertUser = z.infer<typeof insertUserSchema>;
@@ -43,6 +53,8 @@ export type PlayerStats = typeof playerStats.$inferSelect;
 export type InsertPlayerStats = z.infer<typeof insertPlayerStatsSchema>;
 export type Song = typeof songs.$inferSelect;
 export type InsertSong = z.infer<typeof insertSongSchema>;
+export type AnnouncementVideo = typeof announcementVideos.$inferSelect;
+export type InsertAnnouncementVideo = z.infer<typeof insertAnnouncementVideoSchema>;
 
 // Types for Game Data (Frontend <-> Backend)
 export type PodStatus = "empty" | "planted" | "growing" | "ready_harvest" | "dead";
