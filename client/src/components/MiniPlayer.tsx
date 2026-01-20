@@ -1,4 +1,5 @@
 import { useState, useRef, useEffect, useCallback } from "react";
+import { useLocation } from "wouter";
 import { Button } from "@/components/ui/button";
 import { Slider } from "@/components/ui/slider";
 import { useQuery, useMutation } from "@tanstack/react-query";
@@ -22,6 +23,7 @@ import { cn } from "@/lib/utils";
 import type { Song } from "@shared/schema";
 
 export function MiniPlayer() {
+  const [location] = useLocation();
   const audioRef = useRef<HTMLAudioElement | null>(null);
   const [isOpen, setIsOpen] = useState(false);
   const [currentSongIndex, setCurrentSongIndex] = useState(0);
@@ -141,6 +143,9 @@ export function MiniPlayer() {
     }
   };
 
+  // Don't show mini player on the jukebox page (full player available there)
+  if (location === "/jukebox") return null;
+  
   if (songs.length === 0) return null;
 
   return (
