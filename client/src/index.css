@@ -141,13 +141,18 @@ html, body {
 .uppy-Dashboard-AddFiles {
   background: hsl(222 47% 11%) !important;
   border-color: hsl(262 83% 58% / 0.4) !important;
+}
+
+.uppy-Dashboard-AddFiles-info {
   display: flex !important;
   flex-direction: column !important;
   align-items: center !important;
   justify-content: center !important;
+  height: 100% !important;
+  text-align: center !important;
 }
 
-.uppy-Dashboard-AddFiles::before {
+.uppy-Dashboard-AddFiles-info::before {
   content: '';
   display: block;
   width: 64px;
@@ -165,6 +170,7 @@ html, body {
   font-family: 'Orbitron', sans-serif !important;
   font-size: 1.1rem !important;
   font-weight: 500 !important;
+  text-align: center !important;
 }
 
 .uppy-Dashboard-browse {
