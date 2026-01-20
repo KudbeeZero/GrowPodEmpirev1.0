@@ -9,6 +9,7 @@ import { useQuery, useMutation } from "@tanstack/react-query";
 import { queryClient, apiRequest } from "@/lib/queryClient";
 import { ObjectUploader } from "@/components/ObjectUploader";
 import { useToast } from "@/hooks/use-toast";
+import { parseBlob } from "music-metadata-browser";
 import { 
   Music, 
   Play, 
@@ -34,6 +35,7 @@ export function MiniPlayer() {
   const [location] = useLocation();
   const audioRef = useRef<HTMLAudioElement | null>(null);
   const pendingUploadPath = useRef<string>("");
+  const isSeeking = useRef(false);
   const [isOpen, setIsOpen] = useState(false);
   const [currentSongIndex, setCurrentSongIndex] = useState(0);
   const [isPlaying, setIsPlaying] = useState(false);
@@ -127,7 +129,10 @@ export function MiniPlayer() {
     if (!audio) return;
 
     const updateProgress = () => {
-      setProgress(audio.currentTime);
+      // Don't update progress if user is actively seeking
+      if (!isSeeking.current) {
+        setProgress(audio.currentTime);
+      }
       setDuration(audio.duration || 0);
     };
 
@@ -166,11 +171,21 @@ export function MiniPlayer() {
     return `${mins}:${secs.toString().padStart(2, "0")}`;
   };
 
-  const handleSeek = (value: number[]) => {
+  const handleSeekStart = () => {
+    isSeeking.current = true;
+  };
+
+  const handleSeekChange = (value: number[]) => {
+    // Update visual progress during dragging
+    setProgress(value[0]);
+  };
+
+  const handleSeekEnd = (value: number[]) => {
+    // Actually seek audio when user releases
     if (audioRef.current) {
       audioRef.current.currentTime = value[0];
-      setProgress(value[0]);
     }
+    isSeeking.current = false;
   };
 
   // Don't show mini player on the jukebox page (full player available there)
@@ -287,6 +302,18 @@ export function MiniPlayer() {
                             <ObjectUploader
                               maxNumberOfFiles={1}
                               maxFileSize={52428800}
+                              onFileAdded={async (file) => {
+                                try {
+                                  const metadata = await parseBlob(file);
+                                  const title = metadata.common.title || file.name.replace(/\.[^/.]+$/, "");
+                                  const artist = metadata.common.artist || "Unknown Artist";
+                                  setNewSongTitle(title);
+                                  setNewSongArtist(artist);
+                                } catch {
+                                  // Fallback to filename if metadata extraction fails
+                                  setNewSongTitle(file.name.replace(/\.[^/.]+$/, ""));
+                                }
+                              }}
                               onGetUploadParameters={async (file) => {
                                 const res = await fetch("/api/uploads/request-url", {
                                   method: "POST",
@@ -311,7 +338,7 @@ export function MiniPlayer() {
                                 setUploadedPath(pendingUploadPath.current);
                                 toast({ title: "Audio file uploaded!" });
                               }}
-                              buttonClassName="w-full"
+                              buttonClassName="w-full bg-gradient-to-r from-purple-600 to-pink-600 hover:from-purple-500 hover:to-pink-500 border-0"
                             >
                               <Upload className="h-4 w-4 mr-2" />
                               Upload Audio File
@@ -375,8 +402,11 @@ export function MiniPlayer() {
                     value={[progress]}
                     max={duration || 100}
                     step={0.1}
-                    onValueChange={handleSeek}
+                    onPointerDown={handleSeekStart}
+                    onValueChange={handleSeekChange}
+                    onValueCommit={handleSeekEnd}
                     className="cursor-pointer"
+                    data-testid="progress-slider-mini"
                   />
                   <div className="flex justify-between text-xs text-muted-foreground font-mono">
                     <span>{formatTime(progress)}</span>

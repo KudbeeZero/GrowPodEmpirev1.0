@@ -26,6 +26,11 @@ interface ObjectUploaderProps {
   onComplete?: (
     result: UploadResult<Record<string, unknown>, Record<string, unknown>>
   ) => void;
+  /**
+   * Callback when a file is added (before upload).
+   * Useful for extracting metadata from the file.
+   */
+  onFileAdded?: (file: File) => void;
   buttonClassName?: string;
   children: ReactNode;
 }
@@ -64,6 +69,7 @@ export function ObjectUploader({
   maxFileSize = 10485760, // 10MB default
   onGetUploadParameters,
   onComplete,
+  onFileAdded,
   buttonClassName,
   children,
 }: ObjectUploaderProps) {
@@ -79,6 +85,12 @@ export function ObjectUploader({
       .use(AwsS3, {
         shouldUseMultipart: false,
         getUploadParameters: onGetUploadParameters,
+      })
+      .on("file-added", (file) => {
+        // Call the onFileAdded callback with the raw File object
+        if (onFileAdded && file.data instanceof File) {
+          onFileAdded(file.data);
+        }
       })
       .on("complete", (result) => {
         onComplete?.(result);

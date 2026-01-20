@@ -27,6 +27,7 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from 
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { useToast } from "@/hooks/use-toast";
+import { parseBlob } from "music-metadata-browser";
 
 function AudioVisualizer({ 
   isPlaying, 
@@ -207,6 +208,7 @@ export default function Jukebox() {
   const { toast } = useToast();
   const audioRef = useRef<HTMLAudioElement | null>(null);
   const pendingUploadPath = useRef<string>("");
+  const isSeeking = useRef(false);
   const [currentSongIndex, setCurrentSongIndex] = useState(0);
   const [isPlaying, setIsPlaying] = useState(false);
   const [volume, setVolume] = useState(0.7);
@@ -309,7 +311,10 @@ export default function Jukebox() {
     if (!audio) return;
 
     const updateProgress = () => {
-      setProgress(audio.currentTime);
+      // Don't update progress if user is actively seeking
+      if (!isSeeking.current) {
+        setProgress(audio.currentTime);
+      }
       setDuration(audio.duration || 0);
     };
 
@@ -353,11 +358,21 @@ export default function Jukebox() {
     return `${mins}:${secs.toString().padStart(2, "0")}`;
   };
 
-  const handleSeek = (value: number[]) => {
+  const handleSeekStart = () => {
+    isSeeking.current = true;
+  };
+
+  const handleSeekChange = (value: number[]) => {
+    // Update visual progress during dragging
+    setProgress(value[0]);
+  };
+
+  const handleSeekEnd = (value: number[]) => {
+    // Actually seek audio when user releases
     if (audioRef.current) {
       audioRef.current.currentTime = value[0];
-      setProgress(value[0]);
     }
+    isSeeking.current = false;
   };
 
   return (
@@ -407,7 +422,9 @@ export default function Jukebox() {
                 value={[progress]}
                 max={duration || 100}
                 step={0.1}
-                onValueChange={handleSeek}
+                onPointerDown={handleSeekStart}
+                onValueChange={handleSeekChange}
+                onValueCommit={handleSeekEnd}
                 className="cursor-pointer"
                 data-testid="progress-slider"
               />
@@ -544,6 +561,18 @@ export default function Jukebox() {
                       <ObjectUploader
                         maxNumberOfFiles={1}
                         maxFileSize={52428800}
+                        onFileAdded={async (file) => {
+                          try {
+                            const metadata = await parseBlob(file);
+                            const title = metadata.common.title || file.name.replace(/\.[^/.]+$/, "");
+                            const artist = metadata.common.artist || "Unknown Artist";
+                            setNewSongTitle(title);
+                            setNewSongArtist(artist);
+                          } catch {
+                            // Fallback to filename if metadata extraction fails
+                            setNewSongTitle(file.name.replace(/\.[^/.]+$/, ""));
+                          }
+                        }}
                         onGetUploadParameters={async (file) => {
                           const res = await fetch("/api/uploads/request-url", {
                             method: "POST",
@@ -568,7 +597,7 @@ export default function Jukebox() {
                           setUploadedPath(pendingUploadPath.current);
                           toast({ title: "Audio file uploaded!" });
                         }}
-                        buttonClassName="w-full"
+                        buttonClassName="w-full bg-gradient-to-r from-purple-600 to-pink-600 hover:from-purple-500 hover:to-pink-500 border-0"
                       >
                         <Upload className="h-4 w-4 mr-2" />
                         Upload Audio File
