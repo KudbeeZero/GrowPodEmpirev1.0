@@ -109,6 +109,7 @@ export function AnnouncementModal({ announcement, onComplete }: AnnouncementModa
                 ref={videoRef}
                 src={videoUrl}
                 className="w-full aspect-video bg-black"
+                controls
                 playsInline
                 data-testid="announcement-video"
               />
