@@ -130,3 +130,75 @@ html, body {
     -webkit-overflow-scrolling: touch;
   }
 }
+
+/* Uppy Dashboard Dark Theme - Cyberpunk Style */
+.uppy-Dashboard-inner {
+  background: hsl(217 33% 17%) !important;
+  border-color: hsl(262 83% 58% / 0.3) !important;
+}
+
+.uppy-Dashboard-AddFiles {
+  background: hsl(222 47% 11%) !important;
+  border-color: hsl(262 83% 58% / 0.4) !important;
+}
+
+.uppy-Dashboard-AddFiles-title {
+  color: hsl(142 70% 96%) !important;
+}
+
+.uppy-Dashboard-browse {
+  color: hsl(280 100% 70%) !important;
+}
+
+.uppy-Dashboard-browse:hover {
+  color: hsl(320 100% 70%) !important;
+}
+
+.uppy-Dashboard-dropFilesHereHint {
+  color: hsl(215 20% 65%) !important;
+  border-color: hsl(262 83% 58% / 0.5) !important;
+  background: hsl(222 47% 11% / 0.8) !important;
+}
+
+.uppy-Dashboard-Item {
+  background: hsl(217 33% 17%) !important;
+  border-color: hsl(215 25% 27%) !important;
+}
+
+.uppy-Dashboard-Item-name {
+  color: hsl(142 70% 96%) !important;
+}
+
+.uppy-Dashboard-Item-statusSize {
+  color: hsl(215 20% 65%) !important;
+}
+
+.uppy-DashboardContent-bar {
+  background: hsl(217 33% 17%) !important;
+  border-color: hsl(215 25% 27%) !important;
+}
+
+.uppy-DashboardContent-title {
+  color: hsl(142 70% 96%) !important;
+}
+
+.uppy-DashboardContent-back {
+  color: hsl(280 100% 70%) !important;
+}
+
+.uppy-StatusBar {
+  background: hsl(217 33% 17%) !important;
+}
+
+.uppy-StatusBar-progress {
+  background: linear-gradient(to right, hsl(280 100% 70%), hsl(320 100% 70%)) !important;
+}
+
+.uppy-StatusBar-content {
+  color: hsl(142 70% 96%) !important;
+}
+
+.uppy-StatusBar-actionBtn--upload {
+  background: linear-gradient(to right, hsl(280 100% 60%), hsl(320 100% 60%)) !important;
+  color: white !important;
+}
