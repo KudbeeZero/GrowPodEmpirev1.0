@@ -5,14 +5,18 @@ import { ShareButtons } from "@/components/ShareButtons";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Checkbox } from "@/components/ui/checkbox";
+import { Badge } from "@/components/ui/badge";
 import { useToast } from "@/hooks/use-toast";
 import { useNotifications, usePlantNotifications } from "@/hooks/use-notifications";
-import { Plus, Sprout, Leaf, FlaskConical, Flame, Zap, Sparkles, TestTube2, Info, Coins, ExternalLink, Bell, BellOff, X } from "lucide-react";
+import { Plus, Sprout, Leaf, FlaskConical, Flame, Zap, Sparkles, TestTube2, Info, Coins, ExternalLink, Bell, BellOff, X, Loader2 } from "lucide-react";
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription } from "@/components/ui/dialog";
 import { Link } from "wouter";
 import { motion } from "framer-motion";
 import { useState, useEffect } from "react";
+import { useQuery, useMutation } from "@tanstack/react-query";
+import { queryClient, apiRequest } from "@/lib/queryClient";
+import type { UserSeed, SeedBankItem } from "@shared/schema";
 
 export default function Dashboard() {
   const { account, isConnected, connectWallet } = useAlgorand();
@@ -28,6 +32,30 @@ export default function Dashboard() {
   const [fastModeEnabled, setFastModeEnabled] = useState(false);
   const [harvestDialogOpen, setHarvestDialogOpen] = useState(false);
   const [lastHarvestData, setLastHarvestData] = useState<{podId: number; budEarned: number; rareTerp: boolean; terpEarned: number} | null>(null);
+  const [seedSelectOpen, setSeedSelectOpen] = useState(false);
+  const [selectedSeed, setSelectedSeed] = useState<(UserSeed & { seed: SeedBankItem }) | null>(null);
+
+  // Fetch user's seed inventory
+  const { data: userSeeds = [], isLoading: loadingSeeds } = useQuery<(UserSeed & { seed: SeedBankItem })[]>({
+    queryKey: ["/api/user-seeds", account],
+    queryFn: async () => {
+      if (!account) return [];
+      const res = await fetch(`/api/user-seeds/${account}`);
+      if (!res.ok) return [];
+      return res.json();
+    },
+    enabled: !!account,
+  });
+
+  // Mutation to use a seed from inventory
+  const useSeedMutation = useMutation({
+    mutationFn: async (seedId: number) => {
+      return apiRequest("POST", `/api/user-seeds/${seedId}/use`, { walletAddress: account });
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["/api/user-seeds", account] });
+    },
+  });
 
   // Get the active cooldown based on Fast Mode toggle
   const activeWaterCooldown = fastModeEnabled ? WATER_COOLDOWN_TESTNET : WATER_COOLDOWN;
@@ -134,7 +162,7 @@ export default function Dashboard() {
 
   const needsOptIn = isConnected && (!isOptedInApp || !isOptedInBud || !isOptedInTerp);
 
-  const handleMintPod = async () => {
+  const openSeedSelect = () => {
     if (!isConnected) {
       toast({
         title: "Wallet Required",
@@ -171,31 +199,44 @@ export default function Dashboard() {
       return;
     }
     
+    setSeedSelectOpen(true);
+  };
+
+  const handleMintPod = async (useSeed: (UserSeed & { seed: SeedBankItem }) | null = null) => {
+    setSeedSelectOpen(false);
     setIsActionLoading(true);
+    
+    const seedName = useSeed ? useSeed.seed.name : "Mystery Seed";
     toast({
-      title: "Minting Mystery Seed...",
+      title: `Planting ${seedName}...`,
       description: "Sign the transaction in your Pera Wallet.",
     });
     
     try {
+      // If using a premium seed, consume it from inventory
+      if (useSeed) {
+        await useSeedMutation.mutateAsync(useSeed.seedId);
+      }
+      
       // Determine which pod slot to use - find the first empty slot
       const pod1Empty = pods.find(p => p.id === 1)?.stage === 0 || !pods.find(p => p.id === 1);
       const podIdToMint = pod1Empty ? 1 : 2;
       
       const txId = await mintPod(podIdToMint);
       toast({
-        title: "Mystery Seed Planted!",
-        description: `Pod #${podIdToMint} is now growing! TX: ${txId?.slice(0, 8)}...`,
+        title: `${seedName} Planted!`,
+        description: `Pod #${podIdToMint} is now growing${useSeed?.seed.growthBonus ? ` with +${useSeed.seed.growthBonus}% yield bonus` : ''}! TX: ${txId?.slice(0, 8)}...`,
       });
     } catch (error) {
       const errorMessage = error instanceof Error ? error.message : 'Transaction failed';
       toast({
-        title: "Mint Failed",
+        title: "Plant Failed",
         description: errorMessage,
         variant: "destructive",
       });
     } finally {
       setIsActionLoading(false);
+      setSelectedSeed(null);
     }
   };
 
