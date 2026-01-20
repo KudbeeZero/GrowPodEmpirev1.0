@@ -4,7 +4,9 @@ import { storage } from "./storage";
 import { api } from "@shared/routes";
 import { z } from "zod";
 import { registerObjectStorageRoutes } from "./replit_integrations/object_storage";
-import { insertSongSchema } from "@shared/schema";
+import { insertSongSchema, insertAnnouncementVideoSchema } from "@shared/schema";
+
+const ADMIN_WALLET = process.env.ADMIN_WALLET_ADDRESS || "";
 
 export async function registerRoutes(
   httpServer: Server,
@@ -186,6 +188,89 @@ export async function registerRoutes(
       console.error("Failed to update play count:", err);
       res.status(500).json({ message: "Failed to update play count" });
     }
+  });
+
+  // Announcement Video API endpoints
+  app.get("/api/announcement/current", async (_req, res) => {
+    try {
+      const announcement = await storage.getActiveAnnouncement();
+      res.json(announcement || null);
+    } catch (err) {
+      console.error("Failed to get announcement:", err);
+      res.status(500).json({ message: "Failed to get announcement" });
+    }
+  });
+
+  app.get("/api/announcement/check/:walletAddress", async (req, res) => {
+    try {
+      const { walletAddress } = req.params;
+      const announcement = await storage.getActiveAnnouncement();
+      
+      if (!announcement) {
+        return res.json({ needsToWatch: false, announcement: null });
+      }
+      
+      const hasWatched = await storage.hasUserWatchedAnnouncement(walletAddress, announcement.id);
+      res.json({ 
+        needsToWatch: !hasWatched, 
+        announcement: hasWatched ? null : announcement 
+      });
+    } catch (err) {
+      console.error("Failed to check announcement:", err);
+      res.status(500).json({ message: "Failed to check announcement" });
+    }
+  });
+
+  app.post("/api/announcement", async (req, res) => {
+    try {
+      const { walletAddress } = req.body;
+      
+      if (ADMIN_WALLET && walletAddress !== ADMIN_WALLET) {
+        return res.status(403).json({ message: "Only admin can upload announcements" });
+      }
+      
+      await storage.deactivateAllAnnouncements();
+      
+      const videoData = insertAnnouncementVideoSchema.parse({
+        title: req.body.title,
+        objectPath: req.body.objectPath,
+        isActive: true,
+      });
+      
+      const announcement = await storage.createAnnouncement(videoData);
+      res.status(201).json(announcement);
+    } catch (err) {
+      if (err instanceof z.ZodError) {
+        return res.status(400).json({
+          message: err.errors[0].message,
+          field: err.errors[0].path.join('.'),
+        });
+      }
+      console.error("Failed to create announcement:", err);
+      res.status(500).json({ message: "Failed to create announcement" });
+    }
+  });
+
+  app.post("/api/announcement/watched", async (req, res) => {
+    try {
+      const { walletAddress, announcementId } = req.body;
+      
+      if (!walletAddress || !announcementId) {
+        return res.status(400).json({ message: "Missing walletAddress or announcementId" });
+      }
+      
+      const user = await storage.markAnnouncementWatched(walletAddress, announcementId);
+      res.json({ success: true, user });
+    } catch (err) {
+      console.error("Failed to mark announcement as watched:", err);
+      res.status(500).json({ message: "Failed to mark as watched" });
+    }
+  });
+
+  app.get("/api/announcement/admin-check/:walletAddress", async (req, res) => {
+    const { walletAddress } = req.params;
+    const isAdmin = ADMIN_WALLET ? walletAddress === ADMIN_WALLET : true;
+    res.json({ isAdmin });
   });
 
   return httpServer;
