@@ -19,7 +19,8 @@ import {
   BarChart3,
   Award,
   Gamepad2,
-  Users
+  Users,
+  Music
 } from "lucide-react";
 import { useState } from "react";
 import { Button } from "./ui/button";
@@ -57,6 +58,7 @@ export function Navigation() {
     { href: "/lab", label: "Combiner Lab", icon: FlaskConical, description: "Breed and create new strains" },
     { href: "/store", label: "Supply Store", icon: Store, description: "Buy supplies and upgrades" },
     { href: "/staking", label: "Cure Vault", icon: Sprout, description: "Stake tokens for rewards" },
+    { href: "/jukebox", label: "Jukebox", icon: Music, description: "Vibes for your grow room" },
   ];
 
   const communityItems = [
