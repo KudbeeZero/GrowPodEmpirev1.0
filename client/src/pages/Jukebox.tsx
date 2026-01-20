@@ -505,7 +505,14 @@ export default function Jukebox() {
                 value={[isMuted ? 0 : volume * 100]}
                 max={100}
                 step={1}
-                onValueChange={(v) => setVolume(v[0] / 100)}
+                onValueChange={(v) => {
+                  const newVolume = v[0] / 100;
+                  setVolume(newVolume);
+                  // Unmute when user adjusts volume slider
+                  if (isMuted && newVolume > 0) {
+                    setIsMuted(false);
+                  }
+                }}
                 className="flex-1"
                 data-testid="volume-slider"
               />
