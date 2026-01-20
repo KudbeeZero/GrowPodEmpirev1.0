@@ -15,6 +15,7 @@ import Leaderboards from "@/pages/Leaderboards";
 import Stats from "@/pages/Stats";
 import Achievements from "@/pages/Achievements";
 import Jukebox from "@/pages/Jukebox";
+import { MiniPlayer } from "@/components/MiniPlayer";
 import NotFound from "@/pages/not-found";
 
 function Router() {
@@ -34,6 +35,8 @@ function Router() {
         <Route path="/jukebox" component={Jukebox} />
         <Route component={NotFound} />
       </Switch>
+      {/* Floating mini player - always available */}
+      <MiniPlayer />
     </div>
   );
 }

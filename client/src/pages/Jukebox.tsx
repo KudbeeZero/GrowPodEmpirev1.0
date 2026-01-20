@@ -335,21 +335,16 @@ export default function Jukebox() {
   useEffect(() => {
     const loadAudio = async () => {
       if (currentSong && audioRef.current) {
-        // Fetch signed URL from object storage
-        const encodedPath = encodeURIComponent(currentSong.objectPath);
-        const response = await fetch(`/api/uploads/media/${encodedPath}`);
-        if (response.ok) {
-          const blob = await response.blob();
-          const url = URL.createObjectURL(blob);
-          audioRef.current.src = url;
-          if (isPlaying) {
-            audioRef.current.play().catch(() => {});
-          }
+        // The objectPath is already the full path to the object (e.g., "/objects/...")
+        // Set it directly as the audio source
+        audioRef.current.src = currentSong.objectPath;
+        if (isPlaying) {
+          audioRef.current.play().catch(() => {});
         }
       }
     };
     loadAudio();
-  }, [currentSong, isPlaying]);
+  }, [currentSong?.id]);
 
   const formatTime = (seconds: number) => {
     const mins = Math.floor(seconds / 60);
