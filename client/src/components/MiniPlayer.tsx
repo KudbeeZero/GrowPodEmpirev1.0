@@ -2,8 +2,13 @@ import { useState, useRef, useEffect, useCallback } from "react";
 import { useLocation } from "wouter";
 import { Button } from "@/components/ui/button";
 import { Slider } from "@/components/ui/slider";
+import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
+import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
 import { useQuery, useMutation } from "@tanstack/react-query";
 import { queryClient, apiRequest } from "@/lib/queryClient";
+import { ObjectUploader } from "@/components/ObjectUploader";
+import { useToast } from "@/hooks/use-toast";
 import { 
   Music, 
   Play, 
@@ -15,14 +20,17 @@ import {
   Shuffle,
   Repeat,
   X,
-  ChevronLeft,
-  Disc3
+  Upload,
+  Disc3,
+  Loader2,
+  Plus
 } from "lucide-react";
 import { motion, AnimatePresence } from "framer-motion";
 import { cn } from "@/lib/utils";
 import type { Song } from "@shared/schema";
 
 export function MiniPlayer() {
+  const { toast } = useToast();
   const [location] = useLocation();
   const audioRef = useRef<HTMLAudioElement | null>(null);
   const [isOpen, setIsOpen] = useState(false);
@@ -34,6 +42,10 @@ export function MiniPlayer() {
   const [repeat, setRepeat] = useState(false);
   const [progress, setProgress] = useState(0);
   const [duration, setDuration] = useState(0);
+  const [addDialogOpen, setAddDialogOpen] = useState(false);
+  const [newSongTitle, setNewSongTitle] = useState("");
+  const [newSongArtist, setNewSongArtist] = useState("");
+  const [uploadedPath, setUploadedPath] = useState("");
 
   const { data: songs = [] } = useQuery<Song[]>({
     queryKey: ["/api/jukebox/songs"],
@@ -43,6 +55,23 @@ export function MiniPlayer() {
   const playMutation = useMutation({
     mutationFn: async (id: number) => {
       await apiRequest("POST", `/api/jukebox/songs/${id}/play`);
+    },
+  });
+
+  const addSongMutation = useMutation({
+    mutationFn: async (data: { title: string; artist: string; objectPath: string }) => {
+      return await apiRequest("POST", "/api/jukebox/songs", data);
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["/api/jukebox/songs"] });
+      setAddDialogOpen(false);
+      setNewSongTitle("");
+      setNewSongArtist("");
+      setUploadedPath("");
+      toast({ title: "Song added to the jukebox!" });
+    },
+    onError: () => {
+      toast({ title: "Failed to add song", variant: "destructive" });
     },
   });
 
@@ -145,8 +174,6 @@ export function MiniPlayer() {
 
   // Don't show mini player on the jukebox page (full player available there)
   if (location === "/jukebox") return null;
-  
-  if (songs.length === 0) return null;
 
   return (
     <>
@@ -210,14 +237,113 @@ export function MiniPlayer() {
                   </div>
                   <span className="font-display font-bold text-purple-400">Jukebox</span>
                 </div>
-                <Button
-                  size="icon"
-                  variant="ghost"
-                  onClick={() => setIsOpen(false)}
-                  data-testid="button-close-miniplayer"
-                >
-                  <X className="h-5 w-5" />
-                </Button>
+                <div className="flex items-center gap-1">
+                  <Dialog open={addDialogOpen} onOpenChange={setAddDialogOpen}>
+                    <DialogTrigger asChild>
+                      <Button
+                        size="icon"
+                        variant="ghost"
+                        data-testid="button-add-song-mini"
+                      >
+                        <Plus className="h-5 w-5" />
+                      </Button>
+                    </DialogTrigger>
+                    <DialogContent>
+                      <DialogHeader>
+                        <DialogTitle>Add Song to Jukebox</DialogTitle>
+                      </DialogHeader>
+                      <div className="space-y-4 pt-4">
+                        <div className="space-y-2">
+                          <Label htmlFor="mini-title">Song Title</Label>
+                          <Input
+                            id="mini-title"
+                            value={newSongTitle}
+                            onChange={(e) => setNewSongTitle(e.target.value)}
+                            placeholder="Enter song title"
+                            data-testid="input-song-title-mini"
+                          />
+                        </div>
+                        <div className="space-y-2">
+                          <Label htmlFor="mini-artist">Artist</Label>
+                          <Input
+                            id="mini-artist"
+                            value={newSongArtist}
+                            onChange={(e) => setNewSongArtist(e.target.value)}
+                            placeholder="Enter artist name"
+                            data-testid="input-song-artist-mini"
+                          />
+                        </div>
+                        <div className="space-y-2">
+                          <Label>Audio File</Label>
+                          {uploadedPath ? (
+                            <div className="flex items-center gap-2 p-3 bg-muted rounded-lg">
+                              <Music className="h-5 w-5 text-primary" />
+                              <span className="text-sm text-muted-foreground truncate">
+                                File uploaded successfully
+                              </span>
+                            </div>
+                          ) : (
+                            <ObjectUploader
+                              maxNumberOfFiles={1}
+                              maxFileSize={52428800}
+                              onGetUploadParameters={async (file) => {
+                                const res = await fetch("/api/uploads/request-url", {
+                                  method: "POST",
+                                  headers: { "Content-Type": "application/json" },
+                                  body: JSON.stringify({
+                                    name: file.name,
+                                    size: file.size,
+                                    contentType: file.type,
+                                  }),
+                                });
+                                const { uploadURL, objectPath } = await res.json();
+                                setUploadedPath(objectPath);
+                                return {
+                                  method: "PUT",
+                                  url: uploadURL,
+                                  headers: { "Content-Type": file.type },
+                                };
+                              }}
+                              onComplete={() => {
+                                toast({ title: "Audio file uploaded!" });
+                              }}
+                              buttonClassName="w-full"
+                            >
+                              <Upload className="h-4 w-4 mr-2" />
+                              Upload Audio File
+                            </ObjectUploader>
+                          )}
+                        </div>
+                        <Button
+                          className="w-full"
+                          disabled={!newSongTitle || !newSongArtist || !uploadedPath || addSongMutation.isPending}
+                          onClick={() => {
+                            addSongMutation.mutate({
+                              title: newSongTitle,
+                              artist: newSongArtist,
+                              objectPath: uploadedPath,
+                            });
+                          }}
+                          data-testid="button-save-song-mini"
+                        >
+                          {addSongMutation.isPending ? (
+                            <Loader2 className="h-4 w-4 animate-spin" />
+                          ) : (
+                            "Add to Jukebox"
+                          )}
+                        </Button>
+                      </div>
+                    </DialogContent>
+                  </Dialog>
+                  <Button
+                    size="icon"
+                    variant="ghost"
+                    onClick={() => setIsOpen(false)}
+                    data-testid="button-close-miniplayer"
+                  >
+                    <X className="h-5 w-5" />
+                  </Button>
+                </div>
               </div>
 
               {/* Current song */}
@@ -335,41 +461,51 @@ export function MiniPlayer() {
                 <p className="text-xs font-semibold text-muted-foreground uppercase tracking-wider px-2 py-2">
                   Playlist
                 </p>
-                <div className="space-y-1">
-                  {songs.map((song, idx) => (
-                    <button
-                      key={song.id}
-                      onClick={() => playSong(idx)}
-                      className={cn(
-                        "w-full flex items-center gap-3 p-3 rounded-lg text-left transition-all",
-                        idx === currentSongIndex
-                          ? "bg-primary/20 border border-primary/30"
-                          : "hover:bg-white/5"
-                      )}
-                      data-testid={`miniplayer-song-${song.id}`}
-                    >
-                      <div className={cn(
-                        "w-8 h-8 rounded-lg flex items-center justify-center shrink-0",
-                        idx === currentSongIndex ? "bg-primary/30" : "bg-muted/30"
-                      )}>
-                        {idx === currentSongIndex && isPlaying ? (
-                          <Disc3 className="h-4 w-4 text-primary animate-spin" style={{ animationDuration: "3s" }} />
-                        ) : (
-                          <Music className="h-4 w-4 text-muted-foreground" />
+                {songs.length === 0 ? (
+                  <div className="text-center py-8 px-4">
+                    <Music className="h-10 w-10 mx-auto mb-3 text-muted-foreground/30" />
+                    <p className="text-sm text-muted-foreground">No songs yet</p>
+                    <p className="text-xs text-muted-foreground/70 mt-1">
+                      Tap + to add your first track
+                    </p>
+                  </div>
+                ) : (
+                  <div className="space-y-1">
+                    {songs.map((song, idx) => (
+                      <button
+                        key={song.id}
+                        onClick={() => playSong(idx)}
+                        className={cn(
+                          "w-full flex items-center gap-3 p-3 rounded-lg text-left transition-all",
+                          idx === currentSongIndex
+                            ? "bg-primary/20 border border-primary/30"
+                            : "hover:bg-white/5"
                         )}
-                      </div>
-                      <div className="flex-1 min-w-0">
-                        <p className={cn(
-                          "text-sm font-medium truncate",
-                          idx === currentSongIndex ? "text-primary" : ""
+                        data-testid={`miniplayer-song-${song.id}`}
+                      >
+                        <div className={cn(
+                          "w-8 h-8 rounded-lg flex items-center justify-center shrink-0",
+                          idx === currentSongIndex ? "bg-primary/30" : "bg-muted/30"
                         )}>
-                          {song.title}
-                        </p>
-                        <p className="text-xs text-muted-foreground truncate">{song.artist}</p>
-                      </div>
-                    </button>
-                  ))}
-                </div>
+                          {idx === currentSongIndex && isPlaying ? (
+                            <Disc3 className="h-4 w-4 text-primary animate-spin" style={{ animationDuration: "3s" }} />
+                          ) : (
+                            <Music className="h-4 w-4 text-muted-foreground" />
+                          )}
+                        </div>
+                        <div className="flex-1 min-w-0">
+                          <p className={cn(
+                            "text-sm font-medium truncate",
+                            idx === currentSongIndex ? "text-primary" : ""
+                          )}>
+                            {song.title}
+                          </p>
+                          <p className="text-xs text-muted-foreground truncate">{song.artist}</p>
+                        </div>
+                      </button>
+                    ))}
+                  </div>
+                )}
               </div>
             </motion.div>
           </>
