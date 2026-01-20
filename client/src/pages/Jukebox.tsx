@@ -206,6 +206,7 @@ function SongListItem({
 export default function Jukebox() {
   const { toast } = useToast();
   const audioRef = useRef<HTMLAudioElement | null>(null);
+  const pendingUploadPath = useRef<string>("");
   const [currentSongIndex, setCurrentSongIndex] = useState(0);
   const [isPlaying, setIsPlaying] = useState(false);
   const [volume, setVolume] = useState(0.7);
@@ -554,7 +555,8 @@ export default function Jukebox() {
                             }),
                           });
                           const { uploadURL, objectPath } = await res.json();
-                          setUploadedPath(objectPath);
+                          // Store path in ref - don't set state yet (upload not complete)
+                          pendingUploadPath.current = objectPath;
                           return {
                             method: "PUT",
                             url: uploadURL,
@@ -562,6 +564,8 @@ export default function Jukebox() {
                           };
                         }}
                         onComplete={() => {
+                          // Now upload is complete, set the state
+                          setUploadedPath(pendingUploadPath.current);
                           toast({ title: "Audio file uploaded!" });
                         }}
                         buttonClassName="w-full"

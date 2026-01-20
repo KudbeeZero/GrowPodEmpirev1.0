@@ -33,6 +33,7 @@ export function MiniPlayer() {
   const { toast } = useToast();
   const [location] = useLocation();
   const audioRef = useRef<HTMLAudioElement | null>(null);
+  const pendingUploadPath = useRef<string>("");
   const [isOpen, setIsOpen] = useState(false);
   const [currentSongIndex, setCurrentSongIndex] = useState(0);
   const [isPlaying, setIsPlaying] = useState(false);
@@ -297,7 +298,8 @@ export function MiniPlayer() {
                                   }),
                                 });
                                 const { uploadURL, objectPath } = await res.json();
-                                setUploadedPath(objectPath);
+                                // Store path in ref - don't set state yet (upload not complete)
+                                pendingUploadPath.current = objectPath;
                                 return {
                                   method: "PUT",
                                   url: uploadURL,
@@ -305,6 +307,8 @@ export function MiniPlayer() {
                                 };
                               }}
                               onComplete={() => {
+                                // Now upload is complete, set the state
+                                setUploadedPath(pendingUploadPath.current);
                                 toast({ title: "Audio file uploaded!" });
                               }}
                               buttonClassName="w-full"
