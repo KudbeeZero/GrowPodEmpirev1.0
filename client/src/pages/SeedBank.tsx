@@ -287,18 +287,18 @@ function SeedDetailModal({
 
   return (
     <Dialog open={isOpen} onOpenChange={onClose}>
-      <DialogContent className="max-w-lg">
-        <DialogHeader>
+      <DialogContent className="max-w-lg max-h-[85vh] overflow-y-auto">
+        <DialogHeader className="sticky top-0 bg-background/95 backdrop-blur pb-2 -mx-6 px-6 pt-0 z-10">
           <DialogTitle 
-            className="text-2xl font-display"
+            className="text-xl sm:text-2xl font-display"
             style={{ color: seed.glowColor || "#a855f7" }}
           >
             {seed.name}
           </DialogTitle>
-          <DialogDescription>{seed.description}</DialogDescription>
+          <DialogDescription className="text-sm">{seed.description}</DialogDescription>
         </DialogHeader>
         
-        <div className="space-y-4 mt-4">
+        <div className="space-y-3 sm:space-y-4">
           <div className="flex items-center gap-2">
             <Badge className={cn("border", rarity.color)}>
               {rarity.label}

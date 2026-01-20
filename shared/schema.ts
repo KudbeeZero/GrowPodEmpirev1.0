@@ -59,6 +59,7 @@ export const seedBank = pgTable("seed_bank", {
   glowColor: text("glow_color").default("#a855f7"), // Primary glow color for card
   totalSupply: integer("total_supply"), // null = unlimited
   mintedCount: integer("minted_count").default(0).notNull(),
+  maxPerUser: integer("max_per_user").default(1), // limit per wallet, null = unlimited
   isActive: boolean("is_active").default(true).notNull(),
   createdAt: timestamp("created_at").defaultNow(),
 });

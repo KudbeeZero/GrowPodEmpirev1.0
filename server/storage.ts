@@ -39,6 +39,7 @@ export interface IStorage {
   deleteSeed(id: number): Promise<void>;
   purchaseSeed(walletAddress: string, seedId: number): Promise<UserSeed>;
   getUserSeeds(walletAddress: string): Promise<(UserSeed & { seed: SeedBankItem })[]>;
+  getUserSeedCount(walletAddress: string, seedId: number): Promise<number>;
   useUserSeed(walletAddress: string, seedId: number): Promise<boolean>;
 }
 
@@ -278,6 +279,15 @@ export class DatabaseStorage implements IStorage {
       ...r.user_seeds,
       seed: r.seed_bank,
     }));
+  }
+
+  async getUserSeedCount(walletAddress: string, seedId: number): Promise<number> {
+    const [existing] = await db.select().from(userSeeds)
+      .where(and(
+        eq(userSeeds.walletAddress, walletAddress),
+        eq(userSeeds.seedId, seedId)
+      ));
+    return existing?.quantity || 0;
   }
 
   async useUserSeed(walletAddress: string, seedId: number): Promise<boolean> {

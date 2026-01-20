@@ -366,6 +366,16 @@ export async function registerRoutes(
         return res.status(400).json({ message: "Seed sold out" });
       }
       
+      // Check per-user limit
+      if (seed.maxPerUser !== null) {
+        const userCurrentCount = await storage.getUserSeedCount(walletAddress, id);
+        if (userCurrentCount >= seed.maxPerUser) {
+          return res.status(400).json({ 
+            message: `You can only own ${seed.maxPerUser} of this seed` 
+          });
+        }
+      }
+      
       const userSeed = await storage.purchaseSeed(walletAddress, id);
       res.status(201).json(userSeed);
     } catch (err) {
