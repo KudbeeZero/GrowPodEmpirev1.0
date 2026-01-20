@@ -18,19 +18,17 @@ export function AnnouncementModal({ announcement, onComplete }: AnnouncementModa
   const [duration, setDuration] = useState(0);
 
   useEffect(() => {
-    const fetchVideoUrl = async () => {
-      try {
-        const res = await fetch(`/objects/${encodeURIComponent(announcement.objectPath)}`);
-        if (res.ok) {
-          const data = await res.json();
-          setVideoUrl(data.signedUrl);
-        }
-      } catch (err) {
-        console.error("Failed to fetch video URL:", err);
-      }
-    };
-
-    fetchVideoUrl();
+    // The objectPath is already in the format "/objects/uploads/uuid" 
+    // which can be used directly as the video source
+    if (announcement.objectPath) {
+      // If path already starts with /objects/, use it directly
+      // Otherwise, prepend /objects/
+      const path = announcement.objectPath.startsWith("/objects/")
+        ? announcement.objectPath
+        : `/objects/${announcement.objectPath}`;
+      setVideoUrl(path);
+      setIsLoading(false);
+    }
   }, [announcement.objectPath]);
 
   useEffect(() => {

@@ -18,6 +18,7 @@ export default function Admin() {
   const address = account;
   const [dialogOpen, setDialogOpen] = useState(false);
   const [title, setTitle] = useState("");
+  const titleRef = useRef<string>("");
   const pendingUploadPath = useRef<string | null>(null);
 
   const { data: isAdminData, isLoading: checkingAdmin } = useQuery<{ isAdmin: boolean }>({
@@ -61,14 +62,14 @@ export default function Admin() {
     },
   });
 
-  const handleGetUploadParameters = async (file: { name: string; type: string }) => {
-    const res = await fetch("/objects/presign", {
+  const handleGetUploadParameters = async (file: { name: string; type: string; size?: number | null }) => {
+    const res = await fetch("/api/uploads/request-url", {
       method: "POST",
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify({
-        filename: file.name,
+        name: file.name,
         contentType: file.type,
-        directory: ".private/announcements",
+        size: file.size || 0,
       }),
     });
 
@@ -81,18 +82,25 @@ export default function Admin() {
 
     return {
       method: "PUT" as const,
-      url: data.signedUrl,
+      url: data.uploadURL,
       headers: { "Content-Type": file.type },
     };
   };
 
+  const handleTitleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const value = e.target.value;
+    setTitle(value);
+    titleRef.current = value;
+  };
+
   const handleUploadComplete = () => {
-    if (pendingUploadPath.current && title.trim()) {
+    const currentTitle = titleRef.current.trim();
+    if (pendingUploadPath.current && currentTitle) {
       createAnnouncementMutation.mutate({
-        title: title.trim(),
+        title: currentTitle,
         objectPath: pendingUploadPath.current,
       });
-    } else if (!title.trim()) {
+    } else if (!currentTitle) {
       toast({
         title: "Missing title",
         description: "Please enter a title for the announcement.",
@@ -204,7 +212,7 @@ export default function Admin() {
                       id="video-title"
                       placeholder="e.g., Welcome to GrowPod Empire"
                       value={title}
-                      onChange={(e) => setTitle(e.target.value)}
+                      onChange={handleTitleChange}
                       data-testid="input-video-title"
                     />
                   </div>
