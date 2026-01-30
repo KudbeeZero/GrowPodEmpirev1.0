@@ -1,4 +1,4 @@
-# GrowPod Empire V1.0
+# GrowPod Empire V2.0
 
 A blockchain-based idle/farming game built on **Algorand TestNet**. Players manage virtual hydroponic grow pods, cultivating plants through a 10-day growth cycle to harvest **$BUD** tokens. Features genetic breeding mechanics, terpene discovery, pest/disease management, and a dual-token economy.
 
