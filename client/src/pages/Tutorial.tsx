@@ -61,7 +61,7 @@ const steps = [
   {
     step: 4,
     title: "Water Your Plants",
-    description: "Water your plants every 4 hours to help them grow. Each water advances the growth stage.",
+    description: "Water your plants every 10 minutes to help them grow. Each water advances the growth stage.",
     icon: Droplets,
     color: "text-cyan-400",
     bgColor: "bg-cyan-500/20",
@@ -81,7 +81,7 @@ const steps = [
     tips: [
       "Nutrients boost your $BUD harvest",
       "10+ nutrients = maximum yield bonus",
-      "Nutrient cooldown is also 4 hours"
+      "Nutrient cooldown is also 10 minutes"
     ]
   },
   {

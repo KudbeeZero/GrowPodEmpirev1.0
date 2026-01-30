@@ -516,7 +516,7 @@ txn Sender
 byte "last_nutrients_2"
 app_local_get
 -
-int 21600
+int 600
 >=
 ||
 assert
@@ -551,11 +551,11 @@ txn NumAppArgs
 int 1
 >
 bnz main_l50
-int 14400
+int 600
 store 4
 main_l41:
 load 4
-int 14400
+int 600
 >=
 assert
 txn Sender
@@ -859,7 +859,7 @@ txn Sender
 byte "last_nutrients"
 app_local_get
 -
-int 21600
+int 600
 >=
 ||
 assert
@@ -894,11 +894,11 @@ txn NumAppArgs
 int 1
 >
 bnz main_l70
-int 14400
+int 600
 store 3
 main_l61:
 load 3
-int 14400
+int 600
 >=
 assert
 txn Sender

@@ -270,7 +270,7 @@ export default function Dashboard() {
       const txId = await waterPlant(id, activeWaterCooldown);
       toast({
         title: "Watered Successfully!",
-        description: `Your plant is growing. Next water in 4h. TX: ${txId?.slice(0, 8)}...`,
+        description: `Your plant is growing. Next water in 10 min. TX: ${txId?.slice(0, 8)}...`,
       });
     } catch (error) {
       const errorMessage = error instanceof Error ? error.message : 'Transaction failed';
@@ -313,7 +313,7 @@ export default function Dashboard() {
       const txId = await addNutrients(id);
       toast({
         title: "Nutrients Added!",
-        description: `Your plant is getting stronger. Next feed in 6h. TX: ${txId?.slice(0, 8)}...`,
+        description: `Your plant is getting stronger. Next feed in 10 min. TX: ${txId?.slice(0, 8)}...`,
       });
     } catch (error) {
       const errorMessage = error instanceof Error ? error.message : 'Transaction failed';
@@ -405,7 +405,7 @@ export default function Dashboard() {
     setIsActionLoading(true);
     toast({
       title: "Cleaning Pod...",
-      description: "This will burn 500 $BUD + 1 ALGO.",
+      description: "This will burn 500 $BUD.",
     });
     
     try {
@@ -688,7 +688,7 @@ export default function Dashboard() {
                     </div>
                   </label>
                   <p className="text-xs text-muted-foreground/60 mt-1 ml-6">
-                    4h water cooldown
+                    10 min water cooldown
                   </p>
                 </div>
                 

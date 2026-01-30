@@ -1,4 +1,4 @@
-# GrowPod Empire V1.0
+# GrowPod Empire V2.0
 
 A blockchain-based idle/farming game built on **Algorand TestNet**. Players manage virtual hydroponic grow pods, cultivating plants through a 10-day growth cycle to harvest **$BUD** tokens. Features genetic breeding mechanics, terpene discovery, pest/disease management, and a dual-token economy.
 
@@ -129,30 +129,23 @@ TERP_ASSET_ID=<terp_asa_id>
 DATABASE_URL=<postgresql_connection_string>
 ```
 
-## TestNet Fast Mode
+## TestNet Cooldowns
 
-For faster testing on TestNet, enable **Fast Mode** in the Dashboard to reduce cooldowns:
+For faster testing, the TestNet deployment uses reduced cooldowns:
 
-| Cooldown | MainNet (Default) | TestNet Fast Mode |
-|----------|-------------------|-------------------|
-| Water    | 24 hours (86400s) | 2 hours (7200s)   |
-
-### How to Enable
-1. Go to the **Dashboard**
-2. Find the **Quick Stats** card
-3. Check the **Fast Mode (TestNet)** checkbox
-4. Water cooldowns will now use 2-hour intervals
+| Cooldown | Duration |
+|----------|----------|
+| Water    | 10 minutes (600s) |
+| Nutrients| 10 minutes (600s) |
 
 ### Technical Details
 - The smart contract accepts an optional `cooldown_seconds` argument (args[1]) for the water methods
-- When Fast Mode is enabled, the frontend passes `7200` seconds to the contract
-- When disabled (default), it uses `86400` seconds (24 hours)
-- This only affects the water action; nutrients still use 6h cooldown
-- **Security**: The contract enforces a minimum cooldown of 2 hours (7200s) on-chain to prevent abuse
+- Default cooldown is 600 seconds (10 minutes) for TestNet
+- **Security**: The contract enforces a minimum cooldown of 600 seconds (10 minutes) on-chain
 
 ## Security Features
 
-- **Configurable Water Cooldown**: 24h default, 2h for TestNet fast mode, enforced on-chain
+- **Configurable Water Cooldown**: 10 minute default for TestNet, enforced on-chain
 - **Atomic Burns**: $BUD burns grouped with actions (cleanup, breed)
 - **Soulbound NFTs**: Clawback mechanism prevents transfers
 - **DNA Uniqueness**: Cryptographic hashing for plant genetics
