@@ -34,9 +34,9 @@ LocalPodSlots = Bytes("pod_slots")  # Number of pod slots unlocked (1-5)
 
 # Constants
 BASE_YIELD = Int(250000000)  # 0.25g = 250,000,000 units (6 decimals)
-WATER_COOLDOWN = Int(14400)  # 4 hours in seconds
-WATER_COOLDOWN_MIN = Int(14400)  # 4 hours minimum
-NUTRIENT_COOLDOWN = Int(21600)  # 6 hours in seconds
+WATER_COOLDOWN = Int(600)  # 10 minutes in seconds (TestNet)
+WATER_COOLDOWN_MIN = Int(600)  # 10 minutes minimum (TestNet)
+NUTRIENT_COOLDOWN = Int(600)  # 10 minutes in seconds (TestNet)
 GROWTH_CYCLE = Int(864000)  # 10 days in seconds
 CLEANUP_BURN = Int(500000000)  # 500 $BUD to burn for cleanup
 BREED_BURN = Int(1000000000)  # 1000 $BUD to burn for breeding

@@ -9,11 +9,10 @@ export { CONTRACT_CONFIG } from '@/context/AlgorandContext';
 export type PodStage = 0 | 1 | 2 | 3 | 4 | 5 | 6;
 export type PodStatus = 'empty' | 'seedling' | 'vegetative' | 'flowering' | 'mature' | 'harvest_ready' | 'dead' | 'needs_cleanup';
 
-// Constants for cooldowns
-export const WATER_COOLDOWN = 14400; // 4 hours in seconds
-export const WATER_COOLDOWN_TESTNET = 14400; // 4 hours in seconds (TestNet)
-export const NUTRIENT_COOLDOWN = 21600; // 6 hours in seconds
-export const MAX_PODS = 2; // Maximum pods per user
+// Constants for cooldowns (TestNet values - 10 minutes each)
+export const WATER_COOLDOWN = 600; // 10 minutes in seconds (TestNet)
+export const WATER_COOLDOWN_TESTNET = 600; // 10 minutes in seconds (TestNet)
+export const NUTRIENT_COOLDOWN = 600; // 10 minutes in seconds (TestNet)
 
 export interface GrowPod {
   id: number;
@@ -27,7 +26,6 @@ export interface GrowPod {
   status: PodStatus;
   dna: string;
   terpeneProfile: string;
-  minorProfile: string;
   pests: boolean;
   canWater: boolean;
   canAddNutrients: boolean;
@@ -182,7 +180,6 @@ export function useGameState(account: string | null) {
       status: stageToStatus(stage1),
       dna: getStr('dna'),
       terpeneProfile: getStr('terpene_profile'),
-      minorProfile: getStr('minor_profile'),
       pests: false,
       canWater: canWater1 && stage1 >= 1 && stage1 <= 4,
       canAddNutrients: canNutrients1 && stage1 >= 1 && stage1 <= 4,
@@ -215,7 +212,6 @@ export function useGameState(account: string | null) {
         status: stageToStatus(stage2),
         dna: getStr('dna_2'),
         terpeneProfile: getStr('terpene_profile_2'),
-        minorProfile: getStr('minor_profile_2'),
         pests: false,
         canWater: canWater2 && stage2 >= 1 && stage2 <= 4,
         canAddNutrients: canNutrients2 && stage2 >= 1 && stage2 <= 4,
@@ -410,7 +406,7 @@ export function useTransactions() {
   }, [account, signTransactions]);
 
   // Water a plant - calls "water" on the smart contract
-  // Optional cooldownSeconds: pass 7200 for TestNet fast mode, 86400 for MainNet (default)
+  // Optional cooldownSeconds parameter (default: 600s / 10 minutes for TestNet)
   const waterPlant = useCallback(async (podId: number = 1, cooldownSeconds?: number): Promise<string | null> => {
     if (!account || !CONTRACT_CONFIG.appId) return null;
     
@@ -502,16 +498,16 @@ export function useTransactions() {
     }
   }, [account, signTransactions]);
 
-  // Cleanup pod - requires burning 500 $BUD + 1 ALGO fee
+  // Cleanup pod - requires burning 500 $BUD
   const cleanupPod = useCallback(async (podId: number = 1): Promise<string | null> => {
     if (!account || !CONTRACT_CONFIG.appId || !CONTRACT_CONFIG.budAssetId) return null;
-    
+
     try {
       const suggestedParams = await getParamsWithRetry();
-      
+
       // Use different app arg based on pod ID
       const appArg = podId === 2 ? 'cleanup_2' : 'cleanup';
-      
+
       // Transaction 1: Burn 500 $BUD (send to app address)
       const burnTxn = algosdk.makeAssetTransferTxnWithSuggestedParamsFromObject({
         sender: account,
@@ -520,27 +516,20 @@ export function useTransactions() {
         assetIndex: CONTRACT_CONFIG.budAssetId,
         suggestedParams,
       });
-      
-      // Transaction 2: Send 1 ALGO fee
-      const feeTxn = algosdk.makePaymentTxnWithSuggestedParamsFromObject({
-        sender: account,
-        receiver: CONTRACT_CONFIG.appAddress,
-        amount: BigInt(1000000), // 1 ALGO
-        suggestedParams,
-      });
-      
-      // Transaction 3: Call cleanup on contract
+
+      // Transaction 2: Call cleanup on contract
+      // Note: Contract expects BUD burn at group_index - 1
       const appTxn = algosdk.makeApplicationNoOpTxnFromObject({
         sender: account,
         suggestedParams,
         appIndex: CONTRACT_CONFIG.appId,
         appArgs: [encodeArg(appArg)],
       });
-      
+
       // Group the transactions
-      const txns = [burnTxn, feeTxn, appTxn];
+      const txns = [burnTxn, appTxn];
       algosdk.assignGroupID(txns);
-      
+
       const signedTxns = await signTransactions(txns);
       const txId = await submitTransaction(signedTxns);
       refreshState();

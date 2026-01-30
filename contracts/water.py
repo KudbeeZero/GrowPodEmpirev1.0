@@ -1,8 +1,7 @@
 #!/usr/bin/env python3
 """
 Water script for GrowPod Empire
-Waters plant with 24h cooldown, advances growth stage
-Includes overwater detection (3+ waters in 48h = dead plant)
+Waters plant with 10 minute cooldown (TestNet), advances growth stage
 """
 from algosdk import account, mnemonic
 from algosdk.transaction import ApplicationNoOpTxn, wait_for_confirmation
@@ -17,8 +16,7 @@ ALGOD_TOKEN = ""
 algod_client = algod.AlgodClient(ALGOD_TOKEN, ALGOD_ADDRESS)
 
 # Constants
-WATER_COOLDOWN = 86400  # 24 hours in seconds
-OVERWATER_WINDOW = 172800  # 48 hours in seconds
+WATER_COOLDOWN = 600  # 10 minutes in seconds (TestNet)
 
 
 def get_local_state(address: str, app_id: int) -> dict:
@@ -66,17 +64,16 @@ def check_water_cooldown(address: str, app_id: int) -> tuple:
 def water_plant(user_mnemonic: str, app_id: int) -> dict:
     """
     Water the plant in the GrowPod.
-    
+
     The contract will:
-    1. Check 24h cooldown has passed
+    1. Check 10 minute cooldown has passed (TestNet)
     2. Increment water count
     3. Advance growth stage if thresholds met
-    4. Check for overwater defect (3+ waters in 48h)
-    
+
     Args:
         user_mnemonic: 25-word Algorand wallet mnemonic
         app_id: GrowPod smart contract application ID
-        
+
     Returns:
         dict: Transaction confirmation details
     """
@@ -130,7 +127,7 @@ def water_plant(user_mnemonic: str, app_id: int) -> dict:
     if new_stage == 5:
         print("\n  READY TO HARVEST!")
     else:
-        print(f"  Next water in: 24 hours")
+        print(f"  Next water in: 10 minutes")
     
     return confirmed_txn
 

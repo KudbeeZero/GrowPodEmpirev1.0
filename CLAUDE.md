@@ -9,8 +9,8 @@ GrowPod Empire is a blockchain-based idle farming game built on **Algorand TestN
 ### Core Game Loop
 1. **Mint Pod** - Create a GrowPod (NFT-like local state)
 2. **Plant Seed** - Random or premium seed with DNA hash
-3. **Water** (4h cooldown) - 10 waters = ready to harvest
-4. **Add Nutrients** (6h cooldown) - Bonus yield
+3. **Water** (10 min cooldown) - 10 waters = ready to harvest
+4. **Add Nutrients** (10 min cooldown) - Bonus yield
 5. **Harvest** - Mint $BUD based on care quality
 6. **Cleanup** - Burn 500 $BUD to reset pod
 
@@ -240,7 +240,7 @@ GROWPOD_APP_ID=<after_deployment>
 ## Testing Notes
 
 - TestNet ALGO from faucet: https://bank.testnet.algorand.network/
-- Fast Mode available (4h water cooldown vs 24h)
+- TestNet cooldowns: 10 minutes for both water and nutrients
 - Network: Algorand TestNet (Chain ID: 416002)
 - Algod API: https://testnet-api.algonode.cloud
 
@@ -287,9 +287,10 @@ GROWPOD_APP_ID=<after_deployment>
 ## Gotchas
 
 - Token amounts use 6 decimals (multiply/divide by 1,000,000)
-- Water cooldown is 4 hours (14400 seconds)
-- Nutrient cooldown is 6 hours (21600 seconds)
+- Water cooldown is 10 minutes (600 seconds) - TestNet setting
+- Nutrient cooldown is 10 minutes (600 seconds) - TestNet setting
 - Pod stages: 0=empty, 1-4=growing, 5=harvest_ready, 6=needs_cleanup
 - 10 waters required to reach harvest stage
 - Maximum 5 pod slots per player (start with 2)
 - Wallet addresses are 58 characters (Algorand format)
+- Cleanup only requires 500 $BUD burn (no ALGO fee)
