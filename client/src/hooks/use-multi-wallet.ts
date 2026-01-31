@@ -17,11 +17,11 @@ import { WALLET_METADATA, WalletId, algodClient } from '@/context/MultiWalletPro
 
 // Contract configuration
 export const CONTRACT_CONFIG = {
-  appId: Number(import.meta.env.VITE_GROWPOD_APP_ID) || 753910199,
-  budAssetId: Number(import.meta.env.VITE_BUD_ASSET_ID) || 753910204,
-  terpAssetId: Number(import.meta.env.VITE_TERP_ASSET_ID) || 753910205,
-  slotAssetId: Number(import.meta.env.VITE_SLOT_ASSET_ID) || 753910206,
-  appAddress: import.meta.env.VITE_GROWPOD_APP_ADDRESS || 'DOZMB24AAMRL4BRVMUNGO3IWV64OMU33UQ7O7D5ISTXIZUSFIXOMXO4TEI',
+  appId: Number(import.meta.env.VITE_GROWPOD_APP_ID) || 754825112,
+  budAssetId: Number(import.meta.env.VITE_BUD_ASSET_ID) || 754825127,
+  terpAssetId: Number(import.meta.env.VITE_TERP_ASSET_ID) || 754825128,
+  slotAssetId: Number(import.meta.env.VITE_SLOT_ASSET_ID) || 754825129,
+  appAddress: import.meta.env.VITE_GROWPOD_APP_ADDRESS || '6P55NJ7FDJSZA2YSZNT2HRF2FBIUYNKBZLPX4LJ72Q76SBDN4VAB65W6KM',
 };
 
 // Re-export algodClient from provider

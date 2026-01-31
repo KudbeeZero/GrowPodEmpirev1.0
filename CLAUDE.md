@@ -116,11 +116,11 @@ Types exported:
 ```typescript
 // Contract configuration
 export const CONTRACT_CONFIG = {
-  appId: Number(import.meta.env.VITE_GROWPOD_APP_ID) || 753910199,
-  budAssetId: Number(import.meta.env.VITE_BUD_ASSET_ID) || 753910204,
-  terpAssetId: Number(import.meta.env.VITE_TERP_ASSET_ID) || 753910205,
-  slotAssetId: Number(import.meta.env.VITE_SLOT_ASSET_ID) || 753910206,
-  appAddress: import.meta.env.VITE_GROWPOD_APP_ADDRESS || '...',
+  appId: Number(import.meta.env.VITE_GROWPOD_APP_ID) || 754825112,
+  budAssetId: Number(import.meta.env.VITE_BUD_ASSET_ID) || 754825127,
+  terpAssetId: Number(import.meta.env.VITE_TERP_ASSET_ID) || 754825128,
+  slotAssetId: Number(import.meta.env.VITE_SLOT_ASSET_ID) || 754825129,
+  appAddress: import.meta.env.VITE_GROWPOD_APP_ADDRESS || '6P55NJ7FDJSZA2YSZNT2HRF2FBIUYNKBZLPX4LJ72Q76SBDN4VAB65W6KM',
 };
 ```
 
@@ -223,11 +223,11 @@ DATABASE_URL=postgresql://...
 
 ### Optional (for blockchain features)
 ```bash
-VITE_GROWPOD_APP_ID=753910199
-VITE_BUD_ASSET_ID=753910204
-VITE_TERP_ASSET_ID=753910205
-VITE_SLOT_ASSET_ID=753910206
-VITE_GROWPOD_APP_ADDRESS=...
+VITE_GROWPOD_APP_ID=754825112
+VITE_BUD_ASSET_ID=754825127
+VITE_TERP_ASSET_ID=754825128
+VITE_SLOT_ASSET_ID=754825129
+VITE_GROWPOD_APP_ADDRESS=6P55NJ7FDJSZA2YSZNT2HRF2FBIUYNKBZLPX4LJ72Q76SBDN4VAB65W6KM
 ADMIN_WALLET_ADDRESS=...  # For admin-only features
 ```
 
