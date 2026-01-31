@@ -1,4 +1,4 @@
-import { useAlgorand, useGameState, useTransactions, CONTRACT_CONFIG, MAX_PODS, WATER_COOLDOWN, WATER_COOLDOWN_TESTNET } from "@/hooks/use-algorand";
+import { useAlgorand, useGameState, useTransactions, CONTRACT_CONFIG, WATER_COOLDOWN, WATER_COOLDOWN_TESTNET } from "@/hooks/use-algorand";
 import { CurrencyDisplay } from "@/components/CurrencyDisplay";
 import { PodCard } from "@/components/PodCard";
 import { ShareButtons } from "@/components/ShareButtons";

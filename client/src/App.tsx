@@ -4,6 +4,7 @@ import { queryClient, apiRequest } from "./lib/queryClient";
 import { QueryClientProvider, useQuery, useMutation } from "@tanstack/react-query";
 import { Toaster } from "@/components/ui/toaster";
 import { TooltipProvider } from "@/components/ui/tooltip";
+import { MultiWalletProvider } from "@/context/MultiWalletProvider";
 import { AlgorandProvider } from "@/context/AlgorandContext";
 import { useAlgorand } from "@/hooks/use-algorand";
 import { Navigation } from "@/components/Navigation";
@@ -113,10 +114,12 @@ function App() {
   return (
     <QueryClientProvider client={queryClient}>
       <TooltipProvider>
-        <AlgorandProvider>
-          <Toaster />
-          <Router />
-        </AlgorandProvider>
+        <MultiWalletProvider>
+          <AlgorandProvider>
+            <Toaster />
+            <Router />
+          </AlgorandProvider>
+        </MultiWalletProvider>
       </TooltipProvider>
     </QueryClientProvider>
   );
