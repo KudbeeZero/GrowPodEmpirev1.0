@@ -20,6 +20,7 @@ import Achievements from "@/pages/Achievements";
 import Jukebox from "@/pages/Jukebox";
 import SeedBank from "@/pages/SeedBank";
 import Admin from "@/pages/Admin";
+import Inventory from "@/pages/Inventory";
 import { MiniPlayer } from "@/components/MiniPlayer";
 import NotFound from "@/pages/not-found";
 import type { AnnouncementVideo } from "@shared/schema";
@@ -87,6 +88,7 @@ function Router() {
         <Navigation />
         <Switch>
           <Route path="/" component={Dashboard} />
+          <Route path="/inventory" component={Inventory} />
           <Route path="/vault" component={SeedVault} />
           <Route path="/lab" component={CombinerLab} />
           <Route path="/store" component={Store} />

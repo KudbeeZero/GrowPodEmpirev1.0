@@ -2,12 +2,12 @@ import { Link, useLocation } from "wouter";
 import { useAlgorand, useGameState } from "@/hooks/use-algorand";
 import { CurrencyDisplay } from "./CurrencyDisplay";
 import { cn } from "@/lib/utils";
-import { 
-  Sprout, 
-  LayoutDashboard, 
-  Warehouse, 
-  FlaskConical, 
-  Store, 
+import {
+  Sprout,
+  LayoutDashboard,
+  Warehouse,
+  FlaskConical,
+  Store,
   Wallet,
   Menu,
   X,
@@ -20,7 +20,8 @@ import {
   Award,
   Gamepad2,
   Users,
-  Sparkles
+  Sparkles,
+  Package
 } from "lucide-react";
 import { useState } from "react";
 import { Button } from "./ui/button";
@@ -54,6 +55,7 @@ export function Navigation() {
   const totalAttentionNeeded = plantsNeedingWater + plantsReadyToHarvest;
 
   const gameItems = [
+    { href: "/inventory", label: "NFT Inventory", icon: Package, description: "Seeds & Biomass NFTs" },
     { href: "/seed-bank", label: "Seed Bank", icon: Sparkles, description: "Premium genetics for your grow" },
     { href: "/vault", label: "Seed Vault", icon: Warehouse, description: "Manage your seed collection" },
     { href: "/lab", label: "Combiner Lab", icon: FlaskConical, description: "Breed and create new strains" },
