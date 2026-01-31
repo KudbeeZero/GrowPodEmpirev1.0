@@ -84,8 +84,8 @@ async function fetchAssetMetadata(assetId: number): Promise<any | null> {
       }
     }
 
-    // Fallback: parse from note field
-    return parseNoteField(assetInfo.params.note);
+    // Fallback: return empty object (note field not available in algosdk v3)
+    return {};
   } catch (error) {
     console.error(`Error fetching metadata for asset ${assetId}:`, error);
     return null;
@@ -121,8 +121,8 @@ export function useSeedNFTs(account: string | null) {
             const params = assetInfo.params;
 
             // Check if it's a SEED NFT
-            if (params.unitName === 'SEED' && params.total === 1) {
-              const metadata = await fetchAssetMetadata(asset.assetId);
+            if (params.unitName === 'SEED' && Number(params.total) === 1) {
+              const metadata = await fetchAssetMetadata(Number(asset.assetId));
 
               seedNFTs.push({
                 assetId: Number(asset.assetId),
@@ -171,11 +171,12 @@ export function useBiomassNFTs(account: string | null) {
             const params = assetInfo.params;
 
             // Check if it's a BIOMASS NFT
-            if (params.unitName === 'BIOMASS' && params.total === 1) {
-              const noteData = parseNoteField(params.note);
+            if (params.unitName === 'BIOMASS' && Number(params.total) === 1) {
+              // Note field may not exist in algosdk v3 types, use URL or metadata-hash
+              const noteData: Record<string, string> = {};
               const weightMg = parseInt(noteData.weight || '0', 10);
 
-              const metadata = await fetchAssetMetadata(asset.assetId);
+              const metadata = await fetchAssetMetadata(Number(asset.assetId));
 
               biomassNFTs.push({
                 assetId: Number(asset.assetId),

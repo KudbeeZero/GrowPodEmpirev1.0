@@ -256,12 +256,26 @@ export function useGameState(account: string | null) {
   };
 }
 
-export function useInventory() {
+// Placeholder types for future implementation
+export interface InventoryItem {
+  id: number;
+  name: string;
+  type: string;
+}
+
+export interface Seed {
+  id: string;
+  name: string;
+  dna: string;
+  rarity: 'Common' | 'Uncommon' | 'Rare' | 'Epic' | 'Legendary';
+}
+
+export function useInventory(): InventoryItem[] {
   // Inventory will be loaded from blockchain/backend when implemented
   return [];
 }
 
-export function useSeeds() {
+export function useSeeds(): Seed[] {
   // Seeds will be loaded from blockchain/backend when implemented
   return [];
 }
@@ -443,7 +457,7 @@ export function useTransactions() {
     }
   }, [account, signTransactions]);
 
-  // Add nutrients to a plant - calls "nutrients" on the smart contract (6h cooldown)
+  // Add nutrients to a plant - calls "nutrients" on the smart contract (10 min cooldown)
   const addNutrients = useCallback(async (podId: number = 1): Promise<string | null> => {
     if (!account || !CONTRACT_CONFIG.appId) return null;
     

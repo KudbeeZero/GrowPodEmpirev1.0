@@ -177,22 +177,22 @@ def approval_program():
     )
 
     # Water Pod 1 - Water the plant with configurable cooldown
-    # If args[1] is provided, use it as cooldown_seconds; otherwise default to WATER_COOLDOWN (4h)
-    # Minimum cooldown enforced at WATER_COOLDOWN_MIN (4h) to prevent abuse
+    # If args[1] is provided, use it as cooldown_seconds; otherwise default to WATER_COOLDOWN (10 min)
+    # Minimum cooldown enforced at WATER_COOLDOWN_MIN (10 min) to prevent abuse
     scratch_cooldown = ScratchVar(TealType.uint64)
     
     water = Seq(
         Assert(App.localGet(Txn.sender(), LocalStage) >= Int(1)),
         Assert(App.localGet(Txn.sender(), LocalStage) <= Int(4)),
         
-        # Use custom cooldown from args[1] if provided, else default 24h
+        # Use custom cooldown from args[1] if provided, else default 10 min (TestNet)
         If(
             Txn.application_args.length() > Int(1),
             scratch_cooldown.store(Btoi(Txn.application_args[1])),
             scratch_cooldown.store(WATER_COOLDOWN)
         ),
         
-        # Enforce minimum cooldown to prevent abuse (at least 2 hours)
+        # Enforce minimum cooldown to prevent abuse (at least 10 min)
         Assert(scratch_cooldown.load() >= WATER_COOLDOWN_MIN),
         
         Assert(
@@ -317,21 +317,21 @@ def approval_program():
     )
 
     # Water Pod 2 - with configurable cooldown
-    # Minimum cooldown enforced at WATER_COOLDOWN_MIN (4h) to prevent abuse
+    # Minimum cooldown enforced at WATER_COOLDOWN_MIN (10 min) to prevent abuse
     scratch_cooldown_2 = ScratchVar(TealType.uint64)
     
     water_2 = Seq(
         Assert(App.localGet(Txn.sender(), LocalStage2) >= Int(1)),
         Assert(App.localGet(Txn.sender(), LocalStage2) <= Int(4)),
         
-        # Use custom cooldown from args[1] if provided, else default 24h
+        # Use custom cooldown from args[1] if provided, else default 10 min (TestNet)
         If(
             Txn.application_args.length() > Int(1),
             scratch_cooldown_2.store(Btoi(Txn.application_args[1])),
             scratch_cooldown_2.store(WATER_COOLDOWN)
         ),
         
-        # Enforce minimum cooldown to prevent abuse (at least 2 hours)
+        # Enforce minimum cooldown to prevent abuse (at least 10 min)
         Assert(scratch_cooldown_2.load() >= WATER_COOLDOWN_MIN),
         
         Assert(
