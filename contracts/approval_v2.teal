@@ -1,0 +1,1496 @@
+#pragma version 8
+txn ApplicationID
+int 0
+==
+bnz main_l80
+txn OnCompletion
+int OptIn
+==
+bnz main_l79
+txn OnCompletion
+int CloseOut
+==
+bnz main_l78
+txn OnCompletion
+int UpdateApplication
+==
+bnz main_l77
+txn OnCompletion
+int DeleteApplication
+==
+bnz main_l76
+txna ApplicationArgs 0
+byte "bootstrap"
+==
+bnz main_l75
+txna ApplicationArgs 0
+byte "set_asa_ids"
+==
+bnz main_l72
+txna ApplicationArgs 0
+byte "mint_seed"
+==
+bnz main_l71
+txna ApplicationArgs 0
+byte "plant_seed"
+==
+bnz main_l70
+txna ApplicationArgs 0
+byte "plant_seed_2"
+==
+bnz main_l69
+txna ApplicationArgs 0
+byte "water"
+==
+bnz main_l57
+txna ApplicationArgs 0
+byte "water_2"
+==
+bnz main_l45
+txna ApplicationArgs 0
+byte "nutrients"
+==
+bnz main_l44
+txna ApplicationArgs 0
+byte "nutrients_2"
+==
+bnz main_l43
+txna ApplicationArgs 0
+byte "harvest"
+==
+bnz main_l36
+txna ApplicationArgs 0
+byte "harvest_2"
+==
+bnz main_l29
+txna ApplicationArgs 0
+byte "process"
+==
+bnz main_l28
+txna ApplicationArgs 0
+byte "cleanup"
+==
+bnz main_l27
+txna ApplicationArgs 0
+byte "cleanup_2"
+==
+bnz main_l26
+txna ApplicationArgs 0
+byte "breed"
+==
+bnz main_l25
+txna ApplicationArgs 0
+byte "claim_slot_token"
+==
+bnz main_l24
+txna ApplicationArgs 0
+byte "unlock_slot"
+==
+bnz main_l23
+err
+main_l23:
+byte "slot_asset"
+app_global_get
+int 0
+!=
+assert
+txn Sender
+byte "pod_slots"
+app_local_get
+int 5
+<
+assert
+txn GroupIndex
+int 1
+-
+gtxns TypeEnum
+int axfer
+==
+assert
+txn GroupIndex
+int 1
+-
+gtxns XferAsset
+byte "slot_asset"
+app_global_get
+==
+assert
+txn GroupIndex
+int 1
+-
+gtxns AssetAmount
+int 1
+==
+assert
+txn Sender
+byte "pod_slots"
+txn Sender
+byte "pod_slots"
+app_local_get
+int 1
++
+app_local_put
+int 1
+return
+main_l24:
+byte "slot_asset"
+app_global_get
+int 0
+!=
+assert
+byte "bud_asset"
+app_global_get
+int 0
+!=
+assert
+txn Sender
+byte "harvest_count"
+app_local_get
+int 5
+>=
+assert
+txn GroupIndex
+int 1
+-
+gtxns TypeEnum
+int axfer
+==
+assert
+txn GroupIndex
+int 1
+-
+gtxns XferAsset
+byte "bud_asset"
+app_global_get
+==
+assert
+txn GroupIndex
+int 1
+-
+gtxns AssetAmount
+int 2500000000
+>=
+assert
+itxn_begin
+int axfer
+itxn_field TypeEnum
+byte "slot_asset"
+app_global_get
+itxn_field XferAsset
+int 1
+itxn_field AssetAmount
+txn Sender
+itxn_field AssetReceiver
+itxn_submit
+txn Sender
+byte "harvest_count"
+txn Sender
+byte "harvest_count"
+app_local_get
+int 5
+-
+app_local_put
+int 1
+return
+main_l25:
+byte "bud_asset"
+app_global_get
+int 0
+!=
+assert
+txn GroupIndex
+int 3
+-
+gtxns TypeEnum
+int axfer
+==
+assert
+txn GroupIndex
+int 3
+-
+gtxns XferAsset
+byte "bud_asset"
+app_global_get
+==
+assert
+txn GroupIndex
+int 3
+-
+gtxns AssetAmount
+int 1000000000
+>=
+assert
+txn GroupIndex
+int 2
+-
+gtxns TypeEnum
+int axfer
+==
+assert
+txn GroupIndex
+int 2
+-
+gtxns AssetAmount
+int 1
+==
+assert
+txn GroupIndex
+int 1
+-
+gtxns TypeEnum
+int axfer
+==
+assert
+txn GroupIndex
+int 1
+-
+gtxns AssetAmount
+int 1
+==
+assert
+byte "seed_counter"
+byte "seed_counter"
+app_global_get
+int 1
++
+app_global_put
+itxn_begin
+int acfg
+itxn_field TypeEnum
+int 1
+itxn_field ConfigAssetTotal
+int 0
+itxn_field ConfigAssetDecimals
+byte "SEED"
+itxn_field ConfigAssetUnitName
+byte "GrowPod Bred Seed #"
+byte "seed_counter"
+app_global_get
+itob
+concat
+itxn_field ConfigAssetName
+byte "template-ipfs://{ipfscid:1:raw:reserve:sha2-256}"
+itxn_field ConfigAssetURL
+global CurrentApplicationAddress
+itxn_field ConfigAssetManager
+global CurrentApplicationAddress
+itxn_field ConfigAssetReserve
+global CurrentApplicationAddress
+itxn_field ConfigAssetFreeze
+global CurrentApplicationAddress
+itxn_field ConfigAssetClawback
+byte "parent1:"
+txn GroupIndex
+int 2
+-
+gtxns XferAsset
+itob
+concat
+byte ",parent2:"
+concat
+txn GroupIndex
+int 1
+-
+gtxns XferAsset
+itob
+concat
+itxn_field Note
+itxn_submit
+itxn_begin
+int axfer
+itxn_field TypeEnum
+itxn CreatedAssetID
+itxn_field XferAsset
+int 1
+itxn_field AssetAmount
+txn Sender
+itxn_field AssetReceiver
+itxn_submit
+int 1
+return
+main_l26:
+txn Sender
+byte "stage_2"
+app_local_get
+int 6
+==
+assert
+byte "bud_asset"
+app_global_get
+int 0
+!=
+assert
+txn GroupIndex
+int 1
+-
+gtxns TypeEnum
+int axfer
+==
+assert
+txn GroupIndex
+int 1
+-
+gtxns XferAsset
+byte "bud_asset"
+app_global_get
+==
+assert
+txn GroupIndex
+int 1
+-
+gtxns AssetAmount
+int 500000000
+>=
+assert
+txn GroupIndex
+int 1
+-
+gtxns AssetReceiver
+global CurrentApplicationAddress
+==
+assert
+txn Sender
+byte "stage_2"
+int 0
+app_local_put
+txn Sender
+byte "water_count_2"
+int 0
+app_local_put
+txn Sender
+byte "last_watered_2"
+int 0
+app_local_put
+txn Sender
+byte "nutrient_count_2"
+int 0
+app_local_put
+txn Sender
+byte "last_nutrients_2"
+int 0
+app_local_put
+txn Sender
+byte "planted_seed_2"
+int 0
+app_local_put
+txn Sender
+byte "planted_time_2"
+int 0
+app_local_put
+int 1
+return
+main_l27:
+txn Sender
+byte "stage"
+app_local_get
+int 6
+==
+assert
+byte "bud_asset"
+app_global_get
+int 0
+!=
+assert
+txn GroupIndex
+int 1
+-
+gtxns TypeEnum
+int axfer
+==
+assert
+txn GroupIndex
+int 1
+-
+gtxns XferAsset
+byte "bud_asset"
+app_global_get
+==
+assert
+txn GroupIndex
+int 1
+-
+gtxns AssetAmount
+int 500000000
+>=
+assert
+txn GroupIndex
+int 1
+-
+gtxns AssetReceiver
+global CurrentApplicationAddress
+==
+assert
+txn Sender
+byte "stage"
+int 0
+app_local_put
+txn Sender
+byte "water_count"
+int 0
+app_local_put
+txn Sender
+byte "last_watered"
+int 0
+app_local_put
+txn Sender
+byte "nutrient_count"
+int 0
+app_local_put
+txn Sender
+byte "last_nutrients"
+int 0
+app_local_put
+txn Sender
+byte "planted_seed"
+int 0
+app_local_put
+txn Sender
+byte "planted_time"
+int 0
+app_local_put
+int 1
+return
+main_l28:
+byte "bud_asset"
+app_global_get
+int 0
+!=
+assert
+txn GroupIndex
+int 1
+-
+gtxns TypeEnum
+int axfer
+==
+assert
+txn GroupIndex
+int 1
+-
+gtxns AssetAmount
+int 1
+==
+assert
+txn GroupIndex
+int 1
+-
+gtxns AssetReceiver
+global CurrentApplicationAddress
+==
+assert
+txna ApplicationArgs 1
+btoi
+store 0
+itxn_begin
+int axfer
+itxn_field TypeEnum
+byte "bud_asset"
+app_global_get
+itxn_field XferAsset
+load 0
+itxn_field AssetAmount
+txn Sender
+itxn_field AssetReceiver
+itxn_submit
+byte "total_biomass"
+byte "total_biomass"
+app_global_get
+load 0
+-
+app_global_put
+int 1
+return
+main_l29:
+txn Sender
+byte "stage_2"
+app_local_get
+int 5
+==
+assert
+int 2000000
+store 0
+txn Sender
+byte "water_count_2"
+app_local_get
+int 10
+>
+bnz main_l35
+main_l30:
+load 0
+load 0
+txn Sender
+byte "nutrient_count_2"
+app_local_get
+*
+int 3
+*
+int 100
+/
++
+store 0
+load 0
+int 3500000
+>
+bnz main_l34
+main_l31:
+load 0
+int 500000
+<
+bnz main_l33
+main_l32:
+byte "biomass_counter"
+byte "biomass_counter"
+app_global_get
+int 1
++
+app_global_put
+byte "total_biomass"
+byte "total_biomass"
+app_global_get
+load 0
++
+app_global_put
+itxn_begin
+int acfg
+itxn_field TypeEnum
+int 1
+itxn_field ConfigAssetTotal
+int 0
+itxn_field ConfigAssetDecimals
+byte "BIOMASS"
+itxn_field ConfigAssetUnitName
+byte "GrowPod Biomass #"
+byte "biomass_counter"
+app_global_get
+itob
+concat
+itxn_field ConfigAssetName
+byte "template-ipfs://{ipfscid:1:raw:reserve:sha2-256}"
+itxn_field ConfigAssetURL
+global CurrentApplicationAddress
+itxn_field ConfigAssetManager
+global CurrentApplicationAddress
+itxn_field ConfigAssetReserve
+global CurrentApplicationAddress
+itxn_field ConfigAssetFreeze
+global CurrentApplicationAddress
+itxn_field ConfigAssetClawback
+byte "weight:"
+load 0
+itob
+concat
+byte ",seed:"
+concat
+txn Sender
+byte "planted_seed_2"
+app_local_get
+itob
+concat
+itxn_field Note
+itxn_submit
+itxn_begin
+int axfer
+itxn_field TypeEnum
+itxn CreatedAssetID
+itxn_field XferAsset
+int 1
+itxn_field AssetAmount
+txn Sender
+itxn_field AssetReceiver
+itxn_submit
+txn Sender
+byte "stage_2"
+int 6
+app_local_put
+txn Sender
+byte "harvest_count"
+txn Sender
+byte "harvest_count"
+app_local_get
+int 1
++
+app_local_put
+int 1
+return
+main_l33:
+int 500000
+store 0
+b main_l32
+main_l34:
+int 3500000
+store 0
+b main_l31
+main_l35:
+load 0
+load 0
+txn Sender
+byte "water_count_2"
+app_local_get
+int 10
+-
+*
+int 2
+*
+int 100
+/
++
+store 0
+b main_l30
+main_l36:
+txn Sender
+byte "stage"
+app_local_get
+int 5
+==
+assert
+int 2000000
+store 0
+txn Sender
+byte "water_count"
+app_local_get
+int 10
+>
+bnz main_l42
+main_l37:
+load 0
+load 0
+txn Sender
+byte "nutrient_count"
+app_local_get
+*
+int 3
+*
+int 100
+/
++
+store 0
+load 0
+int 3500000
+>
+bnz main_l41
+main_l38:
+load 0
+int 500000
+<
+bnz main_l40
+main_l39:
+byte "biomass_counter"
+byte "biomass_counter"
+app_global_get
+int 1
++
+app_global_put
+byte "total_biomass"
+byte "total_biomass"
+app_global_get
+load 0
++
+app_global_put
+itxn_begin
+int acfg
+itxn_field TypeEnum
+int 1
+itxn_field ConfigAssetTotal
+int 0
+itxn_field ConfigAssetDecimals
+byte "BIOMASS"
+itxn_field ConfigAssetUnitName
+byte "GrowPod Biomass #"
+byte "biomass_counter"
+app_global_get
+itob
+concat
+itxn_field ConfigAssetName
+byte "template-ipfs://{ipfscid:1:raw:reserve:sha2-256}"
+itxn_field ConfigAssetURL
+global CurrentApplicationAddress
+itxn_field ConfigAssetManager
+global CurrentApplicationAddress
+itxn_field ConfigAssetReserve
+global CurrentApplicationAddress
+itxn_field ConfigAssetFreeze
+global CurrentApplicationAddress
+itxn_field ConfigAssetClawback
+byte "weight:"
+load 0
+itob
+concat
+byte ",seed:"
+concat
+txn Sender
+byte "planted_seed"
+app_local_get
+itob
+concat
+itxn_field Note
+itxn_submit
+itxn_begin
+int axfer
+itxn_field TypeEnum
+itxn CreatedAssetID
+itxn_field XferAsset
+int 1
+itxn_field AssetAmount
+txn Sender
+itxn_field AssetReceiver
+itxn_submit
+txn Sender
+byte "stage"
+int 6
+app_local_put
+txn Sender
+byte "harvest_count"
+txn Sender
+byte "harvest_count"
+app_local_get
+int 1
++
+app_local_put
+int 1
+return
+main_l40:
+int 500000
+store 0
+b main_l39
+main_l41:
+int 3500000
+store 0
+b main_l38
+main_l42:
+load 0
+load 0
+txn Sender
+byte "water_count"
+app_local_get
+int 10
+-
+*
+int 2
+*
+int 100
+/
++
+store 0
+b main_l37
+main_l43:
+txn Sender
+byte "stage_2"
+app_local_get
+int 1
+>=
+assert
+txn Sender
+byte "stage_2"
+app_local_get
+int 4
+<=
+assert
+txn Sender
+byte "last_nutrients_2"
+app_local_get
+int 0
+==
+global LatestTimestamp
+txn Sender
+byte "last_nutrients_2"
+app_local_get
+-
+int 600
+>=
+||
+assert
+txn Sender
+byte "last_nutrients_2"
+global LatestTimestamp
+app_local_put
+txn Sender
+byte "nutrient_count_2"
+txn Sender
+byte "nutrient_count_2"
+app_local_get
+int 1
++
+app_local_put
+int 1
+return
+main_l44:
+txn Sender
+byte "stage"
+app_local_get
+int 1
+>=
+assert
+txn Sender
+byte "stage"
+app_local_get
+int 4
+<=
+assert
+txn Sender
+byte "last_nutrients"
+app_local_get
+int 0
+==
+global LatestTimestamp
+txn Sender
+byte "last_nutrients"
+app_local_get
+-
+int 600
+>=
+||
+assert
+txn Sender
+byte "last_nutrients"
+global LatestTimestamp
+app_local_put
+txn Sender
+byte "nutrient_count"
+txn Sender
+byte "nutrient_count"
+app_local_get
+int 1
++
+app_local_put
+int 1
+return
+main_l45:
+txn Sender
+byte "stage_2"
+app_local_get
+int 1
+>=
+assert
+txn Sender
+byte "stage_2"
+app_local_get
+int 4
+<=
+assert
+txn NumAppArgs
+int 1
+>
+bnz main_l56
+int 600
+store 1
+main_l47:
+load 1
+int 600
+>=
+assert
+txn Sender
+byte "last_watered_2"
+app_local_get
+int 0
+==
+global LatestTimestamp
+txn Sender
+byte "last_watered_2"
+app_local_get
+-
+load 1
+>=
+||
+assert
+txn Sender
+byte "last_watered_2"
+global LatestTimestamp
+app_local_put
+txn Sender
+byte "water_count_2"
+txn Sender
+byte "water_count_2"
+app_local_get
+int 1
++
+app_local_put
+txn Sender
+byte "water_count_2"
+app_local_get
+int 10
+>=
+bnz main_l55
+txn Sender
+byte "water_count_2"
+app_local_get
+int 3
+==
+bnz main_l54
+txn Sender
+byte "water_count_2"
+app_local_get
+int 6
+==
+bnz main_l53
+txn Sender
+byte "water_count_2"
+app_local_get
+int 8
+==
+bnz main_l52
+main_l51:
+int 1
+return
+main_l52:
+txn Sender
+byte "stage_2"
+int 4
+app_local_put
+b main_l51
+main_l53:
+txn Sender
+byte "stage_2"
+int 3
+app_local_put
+b main_l51
+main_l54:
+txn Sender
+byte "stage_2"
+int 2
+app_local_put
+b main_l51
+main_l55:
+txn Sender
+byte "stage_2"
+int 5
+app_local_put
+b main_l51
+main_l56:
+txna ApplicationArgs 1
+btoi
+store 1
+b main_l47
+main_l57:
+txn Sender
+byte "stage"
+app_local_get
+int 1
+>=
+assert
+txn Sender
+byte "stage"
+app_local_get
+int 4
+<=
+assert
+txn NumAppArgs
+int 1
+>
+bnz main_l68
+int 600
+store 1
+main_l59:
+load 1
+int 600
+>=
+assert
+txn Sender
+byte "last_watered"
+app_local_get
+int 0
+==
+global LatestTimestamp
+txn Sender
+byte "last_watered"
+app_local_get
+-
+load 1
+>=
+||
+assert
+txn Sender
+byte "last_watered"
+global LatestTimestamp
+app_local_put
+txn Sender
+byte "water_count"
+txn Sender
+byte "water_count"
+app_local_get
+int 1
++
+app_local_put
+txn Sender
+byte "water_count"
+app_local_get
+int 10
+>=
+bnz main_l67
+txn Sender
+byte "water_count"
+app_local_get
+int 3
+==
+bnz main_l66
+txn Sender
+byte "water_count"
+app_local_get
+int 6
+==
+bnz main_l65
+txn Sender
+byte "water_count"
+app_local_get
+int 8
+==
+bnz main_l64
+main_l63:
+int 1
+return
+main_l64:
+txn Sender
+byte "stage"
+int 4
+app_local_put
+b main_l63
+main_l65:
+txn Sender
+byte "stage"
+int 3
+app_local_put
+b main_l63
+main_l66:
+txn Sender
+byte "stage"
+int 2
+app_local_put
+b main_l63
+main_l67:
+txn Sender
+byte "stage"
+int 5
+app_local_put
+b main_l63
+main_l68:
+txna ApplicationArgs 1
+btoi
+store 1
+b main_l59
+main_l69:
+txn Sender
+byte "stage_2"
+app_local_get
+int 0
+==
+assert
+txn GroupIndex
+int 1
+-
+gtxns TypeEnum
+int axfer
+==
+assert
+txn GroupIndex
+int 1
+-
+gtxns AssetAmount
+int 1
+==
+assert
+txn GroupIndex
+int 1
+-
+gtxns AssetReceiver
+global CurrentApplicationAddress
+==
+assert
+txn Sender
+byte "planted_seed_2"
+txn GroupIndex
+int 1
+-
+gtxns XferAsset
+app_local_put
+txn Sender
+byte "planted_time_2"
+global LatestTimestamp
+app_local_put
+txn Sender
+byte "stage_2"
+int 1
+app_local_put
+txn Sender
+byte "water_count_2"
+int 0
+app_local_put
+txn Sender
+byte "last_watered_2"
+int 0
+app_local_put
+txn Sender
+byte "nutrient_count_2"
+int 0
+app_local_put
+txn Sender
+byte "last_nutrients_2"
+int 0
+app_local_put
+int 1
+return
+main_l70:
+txn Sender
+byte "stage"
+app_local_get
+int 0
+==
+assert
+txn GroupIndex
+int 1
+-
+gtxns TypeEnum
+int axfer
+==
+assert
+txn GroupIndex
+int 1
+-
+gtxns AssetAmount
+int 1
+==
+assert
+txn GroupIndex
+int 1
+-
+gtxns AssetReceiver
+global CurrentApplicationAddress
+==
+assert
+txn Sender
+byte "planted_seed"
+txn GroupIndex
+int 1
+-
+gtxns XferAsset
+app_local_put
+txn Sender
+byte "planted_time"
+global LatestTimestamp
+app_local_put
+txn Sender
+byte "stage"
+int 1
+app_local_put
+txn Sender
+byte "water_count"
+int 0
+app_local_put
+txn Sender
+byte "last_watered"
+int 0
+app_local_put
+txn Sender
+byte "nutrient_count"
+int 0
+app_local_put
+txn Sender
+byte "last_nutrients"
+int 0
+app_local_put
+int 1
+return
+main_l71:
+byte "bud_asset"
+app_global_get
+int 0
+!=
+assert
+txn GroupIndex
+int 1
+-
+gtxns TypeEnum
+int axfer
+==
+assert
+txn GroupIndex
+int 1
+-
+gtxns XferAsset
+byte "bud_asset"
+app_global_get
+==
+assert
+txn GroupIndex
+int 1
+-
+gtxns AssetAmount
+int 250000000
+>=
+assert
+txn GroupIndex
+int 1
+-
+gtxns AssetReceiver
+global CurrentApplicationAddress
+==
+assert
+byte "seed_counter"
+byte "seed_counter"
+app_global_get
+int 1
++
+app_global_put
+itxn_begin
+int acfg
+itxn_field TypeEnum
+int 1
+itxn_field ConfigAssetTotal
+int 0
+itxn_field ConfigAssetDecimals
+byte "SEED"
+itxn_field ConfigAssetUnitName
+byte "GrowPod Seed #"
+byte "seed_counter"
+app_global_get
+itob
+concat
+itxn_field ConfigAssetName
+byte "template-ipfs://{ipfscid:1:raw:reserve:sha2-256}"
+itxn_field ConfigAssetURL
+global CurrentApplicationAddress
+itxn_field ConfigAssetManager
+global CurrentApplicationAddress
+itxn_field ConfigAssetReserve
+global CurrentApplicationAddress
+itxn_field ConfigAssetFreeze
+global CurrentApplicationAddress
+itxn_field ConfigAssetClawback
+itxn_submit
+itxn_begin
+int axfer
+itxn_field TypeEnum
+itxn CreatedAssetID
+itxn_field XferAsset
+int 1
+itxn_field AssetAmount
+txn Sender
+itxn_field AssetReceiver
+itxn_submit
+int 1
+return
+main_l72:
+txn Sender
+byte "owner"
+app_global_get
+==
+assert
+byte "bud_asset"
+txna ApplicationArgs 1
+btoi
+app_global_put
+byte "terp_asset"
+txna ApplicationArgs 2
+btoi
+app_global_put
+txn NumAppArgs
+int 3
+>
+bnz main_l74
+main_l73:
+int 1
+return
+main_l74:
+byte "slot_asset"
+txna ApplicationArgs 3
+btoi
+app_global_put
+b main_l73
+main_l75:
+txn Sender
+byte "owner"
+app_global_get
+==
+assert
+byte "bud_asset"
+app_global_get
+int 0
+==
+assert
+itxn_begin
+int acfg
+itxn_field TypeEnum
+int 10000000000000000
+itxn_field ConfigAssetTotal
+int 6
+itxn_field ConfigAssetDecimals
+byte "BUD"
+itxn_field ConfigAssetUnitName
+byte "GrowPod BUD"
+itxn_field ConfigAssetName
+byte "https://growpod.empire/bud"
+itxn_field ConfigAssetURL
+global CurrentApplicationAddress
+itxn_field ConfigAssetManager
+global CurrentApplicationAddress
+itxn_field ConfigAssetReserve
+global CurrentApplicationAddress
+itxn_field ConfigAssetFreeze
+global CurrentApplicationAddress
+itxn_field ConfigAssetClawback
+itxn_submit
+byte "bud_asset"
+itxn CreatedAssetID
+app_global_put
+itxn_begin
+int acfg
+itxn_field TypeEnum
+int 100000000000000
+itxn_field ConfigAssetTotal
+int 6
+itxn_field ConfigAssetDecimals
+byte "TERP"
+itxn_field ConfigAssetUnitName
+byte "GrowPod TERP"
+itxn_field ConfigAssetName
+byte "https://growpod.empire/terp"
+itxn_field ConfigAssetURL
+global CurrentApplicationAddress
+itxn_field ConfigAssetManager
+global CurrentApplicationAddress
+itxn_field ConfigAssetReserve
+global CurrentApplicationAddress
+itxn_field ConfigAssetFreeze
+global CurrentApplicationAddress
+itxn_field ConfigAssetClawback
+itxn_submit
+byte "terp_asset"
+itxn CreatedAssetID
+app_global_put
+itxn_begin
+int acfg
+itxn_field TypeEnum
+int 1000000
+itxn_field ConfigAssetTotal
+int 0
+itxn_field ConfigAssetDecimals
+byte "SLOT"
+itxn_field ConfigAssetUnitName
+byte "GrowPod Slot Token"
+itxn_field ConfigAssetName
+byte "https://growpod.empire/slot"
+itxn_field ConfigAssetURL
+global CurrentApplicationAddress
+itxn_field ConfigAssetManager
+global CurrentApplicationAddress
+itxn_field ConfigAssetReserve
+global CurrentApplicationAddress
+itxn_field ConfigAssetFreeze
+global CurrentApplicationAddress
+itxn_field ConfigAssetClawback
+itxn_submit
+byte "slot_asset"
+itxn CreatedAssetID
+app_global_put
+int 1
+return
+main_l76:
+txn Sender
+byte "owner"
+app_global_get
+==
+assert
+int 1
+return
+main_l77:
+txn Sender
+byte "owner"
+app_global_get
+==
+assert
+int 1
+return
+main_l78:
+int 1
+return
+main_l79:
+txn Sender
+byte "stage"
+int 0
+app_local_put
+txn Sender
+byte "water_count"
+int 0
+app_local_put
+txn Sender
+byte "last_watered"
+int 0
+app_local_put
+txn Sender
+byte "nutrient_count"
+int 0
+app_local_put
+txn Sender
+byte "last_nutrients"
+int 0
+app_local_put
+txn Sender
+byte "planted_seed"
+int 0
+app_local_put
+txn Sender
+byte "planted_time"
+int 0
+app_local_put
+txn Sender
+byte "stage_2"
+int 0
+app_local_put
+txn Sender
+byte "water_count_2"
+int 0
+app_local_put
+txn Sender
+byte "last_watered_2"
+int 0
+app_local_put
+txn Sender
+byte "nutrient_count_2"
+int 0
+app_local_put
+txn Sender
+byte "last_nutrients_2"
+int 0
+app_local_put
+txn Sender
+byte "planted_seed_2"
+int 0
+app_local_put
+txn Sender
+byte "planted_time_2"
+int 0
+app_local_put
+txn Sender
+byte "harvest_count"
+int 0
+app_local_put
+txn Sender
+byte "pod_slots"
+int 2
+app_local_put
+int 1
+return
+main_l80:
+byte "owner"
+txn Sender
+app_global_put
+byte "bud_asset"
+int 0
+app_global_put
+byte "terp_asset"
+int 0
+app_global_put
+byte "slot_asset"
+int 0
+app_global_put
+byte "seed_counter"
+int 0
+app_global_put
+byte "biomass_counter"
+int 0
+app_global_put
+byte "total_biomass"
+int 0
+app_global_put
+byte "cure_vault_bal"
+int 0
+app_global_put
+int 1
+return

@@ -1,0 +1,103 @@
+# GrowPod Empire - Cloudflare Workers Configuration
+# Documentation: https://developers.cloudflare.com/workers/wrangler/configuration/
+
+name = "growpod-empire"
+main = "dist/index.cjs"
+compatibility_date = "2024-01-01"
+
+# ============================================
+# REQUIRED: Add your Cloudflare Account ID
+# ============================================
+# Get this from: https://dash.cloudflare.com/ → Workers & Pages → Overview (right sidebar)
+account_id = "YOUR_CLOUDFLARE_ACCOUNT_ID"
+
+# ============================================
+# Environment Variables
+# ============================================
+# These can also be set in the Cloudflare dashboard under Workers → Settings → Variables
+
+[vars]
+NODE_ENV = "production"
+# VITE_GROWPOD_APP_ID = "753910199"
+# VITE_BUD_ASSET_ID = "753910204"
+# VITE_TERP_ASSET_ID = "753910205"
+# VITE_SLOT_ASSET_ID = "753910206"
+
+# ============================================
+# Secrets (set via `wrangler secret put <NAME>`)
+# ============================================
+# Run these commands to set secrets:
+#   wrangler secret put DATABASE_URL
+#   wrangler secret put ALGO_MNEMONIC
+#   wrangler secret put ADMIN_WALLET_ADDRESS
+
+# ============================================
+# D1 Database (Cloudflare's SQLite)
+# ============================================
+# If migrating from PostgreSQL to D1, uncomment and configure:
+# [[d1_databases]]
+# binding = "DB"
+# database_name = "growpod-db"
+# database_id = "YOUR_D1_DATABASE_ID"
+
+# ============================================
+# KV Namespaces (for caching)
+# ============================================
+# [[kv_namespaces]]
+# binding = "CACHE"
+# id = "YOUR_KV_NAMESPACE_ID"
+
+# ============================================
+# R2 Storage (for NFT images/metadata)
+# ============================================
+# [[r2_buckets]]
+# binding = "NFT_STORAGE"
+# bucket_name = "growpod-nft-assets"
+
+# ============================================
+# Build Configuration
+# ============================================
+[build]
+command = "npm run build"
+
+# ============================================
+# Development Server
+# ============================================
+[dev]
+port = 8787
+local_protocol = "http"
+
+# ============================================
+# Production Environment
+# ============================================
+[env.production]
+name = "growpod-empire-prod"
+# Add production-specific variables here
+
+# ============================================
+# Staging Environment
+# ============================================
+[env.staging]
+name = "growpod-empire-staging"
+# Add staging-specific variables here
+
+# ============================================
+# Routes (if using custom domain)
+# ============================================
+# routes = [
+#   { pattern = "growpod.empire/*", zone_name = "yourdomain.com" }
+# ]
+
+# ============================================
+# Observability
+# ============================================
+[observability]
+enabled = true
+
+# ============================================
+# Limits
+# ============================================
+# Workers have execution limits:
+# - CPU time: 10ms (free) / 30s (paid)
+# - Memory: 128MB
+# - Subrequest limit: 50 (free) / 1000 (paid)
