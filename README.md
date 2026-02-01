@@ -9,6 +9,7 @@ A blockchain-based idle/farming game built on **Algorand TestNet**. Players mana
 - **Styling**: Tailwind CSS (dark cyberpunk theme)
 - **Wallet**: Pera Wallet Connect (@perawallet/connect)
 - **Backend**: Express.js + PostgreSQL (Drizzle ORM)
+- **Deployment**: Cloudflare Workers (optional)
 
 ## Token Economy
 
@@ -156,6 +157,44 @@ For faster testing, the TestNet deployment uses reduced cooldowns:
 - **Chain ID**: 416002 (Algorand TestNet)
 - **Algod API**: https://testnet-api.algonode.cloud
 - **Explorer**: https://testnet.algoexplorer.io
+
+## Cloudflare Workers Deployment
+
+For deploying to Cloudflare Workers with D1 databases, see the comprehensive guide:
+
+📖 **[CLOUDFLARE_DEPLOYMENT.md](./CLOUDFLARE_DEPLOYMENT.md)**
+
+### Quick Start
+
+```bash
+# Run the automated setup script
+./setup-cloudflare.sh
+
+# Or manually:
+npm run worker:whoami        # Get account info
+npm run build                # Build for production
+npm run worker:deploy        # Deploy to Cloudflare
+```
+
+### Required Secrets
+
+Configure these secrets for Cloudflare Workers deployment:
+
+```bash
+# Database connection (if using external PostgreSQL)
+npx wrangler secret put DATABASE_URL
+
+# Other secrets as needed
+npx wrangler secret put ADMIN_WALLET_ADDRESS
+```
+
+### GitHub Actions
+
+Automated deployment is configured via `.github/workflows/deploy-cloudflare.yml`.
+
+Required repository secrets:
+- `CLOUDFLARE_API_TOKEN` - Your Cloudflare API token
+- `CLOUDFLARE_ACCOUNT_ID` - Your Cloudflare account ID
 
 ## License
 
