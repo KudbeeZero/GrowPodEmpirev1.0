@@ -2,39 +2,22 @@
 
 Use this checklist to complete your Cloudflare Workers deployment setup.
 
-## ✅ Pre-Deployment Checklist
+## ✅ Completed Pre-Deployment Steps
 
-### 1. Obtain Your D1 Database IDs
+### ✅ 1. Cloudflare Account ID - CONFIGURED
+- [x] Account ID obtained: `b591c2e07ca352d33076f4d2f8414b89`
+- [x] Updated in `wrangler.toml`
 
-You mentioned you have 3 D1 database IDs. Have them ready:
+### ✅ 2. D1 Database ID - CONFIGURED
+- [x] D1 Database ID obtained: `712d926f-c396-473f-96d9-f0dfc3d1d069`
+- [x] Updated in `wrangler.toml`
+- [x] Binding name: `DB` (accessible via `env.DB` in code)
 
-- [ ] D1 Database ID #1: `________________________________`
-- [ ] D1 Database ID #2: `________________________________`
-- [ ] D1 Database ID #3: `________________________________`
+### ✅ 3. Domain Code ID - DOCUMENTED
+- [x] Domain Code ID: `85a5b265570a47e66762a07932ce8aa8`
+- [x] Documented in `wrangler.toml` for reference
 
-If you don't have them yet:
-```bash
-npx wrangler d1 create growpod-primary
-npx wrangler d1 create growpod-secondary
-npx wrangler d1 create growpod-tertiary
-```
-
-### 2. Get Your Cloudflare Account ID
-
-- [ ] Get account ID:
-  ```bash
-  npm run worker:whoami
-  ```
-- [ ] Copy your account ID: `________________________________`
-
-### 3. Update wrangler.toml
-
-- [ ] Open `wrangler.toml` in your editor
-- [ ] Replace `YOUR_ACCOUNT_ID` with your actual account ID (line 8)
-- [ ] Replace `YOUR_D1_DATABASE_ID_1` with your first D1 database ID (line 19)
-- [ ] Replace `YOUR_D1_DATABASE_ID_2` with your second D1 database ID (line 24)
-- [ ] Replace `YOUR_D1_DATABASE_ID_3` with your third D1 database ID (line 29)
-- [ ] Save the file
+## ⚠️ Required Next Steps
 
 ### 4. Set Up Secrets
 
@@ -116,7 +99,7 @@ For automated deployment on every push:
   - Use "Edit Cloudflare Workers" template
   - Add as repository secret
 - [ ] Add `CLOUDFLARE_ACCOUNT_ID`:
-  - Use the account ID from step 2
+  - Use: `b591c2e07ca352d33076f4d2f8414b89`
   - Add as repository secret
 
 ### 11. Test Automated Deployment
@@ -144,30 +127,32 @@ If you're using D1 as your primary database:
   ```bash
   npx drizzle-kit generate
   ```
-- [ ] Apply migrations to D1 databases:
+- [ ] Apply migrations to D1 database:
   ```bash
   npx wrangler d1 execute growpod-primary --file=./drizzle/migrations/0000_migration.sql
-  npx wrangler d1 execute growpod-secondary --file=./drizzle/migrations/0000_migration.sql
-  npx wrangler d1 execute growpod-tertiary --file=./drizzle/migrations/0000_migration.sql
   ```
 
 ### 14. Documentation
 
 - [ ] Read [CLOUDFLARE_DEPLOYMENT.md](./CLOUDFLARE_DEPLOYMENT.md) for detailed info
-- [ ] Read [D1_SETUP.md](./D1_SETUP.md) for D1 configuration
+- [ ] Read [D1_SETUP.md](./D1_SETUP.md) for D1 configuration (already configured!)
 - [ ] Read [GITHUB_ACTIONS_SETUP.md](./GITHUB_ACTIONS_SETUP.md) for CI/CD
 - [ ] Bookmark [CLOUDFLARE_SETUP_SUMMARY.md](./CLOUDFLARE_SETUP_SUMMARY.md)
 
-## 🎉 Success!
+## 🎉 Configuration Status
 
-When all items are checked, your Cloudflare Workers deployment is complete!
+✅ **Account ID**: Configured  
+✅ **D1 Database ID**: Configured  
+✅ **Domain Code ID**: Documented  
+⏳ **Secrets**: Needs setup  
+⏳ **Deployment**: Ready to deploy!
 
 ## 🆘 Troubleshooting
 
 If you encounter issues:
 
-1. **Authentication errors**: Verify `CLOUDFLARE_API_TOKEN` and account ID
-2. **Database errors**: Check D1 database IDs in `wrangler.toml`
+1. **Authentication errors**: Verify your login with `npx wrangler login`
+2. **Database errors**: Check D1 database ID in `wrangler.toml` (already configured)
 3. **Build errors**: Ensure all dependencies are installed and TypeScript compiles
 4. **Secret errors**: Verify secrets are set with `npx wrangler secret list`
 
@@ -188,6 +173,6 @@ See [CLOUDFLARE_DEPLOYMENT.md](./CLOUDFLARE_DEPLOYMENT.md) → Troubleshooting f
 
 ---
 
-**Need help?** See the comprehensive guides in the documentation files.
+**Current Status**: Configuration complete! Ready to set up secrets and deploy.
 
-**Quick setup?** Run `./setup-cloudflare.sh` for an interactive setup wizard!
+**Next Step**: Run `npx wrangler secret put DATABASE_URL` to configure your database connection.

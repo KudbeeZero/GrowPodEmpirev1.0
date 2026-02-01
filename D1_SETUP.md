@@ -1,74 +1,35 @@
-# Quick Setup: Configure D1 Database IDs
+# Quick Setup: Configure D1 Database ID - CONFIGURED ✅
 
-This file provides instructions for configuring your 3 D1 database IDs in the Cloudflare Workers deployment.
+Your Cloudflare configuration has been updated with your specific IDs.
 
-## Step 1: Locate Your D1 Database IDs
+## ✅ Configuration Complete
 
-If you were provided with 3 D1 database IDs, have them ready. They should look like:
-- Database 1 ID: `xxxxxxxx-xxxx-xxxx-xxxx-xxxxxxxxxxxx`
-- Database 2 ID: `yyyyyyyy-yyyy-yyyy-yyyy-yyyyyyyyyyyy`
-- Database 3 ID: `zzzzzzzz-zzzz-zzzz-zzzz-zzzzzzzzzzzz`
+The following IDs have been configured in `wrangler.toml`:
 
-If you need to create new D1 databases, run:
-```bash
-npx wrangler d1 create growpod-primary
-npx wrangler d1 create growpod-secondary
-npx wrangler d1 create growpod-tertiary
+### Account ID
+```toml
+account_id = "b591c2e07ca352d33076f4d2f8414b89"
 ```
 
-## Step 2: Update wrangler.toml
-
-Open `wrangler.toml` and replace the placeholder values:
-
-### Before:
+### D1 Database
 ```toml
 [[d1_databases]]
 binding = "DB"
 database_name = "growpod-primary"
-database_id = "YOUR_D1_DATABASE_ID_1"
-
-[[d1_databases]]
-binding = "DB2"
-database_name = "growpod-secondary"
-database_id = "YOUR_D1_DATABASE_ID_2"
-
-[[d1_databases]]
-binding = "DB3"
-database_name = "growpod-tertiary"
-database_id = "YOUR_D1_DATABASE_ID_3"
+database_id = "712d926f-c396-473f-96d9-f0dfc3d1d069"
 ```
 
-### After (with your actual IDs):
-```toml
-[[d1_databases]]
-binding = "DB"
-database_name = "growpod-primary"
-database_id = "xxxxxxxx-xxxx-xxxx-xxxx-xxxxxxxxxxxx"
-
-[[d1_databases]]
-binding = "DB2"
-database_name = "growpod-secondary"
-database_id = "yyyyyyyy-yyyy-yyyy-yyyy-yyyyyyyyyyyy"
-
-[[d1_databases]]
-binding = "DB3"
-database_name = "growpod-tertiary"
-database_id = "zzzzzzzz-zzzz-zzzz-zzzz-zzzzzzzzzzzz"
+### Domain Code ID (for reference)
 ```
-
-## Step 3: Get Your Cloudflare Account ID
-
-Run:
-```bash
-npm run worker:whoami
+85a5b265570a47e66762a07932ce8aa8
 ```
+*Note: This ID is documented for reference. If you need to use it for domain configuration, please refer to Cloudflare's domain settings.*
 
-Copy your account ID and add it to `wrangler.toml`:
-```toml
-account_id = "your_account_id_here"
-```
+## Next Steps
 
-## Step 4: Set Up Secrets
+Now that your IDs are configured, you can:
+
+### 1. Set Up Secrets
 
 Set your DATABASE_URL secret (PostgreSQL connection string):
 ```bash
@@ -77,40 +38,52 @@ npx wrangler secret put DATABASE_URL
 
 When prompted, enter your PostgreSQL connection string, for example:
 ```
-postgresql://username:password@host:5432/database
+postgresql://user:password@host:5432/database
 ```
 
-## Step 5: Deploy
+### 2. Deploy
 
 ```bash
 npm run build
 npm run worker:deploy
 ```
 
-## Automated Setup
+### 3. Monitor Your Deployment
 
-Alternatively, use the automated setup script:
 ```bash
-./setup-cloudflare.sh
+npm run worker:tail
 ```
 
-This script will:
-1. Login to Cloudflare
-2. Get your account ID
-3. Help you configure D1 database IDs
-4. Set up secrets
-5. Create local development environment file
+## Verify Configuration
+
+You can verify your configuration is correct by running:
+```bash
+npm run worker:whoami
+```
+
+This should show your account ID: `b591c2e07ca352d33076f4d2f8414b89`
+
+## Database Access in Code
+
+Your D1 database is now accessible in your worker code via:
+```typescript
+// Access the database binding
+const db = env.DB;
+
+// Example query
+const results = await db.prepare("SELECT * FROM users").all();
+```
+
+## Additional Configuration
+
+If you need to configure additional D1 databases in the future, you can add more `[[d1_databases]]` blocks to `wrangler.toml` following the same pattern.
 
 ## Troubleshooting
 
 ### "database not found" error
-- Verify your database IDs are correct in `wrangler.toml`
+- Verify your database ID is correct in `wrangler.toml`: `712d926f-c396-473f-96d9-f0dfc3d1d069`
 - Ensure you're logged into the correct Cloudflare account
 - Run `npx wrangler d1 list` to see your available databases
-
-### "account_id not set" error
-- Run `npm run worker:whoami` to get your account ID
-- Update the `account_id` field in `wrangler.toml`
 
 ### Permission errors
 - Ensure you have proper permissions in your Cloudflare account
