@@ -1,5 +1,6 @@
 import { z } from 'zod';
 import { insertUserSchema, users } from './schema';
+import { algorandAddressSchema } from './security';
 
 export const errorSchemas = {
   validation: z.object({
@@ -19,7 +20,8 @@ export const api = {
     login: {
       method: 'POST' as const,
       path: '/api/users/login',
-      input: z.object({ walletAddress: z.string() }),
+      // Security: Validate wallet address is exactly 58 chars and valid Algorand format
+      input: z.object({ walletAddress: algorandAddressSchema }),
       responses: {
         200: z.custom<typeof users.$inferSelect>(),
         201: z.custom<typeof users.$inferSelect>(),

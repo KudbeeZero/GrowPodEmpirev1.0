@@ -1,5 +1,29 @@
 from pyteal import *
 
+"""
+GrowPod Empire - Smart Contract Security Notes
+==============================================
+
+SECURITY FEATURES:
+1. Ownership Checks: Admin-only operations verify is_owner
+2. Stage Validation: All operations verify correct pod stage before executing
+3. Cooldown Enforcement: Minimum 10-minute cooldowns prevent action spam
+4. Asset ID Verification: All transfers verify correct asset IDs from global state
+5. Group Transaction Validation: Burns require preceding asset transfer to contract
+6. Inner Transactions: All token mints/transfers use secure inner transactions
+7. Re-entrancy Safe: State updates occur before inner transactions
+
+SECURITY ASSUMPTIONS:
+- Contract address must be funded to execute inner transactions
+- Users must opt-in to app and assets before interacting
+- Cooldowns prevent economic exploits (action spam)
+- $BUD burns go to contract address (can be recovered by owner if needed)
+
+KNOWN LIMITATIONS:
+- Front-running protection relies on blockchain ordering
+- RNG (DNA/terpene) derived from timestamp and round (acceptable for game)
+"""
+
 # Global State Keys
 GlobalOwner = Bytes("owner")
 GlobalPeriod = Bytes("period")  # 10 day cycle duration in seconds (864000)
@@ -273,10 +297,13 @@ def approval_program():
     )
 
     # Cleanup Pod 1
+    # Security: Verifies sender owns the burn transaction to prevent hijacking
     cleanup = Seq(
         Assert(App.localGet(Txn.sender(), LocalStage) == Int(6)),
         Assert(App.globalGet(GlobalBudAsset) != Int(0)),
-        
+
+        # Security: Verify burn transaction sender matches app call sender
+        Assert(Gtxn[Txn.group_index() - Int(1)].sender() == Txn.sender()),
         Assert(Gtxn[Txn.group_index() - Int(1)].type_enum() == TxnType.AssetTransfer),
         Assert(Gtxn[Txn.group_index() - Int(1)].xfer_asset() == App.globalGet(GlobalBudAsset)),
         Assert(Gtxn[Txn.group_index() - Int(1)].asset_amount() >= CLEANUP_BURN),
@@ -412,10 +439,13 @@ def approval_program():
     )
 
     # Cleanup Pod 2
+    # Security: Verifies sender owns the burn transaction to prevent hijacking
     cleanup_2 = Seq(
         Assert(App.localGet(Txn.sender(), LocalStage2) == Int(6)),
         Assert(App.globalGet(GlobalBudAsset) != Int(0)),
-        
+
+        # Security: Verify burn transaction sender matches app call sender
+        Assert(Gtxn[Txn.group_index() - Int(1)].sender() == Txn.sender()),
         Assert(Gtxn[Txn.group_index() - Int(1)].type_enum() == TxnType.AssetTransfer),
         Assert(Gtxn[Txn.group_index() - Int(1)].xfer_asset() == App.globalGet(GlobalBudAsset)),
         Assert(Gtxn[Txn.group_index() - Int(1)].asset_amount() >= CLEANUP_BURN),
@@ -496,9 +526,12 @@ def approval_program():
     )
 
     # Breed Action - Combine two plants
+    # Security: Verifies sender owns the burn transaction to prevent hijacking
     breed = Seq(
         Assert(App.globalGet(GlobalBudAsset) != Int(0)),
-        
+
+        # Security: Verify burn transaction sender matches app call sender
+        Assert(Gtxn[Txn.group_index() - Int(1)].sender() == Txn.sender()),
         Assert(Gtxn[Txn.group_index() - Int(1)].type_enum() == TxnType.AssetTransfer),
         Assert(Gtxn[Txn.group_index() - Int(1)].xfer_asset() == App.globalGet(GlobalBudAsset)),
         Assert(Gtxn[Txn.group_index() - Int(1)].asset_amount() >= BREED_BURN),
@@ -508,11 +541,14 @@ def approval_program():
     )
 
     # Claim Slot Token - Burn 2,500 $BUD after 5 harvests to get a Slot Token
+    # Security: Verifies sender owns the burn transaction to prevent hijacking
     claim_slot_token = Seq(
         Assert(App.globalGet(GlobalSlotAsset) != Int(0)),
         Assert(App.globalGet(GlobalBudAsset) != Int(0)),
         # Require at least 5 harvests
         Assert(App.localGet(Txn.sender(), LocalHarvestCount) >= HARVESTS_FOR_SLOT),
+        # Security: Verify burn transaction sender matches app call sender
+        Assert(Gtxn[Txn.group_index() - Int(1)].sender() == Txn.sender()),
         # Require $BUD burn in previous transaction
         Assert(Gtxn[Txn.group_index() - Int(1)].type_enum() == TxnType.AssetTransfer),
         Assert(Gtxn[Txn.group_index() - Int(1)].xfer_asset() == App.globalGet(GlobalBudAsset)),
@@ -536,10 +572,13 @@ def approval_program():
     )
 
     # Unlock Slot - Burn 1 Slot Token to unlock another pod slot
+    # Security: Verifies sender owns the burn transaction to prevent hijacking
     unlock_slot = Seq(
         Assert(App.globalGet(GlobalSlotAsset) != Int(0)),
         # Must have less than max slots
         Assert(App.localGet(Txn.sender(), LocalPodSlots) < MAX_POD_SLOTS),
+        # Security: Verify burn transaction sender matches app call sender
+        Assert(Gtxn[Txn.group_index() - Int(1)].sender() == Txn.sender()),
         # Require exactly 1 Slot Token burn in previous transaction
         Assert(Gtxn[Txn.group_index() - Int(1)].type_enum() == TxnType.AssetTransfer),
         Assert(Gtxn[Txn.group_index() - Int(1)].xfer_asset() == App.globalGet(GlobalSlotAsset)),

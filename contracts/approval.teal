@@ -103,6 +103,13 @@ assert
 txn GroupIndex
 int 1
 -
+gtxns Sender
+txn Sender
+==
+assert
+txn GroupIndex
+int 1
+-
 gtxns TypeEnum
 int axfer
 ==
@@ -159,6 +166,13 @@ assert
 txn GroupIndex
 int 1
 -
+gtxns Sender
+txn Sender
+==
+assert
+txn GroupIndex
+int 1
+-
 gtxns TypeEnum
 int axfer
 ==
@@ -211,6 +225,13 @@ byte "bud_asset"
 app_global_get
 int 0
 !=
+assert
+txn GroupIndex
+int 1
+-
+gtxns Sender
+txn Sender
+==
 assert
 txn GroupIndex
 int 1
@@ -360,6 +381,13 @@ byte "bud_asset"
 app_global_get
 int 0
 !=
+assert
+txn GroupIndex
+int 1
+-
+gtxns Sender
+txn Sender
+==
 assert
 txn GroupIndex
 int 1
@@ -703,6 +731,13 @@ byte "bud_asset"
 app_global_get
 int 0
 !=
+assert
+txn GroupIndex
+int 1
+-
+gtxns Sender
+txn Sender
+==
 assert
 txn GroupIndex
 int 1

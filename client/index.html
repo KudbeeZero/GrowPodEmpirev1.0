@@ -3,6 +3,16 @@
   <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1" />
+    <!-- Security: Content Security Policy -->
+    <meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self' 'unsafe-inline' 'unsafe-eval'; style-src 'self' 'unsafe-inline' https://fonts.googleapis.com; font-src 'self' https://fonts.gstatic.com; img-src 'self' data: https: blob:; connect-src 'self' https://testnet-api.algonode.cloud https://testnet-api.4160.nodely.io https://*.walletconnect.com https://*.walletconnect.org wss://*.walletconnect.com wss://*.walletconnect.org; frame-src 'self' https://*.walletconnect.com;">
+    <!-- Security: Prevent clickjacking -->
+    <meta http-equiv="X-Frame-Options" content="DENY">
+    <!-- Security: XSS protection -->
+    <meta http-equiv="X-XSS-Protection" content="1; mode=block">
+    <!-- Security: Prevent MIME sniffing -->
+    <meta http-equiv="X-Content-Type-Options" content="nosniff">
+    <!-- Security: Referrer policy -->
+    <meta name="referrer" content="strict-origin-when-cross-origin">
     <link rel="icon" type="image/png" href="/favicon.png" />
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>

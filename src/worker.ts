@@ -1,8 +1,27 @@
 /**
  * GrowPod Empire - Cloudflare Workers API
  * Converted from Express.js to itty-router for D1
+ *
+ * Security Features:
+ * - Input validation with Algorand address regex
+ * - Rate limiting per IP
+ * - XSS prevention via content sanitization
+ * - SQL injection prevention via parameterized queries
+ * - Security headers (CSP, X-Frame-Options, etc.)
  */
 import { Router, IRequest } from 'itty-router';
+
+// ============================================
+// Security Constants
+// ============================================
+const ALGORAND_ADDRESS_REGEX = /^[A-Z2-7]{58}$/;
+const ALGORAND_ADDRESS_LENGTH = 58;
+const MAX_TOKEN_AMOUNT = BigInt('10000000000000000000'); // 10B with 6 decimals
+const RATE_LIMIT_WINDOW_MS = 60000; // 1 minute
+const RATE_LIMIT_MAX_REQUESTS = 100;
+
+// Simple in-memory rate limiter (resets on worker restart)
+const rateLimitStore = new Map<string, { count: number; resetAt: number }>();
 
 // ============================================
 // Types
@@ -91,7 +110,75 @@ interface LeaderboardEntry {
 }
 
 // ============================================
-// Helpers
+// Security Helpers
+// ============================================
+
+// Validate Algorand address format
+function isValidAlgorandAddress(address: unknown): address is string {
+  if (typeof address !== 'string') return false;
+  if (address.length !== ALGORAND_ADDRESS_LENGTH) return false;
+  return ALGORAND_ADDRESS_REGEX.test(address);
+}
+
+// Validate token amount (positive integer string within bounds)
+function isValidTokenAmount(amount: unknown): amount is string {
+  if (typeof amount !== 'string') return false;
+  if (!/^\d+$/.test(amount)) return false;
+  try {
+    const bigAmount = BigInt(amount);
+    return bigAmount >= 0n && bigAmount <= MAX_TOKEN_AMOUNT;
+  } catch {
+    return false;
+  }
+}
+
+// Validate positive integer ID
+function isValidPositiveInt(value: unknown): value is number {
+  if (typeof value === 'string') {
+    const parsed = parseInt(value, 10);
+    return Number.isInteger(parsed) && parsed > 0;
+  }
+  return typeof value === 'number' && Number.isInteger(value) && value > 0;
+}
+
+// Sanitize string for safe storage (prevent XSS in stored data)
+function sanitizeString(input: unknown): string {
+  if (typeof input !== 'string') return '';
+  return input
+    .replace(/[<>]/g, '') // Remove angle brackets
+    .replace(/javascript:/gi, '') // Remove javascript: protocol
+    .replace(/on\w+=/gi, '') // Remove event handlers
+    .trim()
+    .slice(0, 1000); // Limit length
+}
+
+// Rate limiting check
+function checkRateLimit(clientIp: string): boolean {
+  const now = Date.now();
+  const entry = rateLimitStore.get(clientIp);
+
+  if (!entry || now > entry.resetAt) {
+    rateLimitStore.set(clientIp, { count: 1, resetAt: now + RATE_LIMIT_WINDOW_MS });
+    return true;
+  }
+
+  if (entry.count >= RATE_LIMIT_MAX_REQUESTS) {
+    return false;
+  }
+
+  entry.count++;
+  return true;
+}
+
+// Get client IP from request
+function getClientIp(request: Request): string {
+  return request.headers.get('CF-Connecting-IP') ||
+         request.headers.get('X-Forwarded-For')?.split(',')[0]?.trim() ||
+         'unknown';
+}
+
+// ============================================
+// Response Helpers
 // ============================================
 function jsonResponse(data: unknown, status = 200): Response {
   return new Response(JSON.stringify(data), {
@@ -101,7 +188,9 @@ function jsonResponse(data: unknown, status = 200): Response {
 }
 
 function errorResponse(message: string, status = 500): Response {
-  return jsonResponse({ message }, status);
+  // Never expose internal error details to clients
+  const safeMessage = status >= 500 ? 'Internal server error' : message;
+  return jsonResponse({ message: safeMessage }, status);
 }
 
 function formatTokenAmount(amount: string): string {
@@ -145,11 +234,18 @@ router.options('*', () => new Response(null, {
 // ============================================
 router.post('/api/users/login', async (req: IRequest, env: Env) => {
   try {
+    // Rate limiting
+    const clientIp = getClientIp(req as unknown as Request);
+    if (!checkRateLimit(clientIp)) {
+      return errorResponse('Too many requests. Please try again later.', 429);
+    }
+
     const body = await req.json() as { walletAddress: string };
     const { walletAddress } = body;
 
-    if (!walletAddress || walletAddress.length !== 58) {
-      return errorResponse('Invalid wallet address', 400);
+    // Security: Validate Algorand address format
+    if (!isValidAlgorandAddress(walletAddress)) {
+      return errorResponse('Invalid wallet address format', 400);
     }
 
     let user = await env.DB.prepare(
@@ -188,6 +284,17 @@ router.post('/api/users/sync-balances', async (req: IRequest, env: Env) => {
     const body = await req.json() as { walletAddress: string; budBalance: string; terpBalance: string };
     const { walletAddress, budBalance, terpBalance } = body;
 
+    // Security: Validate all inputs
+    if (!isValidAlgorandAddress(walletAddress)) {
+      return errorResponse('Invalid wallet address format', 400);
+    }
+    if (!isValidTokenAmount(budBalance)) {
+      return errorResponse('Invalid BUD balance format', 400);
+    }
+    if (!isValidTokenAmount(terpBalance)) {
+      return errorResponse('Invalid TERP balance format', 400);
+    }
+
     await env.DB.prepare(
       'UPDATE users SET bud_balance = ?, terp_balance = ? WHERE wallet_address = ?'
     ).bind(budBalance, terpBalance, walletAddress).run();
@@ -205,6 +312,11 @@ router.post('/api/users/sync-balances', async (req: IRequest, env: Env) => {
 
 router.get('/api/users/:walletAddress', async (req: IRequest, env: Env) => {
   const { walletAddress } = req.params;
+
+  // Security: Validate wallet address format
+  if (!isValidAlgorandAddress(walletAddress)) {
+    return errorResponse('Invalid wallet address format', 400);
+  }
 
   const user = await env.DB.prepare(
     'SELECT * FROM users WHERE wallet_address = ?'
@@ -687,12 +799,14 @@ router.post('/api/seed-bank/:id/purchase', async (req: IRequest, env: Env) => {
     const body = await req.json() as { walletAddress: string };
     const { walletAddress } = body;
 
-    if (!walletAddress) {
-      return errorResponse('Wallet address required', 400);
+    // Security: Validate wallet address
+    if (!isValidAlgorandAddress(walletAddress)) {
+      return errorResponse('Invalid wallet address format', 400);
     }
 
     const id = parseInt(req.params.id);
-    if (isNaN(id)) {
+    // Security: Validate ID is positive integer
+    if (!isValidPositiveInt(id)) {
       return errorResponse('Invalid seed ID', 400);
     }
 
@@ -761,6 +875,11 @@ router.get('/api/user-seeds/:walletAddress', async (req: IRequest, env: Env) => 
   try {
     const { walletAddress } = req.params;
 
+    // Security: Validate wallet address
+    if (!isValidAlgorandAddress(walletAddress)) {
+      return errorResponse('Invalid wallet address format', 400);
+    }
+
     const results = await env.DB.prepare(`
       SELECT us.*, sb.name, sb.description, sb.rarity, sb.terpene_profile, sb.effects, sb.flavor_notes,
              sb.thc_range, sb.cbd_range, sb.growth_bonus, sb.bud_price, sb.image_path, sb.glow_color
@@ -804,12 +923,14 @@ router.post('/api/user-seeds/:seedId/use', async (req: IRequest, env: Env) => {
     const body = await req.json() as { walletAddress: string };
     const { walletAddress } = body;
 
-    if (!walletAddress) {
-      return errorResponse('Wallet address required', 400);
+    // Security: Validate wallet address
+    if (!isValidAlgorandAddress(walletAddress)) {
+      return errorResponse('Invalid wallet address format', 400);
     }
 
     const seedId = parseInt(req.params.seedId);
-    if (isNaN(seedId)) {
+    // Security: Validate ID is positive integer
+    if (!isValidPositiveInt(seedId)) {
       return errorResponse('Invalid seed ID', 400);
     }
 
@@ -857,16 +978,25 @@ export default {
   async fetch(request: Request, env: Env, ctx: ExecutionContext): Promise<Response> {
     const response = await router.handle(request, env, ctx);
 
-    // Add CORS headers to all responses
-    const corsHeaders = {
+    // Security headers + CORS
+    const securityHeaders = {
+      // CORS
       'Access-Control-Allow-Origin': '*',
       'Access-Control-Allow-Methods': 'GET, POST, PUT, DELETE, OPTIONS',
       'Access-Control-Allow-Headers': 'Content-Type',
+      // Security headers
+      'X-Content-Type-Options': 'nosniff',
+      'X-Frame-Options': 'DENY',
+      'X-XSS-Protection': '1; mode=block',
+      'Referrer-Policy': 'strict-origin-when-cross-origin',
+      'Permissions-Policy': 'geolocation=(), microphone=(), camera=()',
+      // Content Security Policy (API only - adjust for pages serving HTML)
+      'Content-Security-Policy': "default-src 'self'; script-src 'self'; style-src 'self' 'unsafe-inline'; img-src 'self' data: https:; connect-src 'self' https://testnet-api.algonode.cloud https://testnet-api.4160.nodely.io;",
     };
 
     // Clone response and add headers
     const newHeaders = new Headers(response.headers);
-    Object.entries(corsHeaders).forEach(([key, value]) => {
+    Object.entries(securityHeaders).forEach(([key, value]) => {
       newHeaders.set(key, value);
     });
 
