@@ -6,15 +6,15 @@ main = "src/worker.ts"
 compatibility_date = "2026-01-01"
 compatibility_flags = ["nodejs_compat"]
 
-# Serve static assets from the dist folder
-[site]
-bucket = "./dist/public"
-
 # ============================================
 # REQUIRED: Add your Cloudflare Account ID
 # ============================================
 # Get this from: https://dash.cloudflare.com/ → Workers & Pages → Overview (right sidebar)
 account_id = "YOUR_CLOUDFLARE_ACCOUNT_ID"
+
+# Serve static assets from the dist folder
+[site]
+bucket = "./dist/public"
 
 # ============================================
 # Environment Variables

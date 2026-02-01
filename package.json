@@ -68,9 +68,9 @@
     "express": "^4.21.2",
     "express-session": "^1.18.1",
     "framer-motion": "^11.18.2",
-    "itty-router": "^5.0.18",
     "google-auth-library": "^10.5.0",
     "input-otp": "^1.4.2",
+    "itty-router": "^5.0.18",
     "lucide-react": "^0.453.0",
     "lute-connect": "^1.6.3",
     "memorystore": "^1.6.7",
@@ -121,7 +121,7 @@
     "tsx": "^4.21.0",
     "typescript": "5.6.3",
     "vite": "^7.3.0",
-    "wrangler": "^3.99.0"
+    "wrangler": "^4.61.1"
   },
   "overrides": {
     "drizzle-kit": {
