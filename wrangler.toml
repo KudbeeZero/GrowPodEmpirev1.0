@@ -2,8 +2,13 @@
 # Documentation: https://developers.cloudflare.com/workers/wrangler/configuration/
 
 name = "growpod-empire"
-main = "dist/index.cjs"
-compatibility_date = "2024-01-01"
+main = "src/worker.ts"
+compatibility_date = "2026-01-01"
+compatibility_flags = ["nodejs_compat"]
+
+# Serve static assets from the dist folder
+[site]
+bucket = "./dist/public"
 
 # ============================================
 # REQUIRED: Add your Cloudflare Account ID
@@ -35,11 +40,12 @@ NODE_ENV = "production"
 # ============================================
 # D1 Database (Cloudflare's SQLite)
 # ============================================
-# If migrating from PostgreSQL to D1, uncomment and configure:
-# [[d1_databases]]
-# binding = "DB"
-# database_name = "growpod-db"
-# database_id = "YOUR_D1_DATABASE_ID"
+# Create database: wrangler d1 create growpod-empire-db
+# Then add the database_id returned by that command below:
+[[d1_databases]]
+binding = "DB"
+database_name = "growpod-empire-db"
+database_id = "YOUR_D1_DATABASE_ID"  # Replace after running: wrangler d1 create growpod-empire-db
 
 # ============================================
 # KV Namespaces (for caching)
