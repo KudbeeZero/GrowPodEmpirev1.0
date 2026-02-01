@@ -126,7 +126,7 @@ function isValidTokenAmount(amount: unknown): amount is string {
   if (!/^\d+$/.test(amount)) return false;
   try {
     const bigAmount = BigInt(amount);
-    return bigAmount >= 0n && bigAmount <= MAX_TOKEN_AMOUNT;
+    return bigAmount >= BigInt(0) && bigAmount <= MAX_TOKEN_AMOUNT;
   } catch {
     return false;
   }
@@ -432,8 +432,17 @@ router.post('/api/stats/record-harvest', async (req: IRequest, env: Env) => {
     const body = await req.json() as { walletAddress: string; budEarned: string; terpEarned?: string; isRareTerp?: boolean };
     const { walletAddress, budEarned, terpEarned = '0', isRareTerp = false } = body;
 
-    if (!walletAddress || walletAddress.length !== 58) {
-      return errorResponse('Invalid wallet address', 400);
+    // Security: Full Algorand address validation
+    if (!isValidAlgorandAddress(walletAddress)) {
+      return errorResponse('Invalid wallet address format', 400);
+    }
+
+    // Security: Validate token amounts
+    if (!isValidTokenAmount(budEarned)) {
+      return errorResponse('Invalid BUD earned amount', 400);
+    }
+    if (terpEarned !== '0' && !isValidTokenAmount(terpEarned)) {
+      return errorResponse('Invalid TERP earned amount', 400);
     }
 
     // Get or create player stats

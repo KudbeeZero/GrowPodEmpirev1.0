@@ -1,0 +1,58 @@
+# GrowPod Empire - Security Monitor Worker Configuration
+# Deploy with: wrangler deploy -c wrangler.security.toml
+
+name = "growpod-security-monitor"
+main = "src/security-monitor.ts"
+compatibility_date = "2026-01-01"
+compatibility_flags = ["nodejs_compat"]
+
+# ============================================
+# Account ID (same as main worker)
+# ============================================
+account_id = "YOUR_CLOUDFLARE_ACCOUNT_ID"
+
+# ============================================
+# Scheduled Triggers
+# ============================================
+[triggers]
+crons = ["*/5 * * * *"]  # Every 5 minutes
+
+# ============================================
+# D1 Database (same as main app)
+# ============================================
+[[d1_databases]]
+binding = "DB"
+database_name = "growpod-empire-db"
+database_id = "YOUR_D1_DATABASE_ID"
+
+# ============================================
+# KV Namespace for metrics storage
+# ============================================
+# Create with: wrangler kv:namespace create "SECURITY_KV"
+# [[kv_namespaces]]
+# binding = "SECURITY_KV"
+# id = "YOUR_SECURITY_KV_NAMESPACE_ID"
+
+# ============================================
+# Environment Variables
+# ============================================
+[vars]
+NODE_ENV = "production"
+
+# ============================================
+# Secrets (set via wrangler)
+# ============================================
+# Required for email reports:
+#   wrangler secret put SECURITY_EMAIL -c wrangler.security.toml
+#   wrangler secret put RESEND_API_KEY -c wrangler.security.toml
+#
+# Alternative email services:
+# - SendGrid: wrangler secret put SENDGRID_API_KEY
+# - Mailgun: wrangler secret put MAILGUN_API_KEY
+# - Cloudflare Email Workers: Configure in dashboard
+
+# ============================================
+# Observability
+# ============================================
+[observability]
+enabled = true

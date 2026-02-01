@@ -36,6 +36,8 @@ NODE_ENV = "production"
 #   wrangler secret put DATABASE_URL
 #   wrangler secret put ALGO_MNEMONIC
 #   wrangler secret put ADMIN_WALLET_ADDRESS
+#   wrangler secret put SECURITY_EMAIL
+#   wrangler secret put RESEND_API_KEY
 
 # ============================================
 # D1 Database (Cloudflare's SQLite)
@@ -48,11 +50,17 @@ database_name = "growpod-empire-db"
 database_id = "YOUR_D1_DATABASE_ID"  # Replace after running: wrangler d1 create growpod-empire-db
 
 # ============================================
-# KV Namespaces (for caching)
+# KV Namespaces (for caching and security metrics)
 # ============================================
+# Create with: wrangler kv:namespace create "CACHE"
 # [[kv_namespaces]]
 # binding = "CACHE"
 # id = "YOUR_KV_NAMESPACE_ID"
+
+# Create with: wrangler kv:namespace create "SECURITY_KV"
+# [[kv_namespaces]]
+# binding = "SECURITY_KV"
+# id = "YOUR_SECURITY_KV_NAMESPACE_ID"
 
 # ============================================
 # R2 Storage (for NFT images/metadata)
@@ -108,3 +116,27 @@ enabled = true
 # - CPU time: 10ms (free) / 30s (paid)
 # - Memory: 128MB
 # - Subrequest limit: 50 (free) / 1000 (paid)
+
+# ============================================
+# Cron Triggers (for scheduled tasks)
+# ============================================
+# Uncomment to enable security monitoring scheduled reports
+# [triggers]
+# crons = ["*/5 * * * *"]  # Every 5 minutes - adjust as needed
+# Available patterns:
+#   "*/5 * * * *"  - Every 5 minutes
+#   "0 * * * *"    - Every hour
+#   "0 */6 * * *"  - Every 6 hours
+#   "0 9 * * *"    - Daily at 9 AM UTC
+
+# ============================================
+# Security Monitor Worker (separate deployment)
+# ============================================
+# To deploy the security monitor as a separate worker:
+#   wrangler deploy src/security-monitor.ts --name growpod-security-monitor
+#
+# Or create a separate wrangler.security.toml with:
+#   name = "growpod-security-monitor"
+#   main = "src/security-monitor.ts"
+#   [triggers]
+#   crons = ["*/5 * * * *"]
