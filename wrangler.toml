@@ -12,9 +12,10 @@ compatibility_flags = ["nodejs_compat"]
 # Get this from: https://dash.cloudflare.com/ → Workers & Pages → Overview (right sidebar)
 account_id = "b591c2e07ca352d33076f4d2f8414b89"
 
-# Serve static assets from the dist folder
-[site]
-bucket = "./dist/public"
+# Serve static assets from the dist folder via the ASSETS binding
+[assets]
+binding = "ASSETS"
+directory = "./dist/public"
 
 # ============================================
 # Environment Variables

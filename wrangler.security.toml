@@ -6,6 +6,11 @@ main = "src/security-monitor.ts"
 compatibility_date = "2026-01-01"
 compatibility_flags = ["nodejs_compat"]
 
+# Ensure static asset binding is available for shared code paths
+[assets]
+binding = "ASSETS"
+directory = "./dist/public"
+
 # ============================================
 # Account ID (same as main worker)
 # ============================================
