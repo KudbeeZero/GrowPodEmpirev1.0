@@ -1,0 +1,49 @@
+#:schema node_modules/wrangler/config-schema.json
+name = "growpod-empire"
+main = "dist/index.cjs"
+compatibility_date = "2026-01-30"
+compatibility_flags = ["nodejs_compat"]
+
+# Add your account_id here after running: wrangler whoami
+# account_id = "YOUR_ACCOUNT_ID"
+
+[observability]
+enabled = true
+
+# D1 Database Bindings
+# These will be bound to your worker and accessible via env.DB, env.DB2, env.DB3
+# Configure the actual database IDs using wrangler secrets or in the dashboard
+[[d1_databases]]
+binding = "DB"
+database_name = "growpod-primary"
+database_id = "YOUR_D1_DATABASE_ID_1"
+
+[[d1_databases]]
+binding = "DB2"
+database_name = "growpod-secondary"
+database_id = "YOUR_D1_DATABASE_ID_2"
+
+[[d1_databases]]
+binding = "DB3"
+database_name = "growpod-tertiary"
+database_id = "YOUR_D1_DATABASE_ID_3"
+
+# Environment Variables (non-sensitive)
+[vars]
+NODE_ENV = "production"
+
+# Secrets (sensitive data) should be set using:
+# wrangler secret put VARIABLE_NAME
+# Example secrets to configure:
+# - DATABASE_URL (if using external PostgreSQL instead of D1)
+# - ADMIN_WALLET_ADDRESS
+# - Any API keys or sensitive credentials
+
+# Build configuration
+[build]
+command = "npm run build"
+
+# Assets configuration for static files
+[assets]
+directory = "./dist/public"
+binding = "ASSETS"
