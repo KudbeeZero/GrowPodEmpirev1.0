@@ -9,7 +9,7 @@ compatibility_flags = ["nodejs_compat"]
 # ============================================
 # Account ID (same as main worker)
 # ============================================
-account_id = "YOUR_CLOUDFLARE_ACCOUNT_ID"
+account_id = "b591c2e07ca352d33076f4d2f8414b89"
 
 # ============================================
 # Scheduled Triggers
@@ -23,7 +23,7 @@ crons = ["*/5 * * * *"]  # Every 5 minutes
 [[d1_databases]]
 binding = "DB"
 database_name = "growpod-empire-db"
-database_id = "YOUR_D1_DATABASE_ID"
+database_id = "712d926f-c396-473f-96d9-f0dfc3d1d069"
 
 # ============================================
 # KV Namespace for metrics storage
