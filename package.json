@@ -18,6 +18,7 @@
   "dependencies": {
     "@agoralabs-sh/avm-web-provider": "^1.7.0",
     "@blockshake/defly-connect": "^1.2.1",
+    "@cloudflare/kv-asset-handler": "^0.4.2",
     "@google-cloud/storage": "^7.18.0",
     "@hookform/resolvers": "^3.10.0",
     "@jridgewell/trace-mapping": "^0.3.25",
