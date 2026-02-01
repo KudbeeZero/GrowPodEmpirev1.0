@@ -2,6 +2,7 @@ import { useMemo, useCallback } from 'react';
 import algosdk from 'algosdk';
 import { useQuery, useQueryClient } from '@tanstack/react-query';
 import { useAlgorandContext, CONTRACT_CONFIG, algodClient } from '@/context/AlgorandContext';
+import { monitor, addBreadcrumb } from '@/lib/growpod-monitor';
 
 export { CONTRACT_CONFIG } from '@/context/AlgorandContext';
 
@@ -311,6 +312,35 @@ export function useTransactions() {
     return txId;
   };
 
+  // Helper to wrap blockchain actions with monitoring
+  const withMonitoring = async <T>(
+    action: string,
+    fn: () => Promise<T>,
+    metadata?: Record<string, unknown>
+  ): Promise<T> => {
+    const txKey = `${action}_${Date.now()}`;
+    monitor.startTransaction(txKey, action);
+    addBreadcrumb(`${action}_started`, 'blockchain', metadata);
+
+    try {
+      const result = await fn();
+      monitor.endTransaction(txKey, {
+        txId: typeof result === 'string' ? result : undefined,
+        status: 'success',
+        metadata: { ...metadata, walletAddress: account },
+      });
+      return result;
+    } catch (error) {
+      const errorMessage = error instanceof Error ? error.message : String(error);
+      monitor.endTransaction(txKey, {
+        status: 'failed',
+        errorMessage,
+        metadata: { ...metadata, walletAddress: account },
+      });
+      throw error;
+    }
+  };
+
   // Helper to get transaction params with retry
   const getParamsWithRetry = async (retries = 3): Promise<algosdk.SuggestedParams> => {
     for (let i = 0; i < retries; i++) {
@@ -395,41 +425,38 @@ export function useTransactions() {
     if (!CONTRACT_CONFIG.appId) {
       throw new Error('Contract not configured. App ID: ' + CONTRACT_CONFIG.appId);
     }
-    
-    try {
+
+    return withMonitoring('mint_pod', async () => {
       const suggestedParams = await getParamsWithRetry();
-      
+
       // Use different app arg based on pod ID
       const appArg = podId === 2 ? 'mint_pod_2' : 'mint_pod';
-      
+
       const txn = algosdk.makeApplicationNoOpTxnFromObject({
         sender: account,
         suggestedParams,
         appIndex: CONTRACT_CONFIG.appId,
         appArgs: [encodeArg(appArg)],
       });
-      
+
       const signedTxns = await signTransactions([txn]);
       const txId = await submitTransaction(signedTxns);
       refreshState();
       return txId;
-    } catch (error) {
-      console.error('Mint pod failed:', error);
-      throw error;
-    }
+    }, { podId });
   }, [account, signTransactions]);
 
   // Water a plant - calls "water" on the smart contract
   // Optional cooldownSeconds parameter (default: 600s / 10 minutes for TestNet)
   const waterPlant = useCallback(async (podId: number = 1, cooldownSeconds?: number): Promise<string | null> => {
     if (!account || !CONTRACT_CONFIG.appId) return null;
-    
-    try {
+
+    return withMonitoring('water', async () => {
       const suggestedParams = await getParamsWithRetry();
-      
+
       // Use different app arg based on pod ID
       const appArg = podId === 2 ? 'water_2' : 'water';
-      
+
       // Build app args array - include cooldown if provided
       const appArgs: Uint8Array[] = [encodeArg(appArg)];
       if (cooldownSeconds !== undefined) {
@@ -439,61 +466,55 @@ export function useTransactions() {
         view.setBigUint64(0, BigInt(cooldownSeconds), false); // false = big-endian
         appArgs.push(cooldownBytes);
       }
-      
+
       const txn = algosdk.makeApplicationNoOpTxnFromObject({
         sender: account,
         suggestedParams,
         appIndex: CONTRACT_CONFIG.appId,
         appArgs,
       });
-      
+
       const signedTxns = await signTransactions([txn]);
       const txId = await submitTransaction(signedTxns);
       refreshState();
       return txId;
-    } catch (error) {
-      console.error('Water plant failed:', error);
-      throw error;
-    }
+    }, { podId });
   }, [account, signTransactions]);
 
   // Add nutrients to a plant - calls "nutrients" on the smart contract (10 min cooldown)
   const addNutrients = useCallback(async (podId: number = 1): Promise<string | null> => {
     if (!account || !CONTRACT_CONFIG.appId) return null;
-    
-    try {
+
+    return withMonitoring('nutrients', async () => {
       const suggestedParams = await getParamsWithRetry();
-      
+
       // Use different app arg based on pod ID
       const appArg = podId === 2 ? 'nutrients_2' : 'nutrients';
-      
+
       const txn = algosdk.makeApplicationNoOpTxnFromObject({
         sender: account,
         suggestedParams,
         appIndex: CONTRACT_CONFIG.appId,
         appArgs: [encodeArg(appArg)],
       });
-      
+
       const signedTxns = await signTransactions([txn]);
       const txId = await submitTransaction(signedTxns);
       refreshState();
       return txId;
-    } catch (error) {
-      console.error('Add nutrients failed:', error);
-      throw error;
-    }
+    }, { podId });
   }, [account, signTransactions]);
 
   // Harvest a plant - calls "harvest" or "harvest_2" on the smart contract
   const harvestPlant = useCallback(async (podId: number = 1): Promise<string | null> => {
     if (!account || !CONTRACT_CONFIG.appId) return null;
-    
-    try {
+
+    return withMonitoring('harvest', async () => {
       const suggestedParams = await getParamsWithRetry();
-      
+
       // Use different app arg based on pod ID
       const appArg = podId === 2 ? 'harvest_2' : 'harvest';
-      
+
       const txn = algosdk.makeApplicationNoOpTxnFromObject({
         sender: account,
         suggestedParams,
@@ -501,22 +522,19 @@ export function useTransactions() {
         appArgs: [encodeArg(appArg)],
         foreignAssets: CONTRACT_CONFIG.budAssetId ? [CONTRACT_CONFIG.budAssetId] : undefined,
       });
-      
+
       const signedTxns = await signTransactions([txn]);
       const txId = await submitTransaction(signedTxns);
       refreshState();
       return txId;
-    } catch (error) {
-      console.error('Harvest failed:', error);
-      throw error;
-    }
+    }, { podId });
   }, [account, signTransactions]);
 
   // Cleanup pod - requires burning 500 $BUD
   const cleanupPod = useCallback(async (podId: number = 1): Promise<string | null> => {
     if (!account || !CONTRACT_CONFIG.appId || !CONTRACT_CONFIG.budAssetId) return null;
 
-    try {
+    return withMonitoring('cleanup', async () => {
       const suggestedParams = await getParamsWithRetry();
 
       // Use different app arg based on pod ID
@@ -548,19 +566,16 @@ export function useTransactions() {
       const txId = await submitTransaction(signedTxns);
       refreshState();
       return txId;
-    } catch (error) {
-      console.error('Cleanup failed:', error);
-      throw error;
-    }
+    }, { podId, budBurned: 500 });
   }, [account, signTransactions]);
 
   // Breed plants - requires burning 1000 $BUD
   const breedPlants = useCallback(async (): Promise<string | null> => {
     if (!account || !CONTRACT_CONFIG.appId || !CONTRACT_CONFIG.budAssetId) return null;
-    
-    try {
+
+    return withMonitoring('breed', async () => {
       const suggestedParams = await getParamsWithRetry();
-      
+
       // Transaction 1: Burn 1000 $BUD
       const burnTxn = algosdk.makeAssetTransferTxnWithSuggestedParamsFromObject({
         sender: account,
@@ -569,7 +584,7 @@ export function useTransactions() {
         assetIndex: CONTRACT_CONFIG.budAssetId,
         suggestedParams,
       });
-      
+
       // Transaction 2: Call breed on contract
       const appTxn = algosdk.makeApplicationNoOpTxnFromObject({
         sender: account,
@@ -577,19 +592,16 @@ export function useTransactions() {
         appIndex: CONTRACT_CONFIG.appId,
         appArgs: [encodeArg('breed')],
       });
-      
+
       // Group the transactions
       const txns = [burnTxn, appTxn];
       algosdk.assignGroupID(txns);
-      
+
       const signedTxns = await signTransactions(txns);
       const txId = await submitTransaction(signedTxns);
       refreshState();
       return txId;
-    } catch (error) {
-      console.error('Breed failed:', error);
-      throw error;
-    }
+    }, { budBurned: 1000 });
   }, [account, signTransactions]);
 
   // Check if user is opted into the app
@@ -621,10 +633,10 @@ export function useTransactions() {
   // Claim a Slot Token - requires burning 2,500 $BUD and at least 5 total harvests
   const claimSlotToken = useCallback(async (): Promise<string | null> => {
     if (!account || !CONTRACT_CONFIG.appId || !CONTRACT_CONFIG.budAssetId || !CONTRACT_CONFIG.slotAssetId) return null;
-    
-    try {
+
+    return withMonitoring('claim_slot_token', async () => {
       const suggestedParams = await getParamsWithRetry();
-      
+
       // Transaction 1: Burn 2,500 $BUD (send to app address)
       const burnTxn = algosdk.makeAssetTransferTxnWithSuggestedParamsFromObject({
         sender: account,
@@ -633,7 +645,7 @@ export function useTransactions() {
         assetIndex: CONTRACT_CONFIG.budAssetId,
         suggestedParams,
       });
-      
+
       // Transaction 2: Call claim_slot_token on contract
       const appTxn = algosdk.makeApplicationNoOpTxnFromObject({
         sender: account,
@@ -642,28 +654,25 @@ export function useTransactions() {
         appArgs: [encodeArg('claim_slot_token')],
         foreignAssets: [CONTRACT_CONFIG.slotAssetId],
       });
-      
+
       // Group the transactions
       const txns = [burnTxn, appTxn];
       algosdk.assignGroupID(txns);
-      
+
       const signedTxns = await signTransactions(txns);
       const txId = await submitTransaction(signedTxns);
       refreshState();
       return txId;
-    } catch (error) {
-      console.error('Claim slot token failed:', error);
-      throw error;
-    }
+    }, { budBurned: 2500 });
   }, [account, signTransactions]);
 
   // Unlock a new pod slot - requires burning 1 Slot Token
   const unlockSlot = useCallback(async (): Promise<string | null> => {
     if (!account || !CONTRACT_CONFIG.appId || !CONTRACT_CONFIG.slotAssetId) return null;
-    
-    try {
+
+    return withMonitoring('unlock_slot', async () => {
       const suggestedParams = await getParamsWithRetry();
-      
+
       // Transaction 1: Burn 1 Slot Token (send to app address)
       const burnTxn = algosdk.makeAssetTransferTxnWithSuggestedParamsFromObject({
         sender: account,
@@ -672,7 +681,7 @@ export function useTransactions() {
         assetIndex: CONTRACT_CONFIG.slotAssetId,
         suggestedParams,
       });
-      
+
       // Transaction 2: Call unlock_slot on contract
       const appTxn = algosdk.makeApplicationNoOpTxnFromObject({
         sender: account,
@@ -680,19 +689,16 @@ export function useTransactions() {
         appIndex: CONTRACT_CONFIG.appId,
         appArgs: [encodeArg('unlock_slot')],
       });
-      
+
       // Group the transactions
       const txns = [burnTxn, appTxn];
       algosdk.assignGroupID(txns);
-      
+
       const signedTxns = await signTransactions(txns);
       const txId = await submitTransaction(signedTxns);
       refreshState();
       return txId;
-    } catch (error) {
-      console.error('Unlock slot failed:', error);
-      throw error;
-    }
+    }, { slotTokenBurned: 1 });
   }, [account, signTransactions]);
 
   return {

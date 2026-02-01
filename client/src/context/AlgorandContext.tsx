@@ -11,10 +11,11 @@
  * Maintains backward compatibility with existing useAlgorand hook
  */
 
-import { createContext, useContext, useState, ReactNode } from 'react';
+import { createContext, useContext, useState, useEffect, ReactNode } from 'react';
 import algosdk from 'algosdk';
 import { useMultiWallet, CONTRACT_CONFIG, algodClient } from '@/hooks/use-multi-wallet';
 import { WalletModal } from '@/components/WalletModal';
+import { monitor, addBreadcrumb } from '@/lib/growpod-monitor';
 
 // Re-export for backward compatibility
 export { CONTRACT_CONFIG, algodClient };
@@ -44,6 +45,19 @@ export function AlgorandProvider({ children }: { children: ReactNode }) {
     signTransactions: multiSignTransactions,
     activeWalletName,
   } = useMultiWallet();
+
+  // Set user in monitor when wallet connects/disconnects
+  useEffect(() => {
+    if (isConnected && account) {
+      monitor.setUser(account);
+      addBreadcrumb('wallet_connected', 'blockchain', {
+        walletAddress: account,
+        walletName: activeWalletName
+      });
+    } else {
+      monitor.setUser(null);
+    }
+  }, [isConnected, account, activeWalletName]);
 
   // Wrapper to open modal instead of directly connecting
   // This provides the multi-wallet selection experience
