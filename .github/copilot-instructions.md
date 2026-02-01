@@ -15,7 +15,7 @@ GrowPod Empire is a blockchain-based idle farming game on **Algorand TestNet**. 
 ## Project Structure
 
 ```
-GrowPodEmpirev1.0/
+project-root/
 ├── client/src/          # React frontend
 │   ├── App.tsx          # Main app with routing
 │   ├── components/      # Reusable UI (shadcn/ui in ui/)
@@ -118,7 +118,7 @@ import type { User } from "@shared/schema";
 ### Adding Smart Contract Method
 1. Add method in `contracts/contract.py`
 2. Add to router in `approval_program()`
-3. Recompile: `python contract.py`
+3. Recompile: `cd contracts && python contract.py`
 4. Add frontend transaction builder in `hooks/use-algorand.ts`
 
 ## Important Notes
