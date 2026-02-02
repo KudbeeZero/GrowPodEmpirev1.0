@@ -1,6 +1,6 @@
-import { users, playerStats, songs, announcementVideos, seedBank, userSeeds, monitorErrors, monitorTransactions, monitorMetrics, monitorBreadcrumbs, monitorHealthChecks, monitorDailyStats, type User, type InsertUser, type PlayerStats, type Song, type InsertSong, type AnnouncementVideo, type InsertAnnouncementVideo, type SeedBankItem, type InsertSeedBankItem, type UserSeed, type InsertUserSeed, type MonitorError, type InsertMonitorError, type MonitorTransaction, type InsertMonitorTransaction, type MonitorMetric, type InsertMonitorMetric, type MonitorBreadcrumb, type InsertMonitorBreadcrumb, type MonitorHealthCheck, type MonitorDailyStats } from "@shared/schema";
+import { users, playerStats, songs, announcementVideos, seedBank, userSeeds, monitorErrors, monitorTransactions, monitorMetrics, monitorBreadcrumbs, type User, type InsertUser, type PlayerStats, type Song, type InsertSong, type AnnouncementVideo, type InsertAnnouncementVideo, type SeedBankItem, type InsertSeedBankItem, type UserSeed, type InsertUserSeed, type MonitorError, type InsertMonitorError, type MonitorTransaction, type InsertMonitorTransaction, type MonitorMetric, type InsertMonitorMetric, type MonitorBreadcrumb, type InsertMonitorBreadcrumb } from "@shared/schema";
 import { db } from "./db";
-import { eq, desc, sql, and, gte, lte, count } from "drizzle-orm";
+import { eq, desc, sql, and, gte } from "drizzle-orm";
 
 export interface LeaderboardEntry {
   rank: number;

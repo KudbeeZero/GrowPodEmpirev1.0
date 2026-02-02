@@ -3,14 +3,13 @@
  * Shows Seeds and Biomass NFTs with full management capabilities
  */
 
-import { useState } from 'react';
 import { motion } from 'framer-motion';
 import { Leaf, Package, Coins, FlaskConical, Dna, ArrowRight } from 'lucide-react';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
+import { Card } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { useAlgorand } from '@/hooks/use-algorand';
-import { useSeedNFTs, useBiomassNFTs, formatWeight, formatBudFromWeight } from '@/hooks/use-nfts';
+import { useSeedNFTs, useBiomassNFTs, formatBudFromWeight } from '@/hooks/use-nfts';
 import { SeedInventory } from '@/components/SeedInventory';
 import { BiomassInventory } from '@/components/BiomassInventory';
 
