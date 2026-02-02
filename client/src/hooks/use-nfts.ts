@@ -3,7 +3,7 @@
  * Fetches and manages Seed NFTs and Biomass NFTs from Algorand
  */
 
-import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
+import { useQuery, useQueryClient } from '@tanstack/react-query';
 import { useCallback } from 'react';
 import algosdk from 'algosdk';
 import { useAlgorand, CONTRACT_CONFIG } from './use-algorand';
