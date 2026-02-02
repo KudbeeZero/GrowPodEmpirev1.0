@@ -343,7 +343,6 @@ export class PlantRenderer {
 
     const baseY = height * 0.78;
     const stemHeight = height * 0.35;
-    const traits = plantState.traits;
 
     // Add pre-flowers/buds at nodes
     const stemCurve = generateStemCurve(
