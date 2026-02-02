@@ -1,0 +1,10 @@
+# Local Wrangler Configuration
+# Copy this file to wrangler.local.toml and fill in your actual values
+# wrangler.local.toml is gitignored to keep secrets safe
+
+account_id = "YOUR_CLOUDFLARE_ACCOUNT_ID"
+
+[[d1_databases]]
+binding = "DB"
+database_name = "growpod-empire-db"
+database_id = "YOUR_D1_DATABASE_ID"

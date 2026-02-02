@@ -3,13 +3,14 @@
 
 name = "growpod-security-monitor"
 main = "src/security-monitor.ts"
-compatibility_date = "2026-01-01"
+compatibility_date = "2024-01-01"
 compatibility_flags = ["nodejs_compat"]
 
 # ============================================
 # Account ID (same as main worker)
 # ============================================
-account_id = "b591c2e07ca352d33076f4d2f8414b89"
+# Set via environment variable: export CLOUDFLARE_ACCOUNT_ID=your_account_id
+# account_id = ""  # DO NOT commit your account ID to version control
 
 # ============================================
 # Scheduled Triggers
@@ -20,10 +21,11 @@ crons = ["*/5 * * * *"]  # Every 5 minutes
 # ============================================
 # D1 Database (same as main app)
 # ============================================
-[[d1_databases]]
-binding = "DB"
-database_name = "growpod-empire-db"
-database_id = "712d926f-c396-473f-96d9-f0dfc3d1d069"
+# Set via environment variable or wrangler.local.toml
+# [[d1_databases]]
+# binding = "DB"
+# database_name = "growpod-empire-db"
+# database_id = ""  # DO NOT commit your database ID to version control
 
 # ============================================
 # KV Namespace for metrics storage
