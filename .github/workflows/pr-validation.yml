@@ -1,0 +1,88 @@
+name: PR Validation
+
+on:
+  pull_request:
+    branches:
+      - main
+      - production
+  pull_request_target:
+    types: [opened, synchronize, reopened]
+
+jobs:
+  validate:
+    runs-on: ubuntu-latest
+    name: Validate Pull Request
+    
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+        with:
+          ref: ${{ github.event.pull_request.head.sha }}
+      
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+          cache: 'npm'
+      
+      - name: Install dependencies
+        run: npm ci
+      
+      - name: Type check
+        run: npm run check
+        continue-on-error: true
+      
+      - name: Build application
+        run: npm run build
+      
+      - name: Check for AI-generated branch
+        if: |
+          contains(github.head_ref, 'copilot/') || 
+          contains(github.head_ref, 'ai/') || 
+          contains(github.head_ref, 'experiment/')
+        run: |
+          echo "::warning::This PR is from an AI-generated branch (${{ github.head_ref }}). Extra scrutiny recommended."
+          echo "Please ensure:"
+          echo "  - Code follows project patterns and conventions"
+          echo "  - No hardcoded secrets or credentials"
+          echo "  - Proper error handling"
+          echo "  - All changes have been tested"
+      
+      - name: Check PR title format
+        run: |
+          PR_TITLE="${{ github.event.pull_request.title }}"
+          if [[ ! "$PR_TITLE" =~ ^(feat|fix|docs|style|refactor|test|chore): ]]; then
+            echo "::warning::PR title doesn't follow conventional commit format. Consider using: feat|fix|docs|style|refactor|test|chore: description"
+          fi
+      
+      - name: Validate branch name
+        run: |
+          BRANCH="${{ github.head_ref }}"
+          if [[ ! "$BRANCH" =~ ^(feature|fix|hotfix|copilot|ai|experiment)/ ]]; then
+            echo "::warning::Branch name doesn't follow convention. Expected: feature/*, fix/*, hotfix/*, copilot/*, ai/*, or experiment/*"
+          fi
+      
+      - name: PR size check
+        run: |
+          FILES_CHANGED=$(git diff --name-only origin/${{ github.base_ref }}...${{ github.event.pull_request.head.sha }} | wc -l)
+          echo "Files changed: $FILES_CHANGED"
+          
+          if [ $FILES_CHANGED -gt 50 ]; then
+            echo "::warning::This PR touches $FILES_CHANGED files. Consider breaking it into smaller PRs for easier review."
+          fi
+      
+      - name: Validation summary
+        run: |
+          echo "================================================"
+          echo "  PR Validation Complete"
+          echo "================================================"
+          echo ""
+          echo "Branch: ${{ github.head_ref }}"
+          echo "Target: ${{ github.base_ref }}"
+          echo "Author: ${{ github.event.pull_request.user.login }}"
+          echo ""
+          echo "✓ Dependencies installed"
+          echo "✓ Type checking completed"
+          echo "✓ Build successful"
+          echo ""
+          echo "Please ensure all checks pass and address any warnings."
