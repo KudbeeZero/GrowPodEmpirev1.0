@@ -171,6 +171,13 @@ gtxns AssetAmount
 int 2500000000
 >=
 assert
+txn GroupIndex
+int 1
+-
+gtxns AssetReceiver
+global CurrentApplicationAddress
+==
+assert
 itxn_begin
 int axfer
 itxn_field TypeEnum
@@ -219,6 +226,13 @@ int 3
 gtxns AssetAmount
 int 1000000000
 >=
+assert
+txn GroupIndex
+int 3
+-
+gtxns AssetReceiver
+global CurrentApplicationAddress
+==
 assert
 txn GroupIndex
 int 2
@@ -480,6 +494,19 @@ assert
 txna ApplicationArgs 1
 btoi
 store 0
+load 0
+int 500000
+>=
+assert
+load 0
+int 3500000
+<=
+assert
+load 0
+byte "total_biomass"
+app_global_get
+<=
+assert
 itxn_begin
 int axfer
 itxn_field TypeEnum

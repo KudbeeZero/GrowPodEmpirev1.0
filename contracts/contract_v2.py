@@ -86,7 +86,6 @@ MAX_POD_SLOTS = Int(5)
 def approval_program():
     # Scratch variables
     scratch_weight = ScratchVar(TealType.uint64)
-    scratch_bonus = ScratchVar(TealType.uint64)
     scratch_cooldown = ScratchVar(TealType.uint64)
 
     is_owner = Txn.sender() == App.globalGet(GlobalOwner)
@@ -575,6 +574,11 @@ def approval_program():
 
         # Get weight from args (verified off-chain from NFT metadata)
         scratch_weight.store(Btoi(Txn.application_args[1])),
+        
+        # Validate weight is within reasonable bounds and doesn't exceed total biomass
+        Assert(scratch_weight.load() >= MIN_WEIGHT),
+        Assert(scratch_weight.load() <= MAX_WEIGHT),
+        Assert(scratch_weight.load() <= App.globalGet(GlobalTotalBiomassWeight)),
 
         # Mint $BUD equal to weight (1mg = 1 $BUD micro-unit)
         InnerTxnBuilder.Begin(),
@@ -649,6 +653,7 @@ def approval_program():
         Assert(Gtxn[Txn.group_index() - Int(3)].type_enum() == TxnType.AssetTransfer),
         Assert(Gtxn[Txn.group_index() - Int(3)].xfer_asset() == App.globalGet(GlobalBudAsset)),
         Assert(Gtxn[Txn.group_index() - Int(3)].asset_amount() >= BREED_COST),
+        Assert(Gtxn[Txn.group_index() - Int(3)].asset_receiver() == Global.current_application_address()),
 
         # Verify seed 1 transfer (index - 2)
         Assert(Gtxn[Txn.group_index() - Int(2)].type_enum() == TxnType.AssetTransfer),
@@ -711,6 +716,7 @@ def approval_program():
         Assert(Gtxn[Txn.group_index() - Int(1)].type_enum() == TxnType.AssetTransfer),
         Assert(Gtxn[Txn.group_index() - Int(1)].xfer_asset() == App.globalGet(GlobalBudAsset)),
         Assert(Gtxn[Txn.group_index() - Int(1)].asset_amount() >= SLOT_TOKEN_COST),
+        Assert(Gtxn[Txn.group_index() - Int(1)].asset_receiver() == Global.current_application_address()),
 
         InnerTxnBuilder.Begin(),
         InnerTxnBuilder.SetFields({
