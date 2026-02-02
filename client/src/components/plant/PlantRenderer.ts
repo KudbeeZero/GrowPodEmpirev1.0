@@ -336,7 +336,7 @@ export class PlantRenderer {
    * Stage 4: Flowering with pre-buds
    */
   private renderFlowering(context: RenderContext): void {
-    const { ctx, width, height, animState, plantState } = context;
+    const { ctx, width, height, animState } = context;
 
     // Build on vegetative structure
     this.renderVegetative(context);
