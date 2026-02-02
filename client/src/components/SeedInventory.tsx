@@ -48,7 +48,7 @@ export function SeedInventory({ onPlantSeed, selectionMode = false, selectedSeed
     if (!isConnected) {
       toast({
         title: 'Wallet Required',
-        description: 'Please connect your Pera Wallet first.',
+        description: 'Please connect your wallet first.',
         variant: 'destructive',
       });
       return;
