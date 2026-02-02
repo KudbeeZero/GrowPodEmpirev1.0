@@ -64,11 +64,14 @@ database_id = "712d926f-c396-473f-96d9-f0dfc3d1d069"
 # id = "YOUR_SECURITY_KV_NAMESPACE_ID"
 
 # ============================================
-# R2 Storage (for NFT images/metadata)
+# R2 Storage (for media uploads - jukebox, NFTs, etc.)
 # ============================================
+# To enable file uploads:
+# 1. Create bucket: wrangler r2 bucket create growpod-media
+# 2. Uncomment the lines below:
 # [[r2_buckets]]
-# binding = "NFT_STORAGE"
-# bucket_name = "growpod-nft-assets"
+# binding = "MEDIA_BUCKET"
+# bucket_name = "growpod-media"
 
 # ============================================
 # Build Configuration

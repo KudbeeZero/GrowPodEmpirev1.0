@@ -28,6 +28,8 @@ interface Env {
   DB: D1Database;
   ASSETS: Fetcher;
   ADMIN_WALLET_ADDRESS?: string;
+  // R2 bucket for file uploads (optional - configure in wrangler.toml)
+  MEDIA_BUCKET?: R2Bucket;
 }
 
 interface User {
@@ -296,6 +298,70 @@ async function handleGetSongs(env: Env): Promise<Response> {
   return jsonResponse((results.results || []).map(s => toCamelCase(s as Record<string, unknown>)));
 }
 
+async function handleAddSong(request: Request, env: Env): Promise<Response> {
+  const body = await request.json() as { title: string; artist: string; objectPath: string };
+  const { title, artist, objectPath } = body;
+
+  if (!title || !artist || !objectPath) {
+    return errorResponse('Missing required fields: title, artist, objectPath', 400);
+  }
+
+  // Sanitize inputs
+  const sanitizedTitle = title.slice(0, 200).replace(/[<>]/g, '');
+  const sanitizedArtist = artist.slice(0, 200).replace(/[<>]/g, '');
+
+  await env.DB.prepare(
+    'INSERT INTO songs (title, artist, object_path, play_count) VALUES (?, ?, ?, 0)'
+  ).bind(sanitizedTitle, sanitizedArtist, objectPath).run();
+
+  const song = await env.DB.prepare(
+    'SELECT * FROM songs WHERE object_path = ? ORDER BY id DESC LIMIT 1'
+  ).bind(objectPath).first();
+
+  return jsonResponse(toCamelCase(song as Record<string, unknown>), 201);
+}
+
+async function handleDeleteSong(songId: string, env: Env): Promise<Response> {
+  const id = parseInt(songId, 10);
+  if (isNaN(id)) {
+    return errorResponse('Invalid song ID', 400);
+  }
+
+  // Get the song first to get the object path
+  const song = await env.DB.prepare('SELECT * FROM songs WHERE id = ?').bind(id).first<{ object_path: string }>();
+
+  if (!song) {
+    return errorResponse('Song not found', 404);
+  }
+
+  // Delete from database
+  await env.DB.prepare('DELETE FROM songs WHERE id = ?').bind(id).run();
+
+  // Try to delete from R2 if bucket is configured
+  if (env.MEDIA_BUCKET && song.object_path) {
+    try {
+      await env.MEDIA_BUCKET.delete(song.object_path);
+    } catch (err) {
+      console.error('Failed to delete R2 object:', err);
+    }
+  }
+
+  return jsonResponse({ success: true, deleted: id });
+}
+
+async function handlePlaySong(songId: string, env: Env): Promise<Response> {
+  const id = parseInt(songId, 10);
+  if (isNaN(id)) {
+    return errorResponse('Invalid song ID', 400);
+  }
+
+  await env.DB.prepare(
+    'UPDATE songs SET play_count = play_count + 1 WHERE id = ?'
+  ).bind(id).run();
+
+  return jsonResponse({ success: true });
+}
+
 async function handleGetSeedBank(env: Env): Promise<Response> {
   const results = await env.DB.prepare(
     'SELECT * FROM seed_bank WHERE is_active = 1 ORDER BY created_at DESC'
@@ -358,6 +424,90 @@ async function handleGetAnnouncement(env: Env): Promise<Response> {
 }
 
 // ============================================
+// File Upload Handlers (R2 Storage)
+// ============================================
+async function handleRequestUploadUrl(request: Request, env: Env): Promise<Response> {
+  // Check if R2 bucket is configured
+  if (!env.MEDIA_BUCKET) {
+    return errorResponse('File uploads not configured. Add R2 bucket binding in wrangler.toml', 503);
+  }
+
+  const body = await request.json() as { name: string; size: number; contentType: string };
+  const { name, size, contentType } = body;
+
+  if (!name || !contentType) {
+    return errorResponse('Missing file name or content type', 400);
+  }
+
+  // Validate file size (max 50MB)
+  if (size > 50 * 1024 * 1024) {
+    return errorResponse('File too large. Maximum size is 50MB', 400);
+  }
+
+  // Validate content type
+  const allowedTypes = ['audio/mpeg', 'audio/mp3', 'audio/wav', 'audio/ogg', 'video/mp4', 'image/png', 'image/jpeg', 'image/gif'];
+  if (!allowedTypes.includes(contentType)) {
+    return errorResponse('Invalid file type. Allowed: audio, video, and images', 400);
+  }
+
+  // Generate unique object path
+  const timestamp = Date.now();
+  const sanitizedName = name.replace(/[^a-zA-Z0-9.-]/g, '_');
+  const objectPath = `uploads/${timestamp}-${sanitizedName}`;
+
+  // For R2, we'll use a simple approach: return a path for direct upload
+  // The client will upload directly to our /api/uploads/file endpoint
+  return jsonResponse({
+    uploadURL: `/api/uploads/file?path=${encodeURIComponent(objectPath)}`,
+    objectPath: objectPath,
+    metadata: { name, size, contentType }
+  });
+}
+
+async function handleFileUpload(request: Request, env: Env, url: URL): Promise<Response> {
+  if (!env.MEDIA_BUCKET) {
+    return errorResponse('File uploads not configured', 503);
+  }
+
+  const objectPath = url.searchParams.get('path');
+  if (!objectPath) {
+    return errorResponse('Missing file path', 400);
+  }
+
+  const contentType = request.headers.get('Content-Type') || 'application/octet-stream';
+  const fileData = await request.arrayBuffer();
+
+  try {
+    await env.MEDIA_BUCKET.put(objectPath, fileData, {
+      httpMetadata: { contentType }
+    });
+
+    return jsonResponse({ success: true, objectPath });
+  } catch (err) {
+    console.error('Upload error:', err);
+    return errorResponse('Failed to upload file');
+  }
+}
+
+async function handleGetFile(env: Env, objectPath: string): Promise<Response> {
+  if (!env.MEDIA_BUCKET) {
+    return errorResponse('File storage not configured', 503);
+  }
+
+  const file = await env.MEDIA_BUCKET.get(objectPath);
+  if (!file) {
+    return errorResponse('File not found', 404);
+  }
+
+  return new Response(file.body, {
+    headers: {
+      'Content-Type': file.httpMetadata?.contentType || 'application/octet-stream',
+      'Cache-Control': 'public, max-age=31536000',
+    }
+  });
+}
+
+// ============================================
 // Main Router
 // ============================================
 async function handleApiRequest(request: Request, env: Env, url: URL): Promise<Response> {
@@ -410,6 +560,17 @@ async function handleApiRequest(request: Request, env: Env, url: URL): Promise<R
     if (path === '/api/jukebox/songs' && method === 'GET') {
       return await handleGetSongs(env);
     }
+    if (path === '/api/jukebox/songs' && method === 'POST') {
+      return await handleAddSong(request, env);
+    }
+    if (path.match(/^\/api\/jukebox\/songs\/\d+$/) && method === 'DELETE') {
+      const songId = path.split('/').pop()!;
+      return await handleDeleteSong(songId, env);
+    }
+    if (path.match(/^\/api\/jukebox\/songs\/\d+\/play$/) && method === 'POST') {
+      const songId = path.split('/')[4];
+      return await handlePlaySong(songId, env);
+    }
 
     // Seed Bank
     if (path === '/api/seed-bank' && method === 'GET') {
@@ -423,6 +584,18 @@ async function handleApiRequest(request: Request, env: Env, url: URL): Promise<R
     // Announcements
     if (path === '/api/announcement/current' && method === 'GET') {
       return await handleGetAnnouncement(env);
+    }
+
+    // File Uploads (R2 Storage)
+    if (path === '/api/uploads/request-url' && method === 'POST') {
+      return await handleRequestUploadUrl(request, env);
+    }
+    if (path === '/api/uploads/file' && method === 'PUT') {
+      return await handleFileUpload(request, env, url);
+    }
+    if (path.startsWith('/api/uploads/') && method === 'GET') {
+      const objectPath = path.replace('/api/uploads/', '');
+      return await handleGetFile(env, decodeURIComponent(objectPath));
     }
 
     return errorResponse('Not found', 404);
