@@ -221,6 +221,20 @@ int 1000000000
 >=
 assert
 txn GroupIndex
+int 3
+-
+gtxns AssetReceiver
+global CurrentApplicationAddress
+==
+assert
+txn GroupIndex
+int 3
+-
+gtxns Sender
+txn Sender
+==
+assert
+txn GroupIndex
 int 2
 -
 gtxns TypeEnum
@@ -235,6 +249,20 @@ int 1
 ==
 assert
 txn GroupIndex
+int 2
+-
+gtxns AssetReceiver
+global CurrentApplicationAddress
+==
+assert
+txn GroupIndex
+int 2
+-
+gtxns Sender
+txn Sender
+==
+assert
+txn GroupIndex
 int 1
 -
 gtxns TypeEnum
@@ -246,6 +274,20 @@ int 1
 -
 gtxns AssetAmount
 int 1
+==
+assert
+txn GroupIndex
+int 1
+-
+gtxns AssetReceiver
+global CurrentApplicationAddress
+==
+assert
+txn GroupIndex
+int 1
+-
+gtxns Sender
+txn Sender
 ==
 assert
 byte "seed_counter"
