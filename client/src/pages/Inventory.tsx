@@ -10,7 +10,7 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Card } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { useAlgorand } from '@/hooks/use-algorand';
-import { useSeedNFTs, useBiomassNFTs, formatWeight, formatBudFromWeight } from '@/hooks/use-nfts';
+import { useSeedNFTs, useBiomassNFTs, formatBudFromWeight } from '@/hooks/use-nfts';
 import { SeedInventory } from '@/components/SeedInventory';
 import { BiomassInventory } from '@/components/BiomassInventory';
 
