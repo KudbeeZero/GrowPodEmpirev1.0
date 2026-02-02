@@ -18,7 +18,6 @@ import {
   generateBranchCurve,
   drawTaperedBezier,
   evaluateBezier,
-  getBezierTangent,
 } from './utils/bezier';
 import { perlin2, smoothSway, seededRandom } from './utils/noise';
 import { hexToRgba, adjustBrightness } from './utils/colors';
