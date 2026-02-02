@@ -246,11 +246,13 @@ function SeedCard({
               ) : (
                 <>
                   <ShoppingCart className="h-4 w-4 mr-1" />
-                  {parseInt(seed.budPrice) >= 1000000 
-                    ? `${parseInt(seed.budPrice) / 1000000}M $BUD`
-                    : parseInt(seed.budPrice) >= 1000 
-                      ? `${parseInt(seed.budPrice) / 1000}K $BUD`
-                      : `${seed.budPrice} $BUD`
+                  {parseInt(seed.budPrice) === 0
+                    ? "FREE"
+                    : parseInt(seed.budPrice) >= 1000000
+                      ? `${parseInt(seed.budPrice) / 1000000}M $BUD`
+                      : parseInt(seed.budPrice) >= 1000
+                        ? `${parseInt(seed.budPrice) / 1000}K $BUD`
+                        : `${seed.budPrice} $BUD`
                   }
                 </>
               )}
@@ -362,16 +364,16 @@ function SeedDetailModal({
             </div>
           )}
 
-          <div 
+          <div
             className="p-4 rounded-lg text-center"
             style={{ backgroundColor: `${seed.glowColor || "#a855f7"}20` }}
           >
             <p className="text-sm text-muted-foreground mb-1">Price</p>
-            <p 
+            <p
               className="text-2xl font-display font-bold"
               style={{ color: seed.glowColor || "#a855f7" }}
             >
-              {parseInt(seed.budPrice).toLocaleString()} $BUD
+              {parseInt(seed.budPrice) === 0 ? "FREE" : `${parseInt(seed.budPrice).toLocaleString()} $BUD`}
             </p>
           </div>
         </div>

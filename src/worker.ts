@@ -416,6 +416,71 @@ async function handleGetUserSeeds(walletAddress: string, env: Env): Promise<Resp
   return jsonResponse(userSeeds);
 }
 
+// Purchase a seed from the seed bank (FREE for testing)
+async function handlePurchaseSeed(seedId: string, request: Request, env: Env): Promise<Response> {
+  const body = await request.json() as { walletAddress?: string };
+  const { walletAddress } = body;
+
+  if (!walletAddress || !isValidAlgorandAddress(walletAddress)) {
+    return errorResponse('Invalid wallet address', 400);
+  }
+
+  // Get the seed
+  const seed = await env.DB.prepare(
+    'SELECT * FROM seed_bank WHERE id = ? AND is_active = 1'
+  ).bind(seedId).first() as any;
+
+  if (!seed) {
+    return errorResponse('Seed not found', 404);
+  }
+
+  // Check supply limits
+  if (seed.total_supply !== null && seed.minted_count >= seed.total_supply) {
+    return errorResponse('Seed is sold out', 400);
+  }
+
+  // Check per-user limits
+  if (seed.max_per_user !== null) {
+    const existingCount = await env.DB.prepare(
+      'SELECT SUM(quantity) as total FROM user_seeds WHERE wallet_address = ? AND seed_id = ?'
+    ).bind(walletAddress, seedId).first() as any;
+
+    if (existingCount?.total >= seed.max_per_user) {
+      return errorResponse(`Maximum ${seed.max_per_user} of this seed per user`, 400);
+    }
+  }
+
+  // NOTE: For testing, seeds are FREE - no $BUD deduction needed
+  // In production, you would verify on-chain $BUD balance and burn tokens here
+
+  // Check if user already has this seed
+  const existing = await env.DB.prepare(
+    'SELECT * FROM user_seeds WHERE wallet_address = ? AND seed_id = ?'
+  ).bind(walletAddress, seedId).first();
+
+  if (existing) {
+    // Increment quantity
+    await env.DB.prepare(
+      'UPDATE user_seeds SET quantity = quantity + 1 WHERE wallet_address = ? AND seed_id = ?'
+    ).bind(walletAddress, seedId).run();
+  } else {
+    // Insert new record
+    await env.DB.prepare(
+      'INSERT INTO user_seeds (wallet_address, seed_id, quantity) VALUES (?, ?, 1)'
+    ).bind(walletAddress, seedId).run();
+  }
+
+  // Update minted count
+  await env.DB.prepare(
+    'UPDATE seed_bank SET minted_count = minted_count + 1 WHERE id = ?'
+  ).bind(seedId).run();
+
+  return jsonResponse({
+    success: true,
+    message: 'Seed purchased successfully (FREE for testing)'
+  });
+}
+
 async function handleGetAnnouncement(env: Env): Promise<Response> {
   const announcement = await env.DB.prepare(
     'SELECT * FROM announcement_videos WHERE is_active = 1 ORDER BY created_at DESC LIMIT 1'
@@ -1135,6 +1200,10 @@ async function handleApiRequest(request: Request, env: Env, url: URL): Promise<R
     // Seed Bank
     if (path === '/api/seed-bank' && method === 'GET') {
       return await handleGetSeedBank(env);
+    }
+    if (path.match(/^\/api\/seed-bank\/\d+\/purchase$/) && method === 'POST') {
+      const seedId = path.split('/')[3];
+      return await handlePurchaseSeed(seedId, request, env);
     }
     if (path.startsWith('/api/user-seeds/') && method === 'GET') {
       const walletAddress = path.replace('/api/user-seeds/', '');

@@ -54,7 +54,7 @@ export const seedBank = pgTable("seed_bank", {
   thcRange: text("thc_range").default("15-20%"),
   cbdRange: text("cbd_range").default("0-1%"),
   growthBonus: integer("growth_bonus").default(0), // Percentage bonus to yields
-  budPrice: text("bud_price").notNull().default("1000"), // Cost in $BUD
+  budPrice: text("bud_price").notNull().default("0"), // Cost in $BUD (FREE for testing)
   imagePath: text("image_path"), // Custom artwork
   glowColor: text("glow_color").default("#a855f7"), // Primary glow color for card
   totalSupply: integer("total_supply"), // null = unlimited
