@@ -112,6 +112,19 @@ npm run dev
 - **Combiner Lab**: Breed two plants for hybrid seeds
 - **Supply Store**: Buy nutrients/controls with $BUD
 - **Cure Vault**: Cure $BUD for bonus yields
+- **Predictions**: Prediction markets with $SMOKE token (requires Cloudflare Worker deployment)
+
+### Note on Predictions Feature
+
+The `/predictions` page requires the Cloudflare Worker deployment to function. The following API endpoints are only available when running the Worker (`npm run dev:worker` or deployed to Cloudflare):
+
+- `GET /api/markets` - List prediction markets
+- `GET /api/smoke/:account` - Get $SMOKE token balance
+- `GET /api/positions/:account` - Get user's market positions
+- `POST /api/smoke/burn` - Burn $SMOKE tokens
+- `POST /api/markets/buy` - Buy market position
+
+**For local development**: Run `npm run dev:worker` instead of `npm run dev` to enable Predictions functionality. The standard Express server (`npm run dev`) does not include these endpoints.
 
 ## Environment Variables
 
