@@ -2,27 +2,22 @@ import { useState } from "react";
 import { useQuery, useMutation } from "@tanstack/react-query";
 import { queryClient, apiRequest } from "@/lib/queryClient";
 import { useAlgorand } from "@/hooks/use-algorand";
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { Card, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
-import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
+import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { useToast } from "@/hooks/use-toast";
-import { motion, AnimatePresence } from "framer-motion";
+import { motion } from "framer-motion";
 import { cn } from "@/lib/utils";
 import {
-  TrendingUp,
-  TrendingDown,
   Clock,
   Flame,
   Wallet,
   ChevronRight,
-  ArrowUpRight,
-  ArrowDownRight,
   Loader2,
   BarChart3,
   Lock,
-  Star,
   Info,
 } from "lucide-react";
 
@@ -83,11 +78,20 @@ function formatTimeRemaining(expirationTime: string): string {
 
 function formatSmoke(amount: string): string {
   const num = BigInt(amount || "0");
-  const decimals = BigInt(1000000);
-  const whole = Number(num) / Number(decimals);
-  if (whole >= 1000000) return `${(whole / 1000000).toFixed(1)}M`;
-  if (whole >= 1000) return `${(whole / 1000).toFixed(1)}K`;
-  return whole.toFixed(2);
+  const decimals = 1000000n;
+  
+  // Use BigInt division to get whole part
+  const whole = num / decimals;
+  const remainder = num % decimals;
+  
+  // Convert to number only after division for display
+  const wholeNum = Number(whole);
+  const fractional = Number(remainder) / 1000000;
+  const total = wholeNum + fractional;
+  
+  if (wholeNum >= 1000000) return `${(wholeNum / 1000000).toFixed(1)}M`;
+  if (wholeNum >= 1000) return `${(wholeNum / 1000).toFixed(1)}K`;
+  return total.toFixed(2);
 }
 
 function MarketCard({
@@ -97,7 +101,6 @@ function MarketCard({
   market: PredictionMarket;
   onClick: () => void;
 }) {
-  const isExpired = new Date(market.expirationTime) <= new Date();
   const yesChance = market.yesPrice;
   const timeRemaining = formatTimeRemaining(market.expirationTime);
 
