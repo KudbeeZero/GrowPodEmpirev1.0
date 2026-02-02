@@ -9,8 +9,11 @@ compatibility_flags = ["nodejs_compat"]
 # ============================================
 # Account ID (same as main worker)
 # ============================================
-# For deployment, provide via: wrangler deploy -c wrangler.security.toml --account-id <YOUR_ACCOUNT_ID>
-# Or set in GitHub secrets: CLOUDFLARE_ACCOUNT_ID
+# IMPORTANT: This is a placeholder value. Do NOT commit your actual account ID.
+# For deployment, provide via one of these methods:
+#   1. CLI: wrangler deploy -c wrangler.security.toml --account-id <YOUR_ACCOUNT_ID>
+#   2. GitHub Actions: Set CLOUDFLARE_ACCOUNT_ID in repository secrets
+#   3. Local override: Create wrangler.local.toml with your account_id (add to .gitignore)
 account_id = "REPLACE_WITH_YOUR_ACCOUNT_ID"
 
 # ============================================
@@ -22,7 +25,12 @@ crons = ["*/5 * * * *"]  # Every 5 minutes
 # ============================================
 # D1 Database (same as main app)
 # ============================================
-# Use the same database_id from wrangler.toml
+# IMPORTANT: This is a placeholder value. Do NOT commit your actual database ID.
+# Create a D1 database first: wrangler d1 create growpod-empire-db
+# Then provide the database_id via one of these methods:
+#   1. Replace this placeholder with your actual database_id (local development only)
+#   2. Use environment-specific wrangler configs (wrangler.production.toml, etc.)
+#   3. Set via CI/CD secrets during deployment
 [[d1_databases]]
 binding = "DB"
 database_name = "growpod-empire-db"

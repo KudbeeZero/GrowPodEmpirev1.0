@@ -7,7 +7,8 @@ GrowPod Empire is a blockchain-based idle farming game on **Algorand TestNet**. 
 ## Tech Stack
 
 - **Frontend**: React 18 + Vite + TypeScript, Tailwind CSS (dark cyberpunk theme)
-- **Backend**: Express.js + TypeScript, PostgreSQL + Drizzle ORM
+- **Backend**: Hybrid architecture - Express.js (development/legacy) + Cloudflare Workers (production deployment)
+- **Database**: PostgreSQL with Drizzle ORM (development), D1 (Cloudflare Workers production)
 - **Blockchain**: Algorand (PyTeal smart contracts), Pera Wallet
 - **State Management**: TanStack Query, React Context
 - **Routing**: Wouter
@@ -23,25 +24,31 @@ project-root/
 │   ├── hooks/           # Custom hooks (use-algorand.ts for blockchain)
 │   ├── context/         # AlgorandContext.tsx for wallet state
 │   └── lib/             # Utilities
-├── server/              # Express backend
+├── server/              # Express backend (development)
 │   ├── routes.ts        # API endpoints
 │   ├── storage.ts       # Database operations
 │   └── db.ts            # Drizzle connection
+├── src/                 # Cloudflare Worker (production)
+│   ├── worker.ts        # Main worker entry
+│   └── security-monitor.ts  # Security monitoring worker
 ├── shared/              # Shared TypeScript code
 │   ├── schema.ts        # Drizzle schema + types
 │   └── routes.ts        # API route definitions
 └── contracts/           # Algorand smart contracts (PyTeal)
     ├── contract.py      # Main contract
+    ├── contract_v2.py   # V2 NFT contract
     └── *.teal           # Compiled TEAL
 ```
 
 ## Development Commands
 
 ```bash
-npm run dev      # Start dev server (frontend + backend)
-npm run check    # Type checking
-npm run build    # Production build
-npm run db:push  # Push database schema changes
+npm run dev           # Start dev server (frontend + Express backend)
+npm run dev:worker    # Start Cloudflare Worker (alternative backend)
+npm run check         # Type checking
+npm run build         # Production build
+npm run db:push       # Push database schema changes
+npx wrangler deploy   # Deploy to Cloudflare Workers
 ```
 
 ## Key Conventions

@@ -3,7 +3,6 @@
  * Shows Seeds and Biomass NFTs with full management capabilities
  */
 
-import { useState } from 'react';
 import { motion } from 'framer-motion';
 import { Leaf, Package, Coins, FlaskConical, Dna, ArrowRight } from 'lucide-react';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';

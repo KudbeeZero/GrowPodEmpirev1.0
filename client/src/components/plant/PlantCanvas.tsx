@@ -120,7 +120,8 @@ export function PlantCanvas({
     const scale = window.devicePixelRatio || 1;
     canvas.width = width * scale;
     canvas.height = height * scale;
-    ctx.scale(scale, scale);
+    // Reset transform before scaling to prevent compounding on re-renders
+    ctx.setTransform(scale, 0, 0, scale, 0, 0);
 
     // Create renderer
     rendererRef.current = new PlantRenderer(colors);
