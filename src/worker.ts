@@ -508,6 +508,336 @@ async function handleGetFile(env: Env, objectPath: string): Promise<Response> {
 }
 
 // ============================================
+// Prediction Market Handlers
+// ============================================
+
+// Burn $BUD to get $SMOKE (1:1 ratio for simplicity)
+async function handleBurnForSmoke(request: Request, env: Env): Promise<Response> {
+  const body = await request.json() as { walletAddress: string; budAmount: string };
+  const { walletAddress, budAmount } = body;
+
+  if (!isValidAlgorandAddress(walletAddress)) {
+    return errorResponse('Invalid wallet address', 400);
+  }
+  if (!isValidTokenAmount(budAmount) || BigInt(budAmount) <= BigInt(0)) {
+    return errorResponse('Invalid BUD amount', 400);
+  }
+
+  // Get or create smoke balance
+  let smokeBalance = await env.DB.prepare(
+    'SELECT * FROM smoke_balances WHERE wallet_address = ?'
+  ).bind(walletAddress).first<{ balance: string; total_burned: string }>();
+
+  if (!smokeBalance) {
+    await env.DB.prepare(
+      'INSERT INTO smoke_balances (wallet_address) VALUES (?)'
+    ).bind(walletAddress).run();
+    smokeBalance = { balance: '0', total_burned: '0' };
+  }
+
+  // Calculate new balances (1 $BUD = 1 $SMOKE)
+  const newBalance = (BigInt(smokeBalance.balance) + BigInt(budAmount)).toString();
+  const newTotalBurned = (BigInt(smokeBalance.total_burned) + BigInt(budAmount)).toString();
+
+  await env.DB.prepare(`
+    UPDATE smoke_balances
+    SET balance = ?, total_burned = ?, updated_at = datetime('now')
+    WHERE wallet_address = ?
+  `).bind(newBalance, newTotalBurned, walletAddress).run();
+
+  return jsonResponse({
+    success: true,
+    smokeBalance: newBalance,
+    budBurned: budAmount,
+    totalBurned: newTotalBurned
+  });
+}
+
+// Get $SMOKE balance
+async function handleGetSmokeBalance(walletAddress: string, env: Env): Promise<Response> {
+  if (!isValidAlgorandAddress(walletAddress)) {
+    return errorResponse('Invalid wallet address', 400);
+  }
+
+  const balance = await env.DB.prepare(
+    'SELECT * FROM smoke_balances WHERE wallet_address = ?'
+  ).bind(walletAddress).first();
+
+  if (!balance) {
+    return jsonResponse({ balance: '0', totalBurned: '0', totalWon: '0', totalLost: '0' });
+  }
+
+  return jsonResponse(toCamelCase(balance as Record<string, unknown>));
+}
+
+// List prediction markets
+async function handleListMarkets(env: Env, url: URL): Promise<Response> {
+  const status = url.searchParams.get('status') || 'open';
+  const category = url.searchParams.get('category');
+  const limit = Math.min(parseInt(url.searchParams.get('limit') || '20'), 100);
+
+  let query = 'SELECT * FROM prediction_markets WHERE status = ?';
+  const params: (string | number)[] = [status];
+
+  if (category) {
+    query += ' AND category = ?';
+    params.push(category);
+  }
+
+  query += ' ORDER BY expiration_time ASC LIMIT ?';
+  params.push(limit);
+
+  const stmt = env.DB.prepare(query);
+  const results = await stmt.bind(...params).all();
+
+  const markets = (results.results || []).map(m => toCamelCase(m as Record<string, unknown>));
+  return jsonResponse(markets);
+}
+
+// Get single market details
+async function handleGetMarket(marketId: string, env: Env): Promise<Response> {
+  const id = parseInt(marketId, 10);
+  if (isNaN(id)) {
+    return errorResponse('Invalid market ID', 400);
+  }
+
+  const market = await env.DB.prepare(
+    'SELECT * FROM prediction_markets WHERE id = ?'
+  ).bind(id).first();
+
+  if (!market) {
+    return errorResponse('Market not found', 404);
+  }
+
+  return jsonResponse(toCamelCase(market as Record<string, unknown>));
+}
+
+// Buy shares in a market
+async function handleBuyShares(request: Request, env: Env): Promise<Response> {
+  const body = await request.json() as {
+    walletAddress: string;
+    marketId: number;
+    side: 'yes' | 'no';
+    shares: string;
+  };
+  const { walletAddress, marketId, side, shares } = body;
+
+  if (!isValidAlgorandAddress(walletAddress)) {
+    return errorResponse('Invalid wallet address', 400);
+  }
+  if (!['yes', 'no'].includes(side)) {
+    return errorResponse('Side must be "yes" or "no"', 400);
+  }
+  const sharesBigInt = BigInt(shares || '0');
+  if (sharesBigInt <= BigInt(0)) {
+    return errorResponse('Invalid share amount', 400);
+  }
+
+  // Get market
+  const market = await env.DB.prepare(
+    'SELECT * FROM prediction_markets WHERE id = ? AND status = ?'
+  ).bind(marketId, 'open').first<{
+    yes_price: number;
+    no_price: number;
+    total_yes_shares: string;
+    total_no_shares: string;
+    total_volume: string;
+  }>();
+
+  if (!market) {
+    return errorResponse('Market not found or closed', 404);
+  }
+
+  // Calculate cost
+  const pricePerShare = side === 'yes' ? market.yes_price : market.no_price;
+  const totalCost = (sharesBigInt * BigInt(pricePerShare)).toString();
+
+  // Check $SMOKE balance
+  const smokeBalance = await env.DB.prepare(
+    'SELECT balance FROM smoke_balances WHERE wallet_address = ?'
+  ).bind(walletAddress).first<{ balance: string }>();
+
+  if (!smokeBalance || BigInt(smokeBalance.balance) < BigInt(totalCost)) {
+    return errorResponse('Insufficient $SMOKE balance', 400);
+  }
+
+  // Deduct $SMOKE
+  const newSmokeBalance = (BigInt(smokeBalance.balance) - BigInt(totalCost)).toString();
+  await env.DB.prepare(
+    'UPDATE smoke_balances SET balance = ?, updated_at = datetime(\'now\') WHERE wallet_address = ?'
+  ).bind(newSmokeBalance, walletAddress).run();
+
+  // Update or create position
+  const existingPosition = await env.DB.prepare(
+    'SELECT * FROM market_positions WHERE wallet_address = ? AND market_id = ?'
+  ).bind(walletAddress, marketId).first<{
+    yes_shares: string;
+    no_shares: string;
+    avg_yes_price: number;
+    avg_no_price: number;
+  }>();
+
+  if (existingPosition) {
+    const currentShares = side === 'yes' ? existingPosition.yes_shares : existingPosition.no_shares;
+    const currentAvgPrice = side === 'yes' ? existingPosition.avg_yes_price : existingPosition.avg_no_price;
+
+    // Calculate new weighted average price
+    const totalSharesAfter = BigInt(currentShares) + sharesBigInt;
+    const newAvgPrice = totalSharesAfter > BigInt(0)
+      ? Number((BigInt(currentShares) * BigInt(currentAvgPrice) + sharesBigInt * BigInt(pricePerShare)) / totalSharesAfter)
+      : pricePerShare;
+
+    const newShares = totalSharesAfter.toString();
+
+    if (side === 'yes') {
+      await env.DB.prepare(`
+        UPDATE market_positions
+        SET yes_shares = ?, avg_yes_price = ?, updated_at = datetime('now')
+        WHERE wallet_address = ? AND market_id = ?
+      `).bind(newShares, newAvgPrice, walletAddress, marketId).run();
+    } else {
+      await env.DB.prepare(`
+        UPDATE market_positions
+        SET no_shares = ?, avg_no_price = ?, updated_at = datetime('now')
+        WHERE wallet_address = ? AND market_id = ?
+      `).bind(newShares, newAvgPrice, walletAddress, marketId).run();
+    }
+  } else {
+    await env.DB.prepare(`
+      INSERT INTO market_positions (wallet_address, market_id, yes_shares, no_shares, avg_yes_price, avg_no_price)
+      VALUES (?, ?, ?, ?, ?, ?)
+    `).bind(
+      walletAddress,
+      marketId,
+      side === 'yes' ? shares : '0',
+      side === 'no' ? shares : '0',
+      side === 'yes' ? pricePerShare : 0,
+      side === 'no' ? pricePerShare : 0
+    ).run();
+  }
+
+  // Update market totals
+  const newTotalShares = side === 'yes'
+    ? (BigInt(market.total_yes_shares) + sharesBigInt).toString()
+    : (BigInt(market.total_no_shares) + sharesBigInt).toString();
+  const newVolume = (BigInt(market.total_volume) + BigInt(totalCost)).toString();
+
+  if (side === 'yes') {
+    await env.DB.prepare(`
+      UPDATE prediction_markets SET total_yes_shares = ?, total_volume = ? WHERE id = ?
+    `).bind(newTotalShares, newVolume, marketId).run();
+  } else {
+    await env.DB.prepare(`
+      UPDATE prediction_markets SET total_no_shares = ?, total_volume = ? WHERE id = ?
+    `).bind(newTotalShares, newVolume, marketId).run();
+  }
+
+  // Record order
+  await env.DB.prepare(`
+    INSERT INTO market_orders (wallet_address, market_id, side, action, shares, price_per_share, total_cost)
+    VALUES (?, ?, ?, ?, ?, ?, ?)
+  `).bind(walletAddress, marketId, side, 'buy', shares, pricePerShare, totalCost).run();
+
+  return jsonResponse({
+    success: true,
+    order: {
+      marketId,
+      side,
+      shares,
+      pricePerShare,
+      totalCost,
+    },
+    newSmokeBalance
+  });
+}
+
+// Get user's positions
+async function handleGetPositions(walletAddress: string, env: Env): Promise<Response> {
+  if (!isValidAlgorandAddress(walletAddress)) {
+    return errorResponse('Invalid wallet address', 400);
+  }
+
+  const results = await env.DB.prepare(`
+    SELECT mp.*, pm.title, pm.status, pm.outcome, pm.yes_price, pm.no_price, pm.expiration_time
+    FROM market_positions mp
+    INNER JOIN prediction_markets pm ON mp.market_id = pm.id
+    WHERE mp.wallet_address = ?
+    ORDER BY pm.expiration_time ASC
+  `).bind(walletAddress).all();
+
+  const positions = (results.results || []).map((p: any) => ({
+    marketId: p.market_id,
+    marketTitle: p.title,
+    marketStatus: p.status,
+    marketOutcome: p.outcome,
+    yesShares: p.yes_shares,
+    noShares: p.no_shares,
+    avgYesPrice: p.avg_yes_price,
+    avgNoPrice: p.avg_no_price,
+    currentYesPrice: p.yes_price,
+    currentNoPrice: p.no_price,
+    expirationTime: p.expiration_time,
+  }));
+
+  return jsonResponse(positions);
+}
+
+// Create a new market (admin only for now)
+async function handleCreateMarket(request: Request, env: Env): Promise<Response> {
+  const body = await request.json() as {
+    title: string;
+    description?: string;
+    category?: string;
+    asset?: string;
+    targetPrice?: string;
+    comparison?: string;
+    expirationTime: string;
+    initialYesPrice?: number;
+  };
+
+  const {
+    title,
+    description,
+    category = 'crypto',
+    asset,
+    targetPrice,
+    comparison = 'above',
+    expirationTime,
+    initialYesPrice = 50
+  } = body;
+
+  if (!title || !expirationTime) {
+    return errorResponse('Missing required fields: title, expirationTime', 400);
+  }
+
+  const sanitizedTitle = title.slice(0, 300).replace(/[<>]/g, '');
+  const sanitizedDesc = description?.slice(0, 1000).replace(/[<>]/g, '');
+  const noPrice = 100 - initialYesPrice;
+
+  await env.DB.prepare(`
+    INSERT INTO prediction_markets
+    (title, description, category, asset, target_price, comparison, expiration_time, yes_price, no_price)
+    VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)
+  `).bind(
+    sanitizedTitle,
+    sanitizedDesc || null,
+    category,
+    asset || null,
+    targetPrice || null,
+    comparison,
+    expirationTime,
+    initialYesPrice,
+    noPrice
+  ).run();
+
+  const market = await env.DB.prepare(
+    'SELECT * FROM prediction_markets ORDER BY id DESC LIMIT 1'
+  ).first();
+
+  return jsonResponse(toCamelCase(market as Record<string, unknown>), 201);
+}
+
+// ============================================
 // Main Router
 // ============================================
 async function handleApiRequest(request: Request, env: Env, url: URL): Promise<Response> {
@@ -584,6 +914,32 @@ async function handleApiRequest(request: Request, env: Env, url: URL): Promise<R
     // Announcements
     if (path === '/api/announcement/current' && method === 'GET') {
       return await handleGetAnnouncement(env);
+    }
+
+    // Prediction Markets
+    if (path === '/api/smoke/burn' && method === 'POST') {
+      return await handleBurnForSmoke(request, env);
+    }
+    if (path.match(/^\/api\/smoke\/[A-Z2-7]{58}$/) && method === 'GET') {
+      const walletAddress = path.split('/').pop()!;
+      return await handleGetSmokeBalance(walletAddress, env);
+    }
+    if (path === '/api/markets' && method === 'GET') {
+      return await handleListMarkets(env, url);
+    }
+    if (path === '/api/markets' && method === 'POST') {
+      return await handleCreateMarket(request, env);
+    }
+    if (path.match(/^\/api\/markets\/\d+$/) && method === 'GET') {
+      const marketId = path.split('/').pop()!;
+      return await handleGetMarket(marketId, env);
+    }
+    if (path === '/api/markets/buy' && method === 'POST') {
+      return await handleBuyShares(request, env);
+    }
+    if (path.match(/^\/api\/positions\/[A-Z2-7]{58}$/) && method === 'GET') {
+      const walletAddress = path.split('/').pop()!;
+      return await handleGetPositions(walletAddress, env);
     }
 
     // File Uploads (R2 Storage)

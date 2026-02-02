@@ -105,3 +105,83 @@ CREATE TABLE IF NOT EXISTS user_seeds (
 CREATE INDEX IF NOT EXISTS idx_user_seeds_wallet ON user_seeds(wallet_address);
 CREATE INDEX IF NOT EXISTS idx_user_seeds_seed ON user_seeds(seed_id);
 CREATE UNIQUE INDEX IF NOT EXISTS idx_user_seeds_unique ON user_seeds(wallet_address, seed_id);
+
+-- ============================================
+-- $SMOKE Balances Table (Prediction Market Currency)
+-- ============================================
+CREATE TABLE IF NOT EXISTS smoke_balances (
+  id INTEGER PRIMARY KEY AUTOINCREMENT,
+  wallet_address TEXT UNIQUE NOT NULL,
+  balance TEXT DEFAULT '0' NOT NULL,
+  total_burned TEXT DEFAULT '0' NOT NULL,
+  total_won TEXT DEFAULT '0' NOT NULL,
+  total_lost TEXT DEFAULT '0' NOT NULL,
+  updated_at TEXT DEFAULT (datetime('now'))
+);
+
+CREATE INDEX IF NOT EXISTS idx_smoke_wallet ON smoke_balances(wallet_address);
+
+-- ============================================
+-- Prediction Markets Table
+-- ============================================
+CREATE TABLE IF NOT EXISTS prediction_markets (
+  id INTEGER PRIMARY KEY AUTOINCREMENT,
+  title TEXT NOT NULL,
+  description TEXT,
+  category TEXT DEFAULT 'crypto' NOT NULL,
+  asset TEXT,
+  target_price TEXT,
+  comparison TEXT DEFAULT 'above',
+  expiration_time TEXT NOT NULL,
+  resolution_time TEXT,
+  outcome TEXT,
+  yes_price INTEGER DEFAULT 50 NOT NULL,
+  no_price INTEGER DEFAULT 50 NOT NULL,
+  total_yes_shares TEXT DEFAULT '0' NOT NULL,
+  total_no_shares TEXT DEFAULT '0' NOT NULL,
+  total_volume TEXT DEFAULT '0' NOT NULL,
+  status TEXT DEFAULT 'open' NOT NULL,
+  created_at TEXT DEFAULT (datetime('now'))
+);
+
+CREATE INDEX IF NOT EXISTS idx_markets_status ON prediction_markets(status);
+CREATE INDEX IF NOT EXISTS idx_markets_category ON prediction_markets(category);
+CREATE INDEX IF NOT EXISTS idx_markets_expiration ON prediction_markets(expiration_time);
+
+-- ============================================
+-- Market Positions Table
+-- ============================================
+CREATE TABLE IF NOT EXISTS market_positions (
+  id INTEGER PRIMARY KEY AUTOINCREMENT,
+  wallet_address TEXT NOT NULL,
+  market_id INTEGER NOT NULL,
+  yes_shares TEXT DEFAULT '0' NOT NULL,
+  no_shares TEXT DEFAULT '0' NOT NULL,
+  avg_yes_price INTEGER DEFAULT 0,
+  avg_no_price INTEGER DEFAULT 0,
+  updated_at TEXT DEFAULT (datetime('now')),
+  FOREIGN KEY (market_id) REFERENCES prediction_markets(id)
+);
+
+CREATE INDEX IF NOT EXISTS idx_positions_wallet ON market_positions(wallet_address);
+CREATE INDEX IF NOT EXISTS idx_positions_market ON market_positions(market_id);
+CREATE UNIQUE INDEX IF NOT EXISTS idx_positions_unique ON market_positions(wallet_address, market_id);
+
+-- ============================================
+-- Market Orders Table
+-- ============================================
+CREATE TABLE IF NOT EXISTS market_orders (
+  id INTEGER PRIMARY KEY AUTOINCREMENT,
+  wallet_address TEXT NOT NULL,
+  market_id INTEGER NOT NULL,
+  side TEXT NOT NULL,
+  action TEXT NOT NULL,
+  shares TEXT NOT NULL,
+  price_per_share INTEGER NOT NULL,
+  total_cost TEXT NOT NULL,
+  created_at TEXT DEFAULT (datetime('now')),
+  FOREIGN KEY (market_id) REFERENCES prediction_markets(id)
+);
+
+CREATE INDEX IF NOT EXISTS idx_orders_wallet ON market_orders(wallet_address);
+CREATE INDEX IF NOT EXISTS idx_orders_market ON market_orders(market_id);

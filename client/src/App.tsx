@@ -20,6 +20,7 @@ import Stats from "@/pages/Stats";
 import Achievements from "@/pages/Achievements";
 import Jukebox from "@/pages/Jukebox";
 import SeedBank from "@/pages/SeedBank";
+import Predictions from "@/pages/Predictions";
 import Admin from "@/pages/Admin";
 import Inventory from "@/pages/Inventory";
 import { MiniPlayer } from "@/components/MiniPlayer";
@@ -100,6 +101,7 @@ function Router() {
           <Route path="/achievements" component={Achievements} />
           <Route path="/jukebox" component={Jukebox} />
           <Route path="/seed-bank" component={SeedBank} />
+          <Route path="/predictions" component={Predictions} />
           <Route path="/admin" component={Admin} />
           <Route component={NotFound} />
         </Switch>

@@ -93,7 +93,86 @@ export type InsertSeedBankItem = z.infer<typeof insertSeedBankSchema>;
 export type UserSeed = typeof userSeeds.$inferSelect;
 export type InsertUserSeed = z.infer<typeof insertUserSeedSchema>;
 
+// ============================================
+// Prediction Market Tables
+// ============================================
+
+// $SMOKE token - obtained by burning $BUD, used for predictions
+export const smokeBalances = pgTable("smoke_balances", {
+  id: serial("id").primaryKey(),
+  walletAddress: text("wallet_address").unique().notNull(),
+  balance: text("balance").default("0").notNull(), // 6 decimals like $BUD
+  totalBurned: text("total_burned").default("0").notNull(), // Total $BUD burned for $SMOKE
+  totalWon: text("total_won").default("0").notNull(),
+  totalLost: text("total_lost").default("0").notNull(),
+  updatedAt: timestamp("updated_at").defaultNow(),
+});
+
+// Prediction Markets - crypto price predictions
+export const predictionMarkets = pgTable("prediction_markets", {
+  id: serial("id").primaryKey(),
+  title: text("title").notNull(), // "Bitcoin price on Feb 2, 2026 at 5pm EST?"
+  description: text("description"),
+  category: text("category").notNull().default("crypto"), // crypto, sports, politics, custom
+  asset: text("asset"), // BTC, SOL, ETH, etc.
+  targetPrice: text("target_price"), // Price threshold (e.g., "77250")
+  comparison: text("comparison").default("above"), // above, below, between, exactly
+  expirationTime: timestamp("expiration_time").notNull(),
+  resolutionTime: timestamp("resolution_time"), // When outcome was determined
+  outcome: text("outcome"), // "yes", "no", or null if pending
+  yesPrice: integer("yes_price").default(50).notNull(), // Current price in cents (0-100)
+  noPrice: integer("no_price").default(50).notNull(),
+  totalYesShares: text("total_yes_shares").default("0").notNull(),
+  totalNoShares: text("total_no_shares").default("0").notNull(),
+  totalVolume: text("total_volume").default("0").notNull(),
+  status: text("status").default("open").notNull(), // open, closed, resolved, cancelled
+  createdAt: timestamp("created_at").defaultNow(),
+});
+
+// User positions in markets
+export const marketPositions = pgTable("market_positions", {
+  id: serial("id").primaryKey(),
+  walletAddress: text("wallet_address").notNull(),
+  marketId: integer("market_id").notNull().references(() => predictionMarkets.id),
+  yesShares: text("yes_shares").default("0").notNull(), // Number of YES shares owned
+  noShares: text("no_shares").default("0").notNull(), // Number of NO shares owned
+  avgYesPrice: integer("avg_yes_price").default(0), // Average purchase price
+  avgNoPrice: integer("avg_no_price").default(0),
+  updatedAt: timestamp("updated_at").defaultNow(),
+});
+
+// Order history for markets
+export const marketOrders = pgTable("market_orders", {
+  id: serial("id").primaryKey(),
+  walletAddress: text("wallet_address").notNull(),
+  marketId: integer("market_id").notNull().references(() => predictionMarkets.id),
+  side: text("side").notNull(), // "yes" or "no"
+  action: text("action").notNull(), // "buy" or "sell"
+  shares: text("shares").notNull(), // Number of shares
+  pricePerShare: integer("price_per_share").notNull(), // Price in cents
+  totalCost: text("total_cost").notNull(), // Total $SMOKE spent/received
+  createdAt: timestamp("created_at").defaultNow(),
+});
+
+// Insert schemas for prediction market tables
+export const insertSmokeBalanceSchema = createInsertSchema(smokeBalances).omit({ id: true, updatedAt: true });
+export const insertPredictionMarketSchema = createInsertSchema(predictionMarkets).omit({ id: true, createdAt: true });
+export const insertMarketPositionSchema = createInsertSchema(marketPositions).omit({ id: true, updatedAt: true });
+export const insertMarketOrderSchema = createInsertSchema(marketOrders).omit({ id: true, createdAt: true });
+
+// Types for prediction market
+export type SmokeBalance = typeof smokeBalances.$inferSelect;
+export type InsertSmokeBalance = z.infer<typeof insertSmokeBalanceSchema>;
+export type PredictionMarket = typeof predictionMarkets.$inferSelect;
+export type InsertPredictionMarket = z.infer<typeof insertPredictionMarketSchema>;
+export type MarketPosition = typeof marketPositions.$inferSelect;
+export type InsertMarketPosition = z.infer<typeof insertMarketPositionSchema>;
+export type MarketOrder = typeof marketOrders.$inferSelect;
+export type InsertMarketOrder = z.infer<typeof insertMarketOrderSchema>;
+
+// ============================================
 // Types for Game Data (Frontend <-> Backend)
+// ============================================
 export type PodStatus = "empty" | "planted" | "growing" | "ready_harvest" | "dead";
 
 export interface PodData {
