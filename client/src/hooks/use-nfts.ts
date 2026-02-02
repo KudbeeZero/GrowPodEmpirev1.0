@@ -43,29 +43,8 @@ export interface BiomassNFT {
 
 /**
  * Parse note field from asset to extract metadata
+ * (helper removed because it was unused)
  */
-function parseNoteField(note: string | Uint8Array | undefined): Record<string, string> {
-  if (!note) return {};
-
-  try {
-    const noteStr = typeof note === 'string'
-      ? atob(note)
-      : new TextDecoder().decode(note);
-
-    // Parse key:value pairs from note (e.g., "weight:2500000,seed:12345")
-    const pairs: Record<string, string> = {};
-    noteStr.split(',').forEach(pair => {
-      const [key, value] = pair.split(':');
-      if (key && value) {
-        pairs[key.trim()] = value.trim();
-      }
-    });
-    return pairs;
-  } catch {
-    return {};
-  }
-}
-
 /**
  * Fetch ARC-69 metadata from asset note or URL
  */
