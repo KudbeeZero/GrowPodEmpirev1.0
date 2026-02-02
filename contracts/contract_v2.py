@@ -646,6 +646,8 @@ def approval_program():
         Assert(App.globalGet(GlobalBudAsset) != Int(0)),
 
         # Security: Ensure transaction is grouped with sufficient size
+        # Breed requires 4 transactions: [BUD payment, Seed 1, Seed 2, App Call]
+        # So the app call must be at index 3 or higher for indices -3, -2, -1 to be valid
         Assert(Txn.group_index() >= Int(3)),
         Assert(Global.group_size() >= Int(4)),
 

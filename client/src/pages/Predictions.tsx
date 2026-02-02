@@ -86,7 +86,7 @@ function formatSmoke(amount: string): string {
   
   // Convert to number only after division for display
   const wholeNum = Number(whole);
-  const fractional = Number(remainder) / 1000000;
+  const fractional = Number(remainder) / Number(decimals);
   const total = wholeNum + fractional;
   
   if (wholeNum >= 1000000) return `${(wholeNum / 1000000).toFixed(1)}M`;
