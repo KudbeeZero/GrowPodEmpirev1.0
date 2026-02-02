@@ -1,5 +1,29 @@
 # GrowPod Empire - Copilot Instructions
 
+> **Last Updated**: February 2026  
+> **Status**: Active Development  
+> **Primary Documentation**: See also `CLAUDE.md` for detailed game mechanics and development patterns
+
+## Quick Start for New Contributors
+
+To get started with this repository:
+
+```bash
+# 1. Install dependencies
+npm install
+
+# 2. Verify TypeScript compilation (expect 14 known errors)
+npm run check
+
+# 3. Build the project
+npm run build
+
+# 4. Start development server
+npm run dev
+```
+
+**Note**: The development server runs on port 5173 (frontend) with backend API proxy. You'll need a PostgreSQL database and Algorand TestNet setup for full functionality.
+
 ## Repository Overview
 
 GrowPod Empire is a blockchain-based idle farming game built on **Algorand TestNet**. Players manage virtual hydroponic grow pods, cultivating plants through growth cycles to harvest **$BUD** tokens. The game features genetic breeding mechanics, terpene discovery, and a dual-token economy ($BUD and $TERP).
@@ -316,24 +340,90 @@ There are no automated tests in the repository currently. Manual testing approac
 4. Test game flow: mint pod → plant → water → harvest → cleanup
 5. Test API endpoints using the UI or directly
 
+## Troubleshooting
+
+### Common Issues and Solutions
+
+**Build Fails with "Cannot find type definition file"**
+- Solution: Run `npm install` to ensure all dependencies are installed
+
+**TypeScript Errors Block Development**
+- These 14 errors in CombinerLab, Dashboard, and SeedVault are expected
+- They do not prevent builds or runtime functionality
+- Do not attempt to fix unless specifically requested
+
+**Port Already in Use**
+- Default dev server runs on port 5173
+- Check for other Vite instances: `lsof -i :5173`
+- Kill process: `kill -9 <PID>`
+
+**Database Connection Errors**
+- Ensure `DATABASE_URL` environment variable is set
+- For local dev, use PostgreSQL connection string
+- For Cloudflare deployment, use D1 or external database
+
+**Algorand Transaction Failures**
+- Verify wallet has TestNet ALGO from faucet
+- Check contract IDs in `CONTRACT_CONFIG` match deployed contracts
+- Ensure user has opted into ASAs ($BUD, $TERP, $SLOT)
+- Check cooldown periods (10 minutes for water/nutrients)
+
+**Module Not Found Errors**
+- Verify path aliases are correct (`@/` for client/src, `@shared/` for shared)
+- Check `tsconfig.json` and `vite.config.ts` for path configurations
+
+**Smart Contract Compilation Issues**
+- Ensure Python dependencies installed: `pip install pyteal py-algorand-sdk`
+- Run from contracts directory: `cd contracts && python contract.py`
+
 ## Additional Documentation
 
 For more detailed guidance, see:
-- `CLAUDE.md` - Detailed development guide for AI assistants
+- `CLAUDE.md` - Detailed development guide for AI assistants with game mechanics
 - `README.md` - Project overview and deployment steps
 - `CLOUDFLARE_DEPLOYMENT.md` - Cloudflare Workers deployment guide
+- `GITHUB_ACTIONS_SETUP.md` - CI/CD configuration guide
 
 ## Instructions for Copilot
 
 When making changes to this codebase:
 
+### Pre-Change Checklist
 1. **Always** run `npm install` if package.json changes
-2. **Always** run `npm run check` before committing (but accept the 14 known errors)
-3. **Always** run `npm run build` to verify the build succeeds
-4. **Do not** try to fix the existing TypeScript errors unless specifically asked
-5. **Use** the existing patterns and conventions described above
-6. **Check** the CLAUDE.md file for additional context on game mechanics
-7. **Remember** token amounts need multiplication/division by 1,000,000
-8. **Test** changes manually in dev mode when UI changes are involved
+2. **Always** review existing patterns in similar files before implementing new features
+3. **Always** check `CLAUDE.md` for game mechanic details and development patterns
+
+### Validation Workflow
+4. **Always** run `npm run check` before committing (accept the 14 known errors)
+5. **Always** run `npm run build` to verify the build succeeds
+6. **Test** changes manually in dev mode when UI changes are involved
+
+### Code Standards
+7. **Do not** try to fix the existing TypeScript errors unless specifically asked
+8. **Use** the existing patterns and conventions described above
 9. **Follow** the existing code style (Tailwind classes, shadcn/ui components)
 10. **Use** TanStack Query for all API calls instead of direct fetch
+
+### Blockchain Considerations
+11. **Remember** token amounts need multiplication/division by 1,000,000 (6 decimals)
+12. **Respect** cooldown periods: 10 minutes for water and nutrients operations
+13. **Understand** pod stages: 0=empty, 1-4=growing, 5=harvest_ready, 6=needs_cleanup
+
+### Best Practices
+- For frontend components, use shadcn/ui components from `@/components/ui/`
+- For state management, use TanStack Query for server state and React Context for wallet state
+- For styling, use Tailwind CSS classes and the `cn()` utility for conditional styling
+- For error handling, use toast notifications for user feedback
+- For blockchain transactions, use the transaction builders from `hooks/use-algorand.ts`
+
+### When in Doubt
+- Consult `CLAUDE.md` for detailed development patterns and game mechanics
+- Check existing implementations in similar files
+- Verify changes with `npm run check` and `npm run build`
+- Test manually in development mode before committing
+
+---
+
+**Version**: 1.0  
+**Maintained by**: GrowPod Empire Development Team  
+**Feedback**: For questions or improvements to these instructions, open an issue or PR
