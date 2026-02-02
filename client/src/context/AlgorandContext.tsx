@@ -1,14 +1,16 @@
 /**
- * AlgorandContext - Multi-Wallet Support
+ * AlgorandContext - Wallet Integration
  *
- * Supports multiple Algorand wallets via @txnlab/use-wallet-react:
+ * Integrates Algorand wallets via @txnlab/use-wallet-react.
+ *
+ * Currently configured and tested with:
  * - Pera Wallet (Mobile & Web)
- * - Defly Wallet (Mobile & Web)
- * - Exodus (Browser Extension)
- * - Kibisis (Browser Extension)
- * - Lute (Web Wallet)
  *
- * Maintains backward compatibility with existing useAlgorand hook
+ * The underlying multi-wallet infrastructure can be extended to support
+ * additional wallets (e.g. Defly, Exodus, Kibisis, Lute) by modifying
+ * the wallet configuration in MultiWalletProvider.tsx.
+ *
+ * Maintains backward compatibility with the existing useAlgorand hook.
  */
 
 import { createContext, useContext, useState, ReactNode } from 'react';

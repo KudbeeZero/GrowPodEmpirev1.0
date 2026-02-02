@@ -13,17 +13,19 @@
 ### 2. API Security
 
 - **Rate Limiting**: 100 requests per minute per IP address
-- **Security Headers**:
-  - `Content-Security-Policy` - Restricts script and resource origins
-  - `X-Content-Type-Options: nosniff` - Prevents MIME sniffing
-  - `X-Frame-Options: DENY` - Prevents clickjacking
-  - `X-XSS-Protection: 1; mode=block` - Enables XSS filter
-  - `Referrer-Policy: strict-origin-when-cross-origin`
+- **Security Headers** (recommended for production via HTTP response headers):
+  - `Content-Security-Policy` - Currently set via HTML meta tag (fallback); should be configured at Cloudflare Worker level for comprehensive protection
+  - `X-Content-Type-Options: nosniff` - Prevents MIME sniffing (set via meta tag)
+  - `X-Frame-Options: DENY` - Prevents clickjacking (must be set via HTTP headers, not meta tags)
+  - `X-XSS-Protection: 1; mode=block` - Deprecated; modern browsers rely on CSP instead
+  - `Referrer-Policy: strict-origin-when-cross-origin` (set via meta tag)
 - **CORS**: Configured for API endpoints
+- **Note**: For production deployment, security headers should be set at the Cloudflare Worker/CDN level rather than relying on HTML meta tags for maximum effectiveness
 
 ### 3. Frontend Security
 
-- **CSP Meta Tags**: Content Security Policy in HTML head
+- **CSP Meta Tags**: Content Security Policy set in HTML head as fallback (production should use HTTP headers)
+- **Current CSP Policy**: Allows `unsafe-inline` and `unsafe-eval` for development compatibility; should be tightened for production using nonces/hashes
 - **Wallet Chain Verification**: Validates Algorand TestNet chain ID (416002)
 - **Fee Limits**: Maximum transaction fee capped at 0.01 ALGO to prevent fee spike attacks
 - **Unique Note Fields**: Transactions include unique notes to prevent replay attacks

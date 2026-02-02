@@ -69,13 +69,15 @@ async function checkRapidHarvests(db: D1Database): Promise<SuspiciousActivity[]>
   const activities: SuspiciousActivity[] = [];
 
   try {
-    // Find users with more than 50 harvests in the last hour
-    // This could indicate botting or exploitation
+    // NOTE: This detects players with high total harvest counts who were recently active.
+    // It is NOT a true "harvests per hour" rate detector - that would require per-harvest
+    // event tracking. Consider this a basic heuristic for suspicious high-volume accounts.
+    // For accurate rate limiting, implement a separate harvest_events table.
     const result = await db.prepare(`
       SELECT wallet_address, total_harvests, updated_at
       FROM player_stats
       WHERE datetime(updated_at) > datetime('now', '-1 hour')
-      AND total_harvests > 50
+      AND total_harvests > 500
       ORDER BY total_harvests DESC
       LIMIT 10
     `).all<{ wallet_address: string; total_harvests: number; updated_at: string }>();
@@ -154,13 +156,23 @@ async function checkDatabaseHealth(db: D1Database): Promise<DatabaseHealth> {
   try {
     // Check each table exists and is accessible
     const tables = ['users', 'player_stats', 'seed_bank', 'user_seeds', 'songs', 'announcement_videos'];
+    
+    // Map table names to DatabaseHealth property names
+    const tableToHealthKey: Record<string, keyof DatabaseHealth> = {
+      'users': 'usersTable',
+      'player_stats': 'playerStatsTable',
+      'seed_bank': 'seedBankTable',
+      'user_seeds': 'userSeedsTable',
+      'songs': 'songsTable',
+      'announcement_videos': 'announcementsTable'
+    };
 
     for (const table of tables) {
       try {
         await db.prepare(`SELECT 1 FROM ${table} LIMIT 1`).first();
       } catch {
-        const key = `${table.replace('_', '')}Table` as keyof DatabaseHealth;
-        if (typeof health[key] === 'boolean') {
+        const key = tableToHealthKey[table];
+        if (key && typeof health[key] === 'boolean') {
           (health as Record<string, unknown>)[key] = false;
         }
       }

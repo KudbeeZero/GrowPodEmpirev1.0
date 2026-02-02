@@ -302,6 +302,9 @@ def approval_program():
         Assert(App.localGet(Txn.sender(), LocalStage) == Int(6)),
         Assert(App.globalGet(GlobalBudAsset) != Int(0)),
 
+        # Security: Ensure transaction is grouped and not at index 0
+        Assert(Txn.group_index() > Int(0)),
+        Assert(Global.group_size() > Int(1)),
         # Security: Verify burn transaction sender matches app call sender
         Assert(Gtxn[Txn.group_index() - Int(1)].sender() == Txn.sender()),
         Assert(Gtxn[Txn.group_index() - Int(1)].type_enum() == TxnType.AssetTransfer),
@@ -444,6 +447,9 @@ def approval_program():
         Assert(App.localGet(Txn.sender(), LocalStage2) == Int(6)),
         Assert(App.globalGet(GlobalBudAsset) != Int(0)),
 
+        # Security: Ensure transaction is grouped and not at index 0
+        Assert(Txn.group_index() > Int(0)),
+        Assert(Global.group_size() > Int(1)),
         # Security: Verify burn transaction sender matches app call sender
         Assert(Gtxn[Txn.group_index() - Int(1)].sender() == Txn.sender()),
         Assert(Gtxn[Txn.group_index() - Int(1)].type_enum() == TxnType.AssetTransfer),
@@ -530,6 +536,9 @@ def approval_program():
     breed = Seq(
         Assert(App.globalGet(GlobalBudAsset) != Int(0)),
 
+        # Security: Ensure transaction is grouped and not at index 0
+        Assert(Txn.group_index() > Int(0)),
+        Assert(Global.group_size() > Int(1)),
         # Security: Verify burn transaction sender matches app call sender
         Assert(Gtxn[Txn.group_index() - Int(1)].sender() == Txn.sender()),
         Assert(Gtxn[Txn.group_index() - Int(1)].type_enum() == TxnType.AssetTransfer),
@@ -547,6 +556,9 @@ def approval_program():
         Assert(App.globalGet(GlobalBudAsset) != Int(0)),
         # Require at least 5 harvests
         Assert(App.localGet(Txn.sender(), LocalHarvestCount) >= HARVESTS_FOR_SLOT),
+        # Security: Ensure transaction is grouped and not at index 0
+        Assert(Txn.group_index() > Int(0)),
+        Assert(Global.group_size() > Int(1)),
         # Security: Verify burn transaction sender matches app call sender
         Assert(Gtxn[Txn.group_index() - Int(1)].sender() == Txn.sender()),
         # Require $BUD burn in previous transaction
@@ -577,6 +589,9 @@ def approval_program():
         Assert(App.globalGet(GlobalSlotAsset) != Int(0)),
         # Must have less than max slots
         Assert(App.localGet(Txn.sender(), LocalPodSlots) < MAX_POD_SLOTS),
+        # Security: Ensure transaction is grouped and not at index 0
+        Assert(Txn.group_index() > Int(0)),
+        Assert(Global.group_size() > Int(1)),
         # Security: Verify burn transaction sender matches app call sender
         Assert(Gtxn[Txn.group_index() - Int(1)].sender() == Txn.sender()),
         # Require exactly 1 Slot Token burn in previous transaction
