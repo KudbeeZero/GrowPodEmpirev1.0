@@ -3,14 +3,14 @@
 
 name = "growpod-empire"
 main = "src/worker.ts"
-compatibility_date = "2026-01-01"
+compatibility_date = "2025-12-01"
 compatibility_flags = ["nodejs_compat"]
 
 # ============================================
 # REQUIRED: Add your Cloudflare Account ID
 # ============================================
 # Get this from: https://dash.cloudflare.com/ → Workers & Pages → Overview (right sidebar)
-account_id = "b591c2e07ca352d33076f4d2f8414b89"
+account_id = "YOUR_CLOUDFLARE_ACCOUNT_ID"
 
 # Serve static assets from the dist folder (new wrangler v4 syntax)
 [assets]
@@ -48,7 +48,7 @@ NODE_ENV = "production"
 [[d1_databases]]
 binding = "DB"
 database_name = "growpod-empire-db"
-database_id = "712d926f-c396-473f-96d9-f0dfc3d1d069"
+database_id = "YOUR_D1_DATABASE_ID"
 
 # ============================================
 # KV Namespaces (for caching and security metrics)
