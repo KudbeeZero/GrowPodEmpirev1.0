@@ -95,10 +95,7 @@ npm run dev
 
 ### 8. Deploy to Cloudflare Workers
 ```bash
-# Build client + server bundle
-npm run build
-
-# Deploy using Wrangler (requires CLOUDFLARE_ACCOUNT_ID and CLOUDFLARE_API_TOKEN)
+# Build and deploy using Wrangler (requires CLOUDFLARE_ACCOUNT_ID and CLOUDFLARE_API_TOKEN)
 npm run deploy:cf
 ```
 The Workers config lives in `wrangler.toml` (main app) and `wrangler.security.toml` (security monitor). Static assets are served via the `ASSETS` binding from `dist/public`.
