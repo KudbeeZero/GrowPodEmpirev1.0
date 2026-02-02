@@ -185,3 +185,38 @@ CREATE TABLE IF NOT EXISTS market_orders (
 
 CREATE INDEX IF NOT EXISTS idx_orders_wallet ON market_orders(wallet_address);
 CREATE INDEX IF NOT EXISTS idx_orders_market ON market_orders(market_id);
+
+-- ============================================
+-- Market Templates Table (for auto-generating markets)
+-- ============================================
+CREATE TABLE IF NOT EXISTS market_templates (
+  id INTEGER PRIMARY KEY AUTOINCREMENT,
+  name TEXT NOT NULL,
+  title_template TEXT NOT NULL,
+  description TEXT,
+  category TEXT DEFAULT 'crypto' NOT NULL,
+  asset TEXT,
+  schedule_type TEXT NOT NULL,
+  schedule_interval INTEGER DEFAULT 1,
+  price_levels TEXT DEFAULT '[]',
+  default_yes_price INTEGER DEFAULT 50,
+  duration_minutes INTEGER DEFAULT 60,
+  is_active INTEGER DEFAULT 1 NOT NULL,
+  last_generated TEXT,
+  created_at TEXT DEFAULT (datetime('now'))
+);
+
+CREATE INDEX IF NOT EXISTS idx_templates_active ON market_templates(is_active);
+CREATE INDEX IF NOT EXISTS idx_templates_schedule ON market_templates(schedule_type);
+
+-- ============================================
+-- Seed default market templates
+-- ============================================
+INSERT OR IGNORE INTO market_templates (name, title_template, description, category, asset, schedule_type, schedule_interval, price_levels, default_yes_price, duration_minutes)
+VALUES
+  ('BTC Hourly', 'Bitcoin price on {date} at {time} EST?', 'Predict if BTC will be above the target price', 'crypto', 'BTC', 'hourly', 1, '["95000","96000","97000","98000","99000","100000"]', 50, 60),
+  ('BTC 15-min', 'BTC price at {time} EST?', 'Quick 15-minute Bitcoin prediction', 'crypto', 'BTC', '15min', 1, '["95000","96000","97000","98000"]', 50, 15),
+  ('SOL Hourly', 'Solana price on {date} at {time} EST?', 'Predict if SOL will be above the target price', 'crypto', 'SOL', 'hourly', 1, '["200","210","220","230","240","250"]', 50, 60),
+  ('SOL 15-min', 'SOL price at {time} EST?', 'Quick 15-minute Solana prediction', 'crypto', 'SOL', '15min', 1, '["200","210","220","230"]', 50, 15),
+  ('ETH Hourly', 'Ethereum price on {date} at {time} EST?', 'Predict if ETH will be above the target price', 'crypto', 'ETH', 'hourly', 1, '["3000","3100","3200","3300","3400","3500"]', 50, 60),
+  ('ALGO Hourly', 'Algorand price on {date} at {time} EST?', 'Predict if ALGO will be above the target price', 'crypto', 'ALGO', 'hourly', 1, '["0.30","0.35","0.40","0.45","0.50"]', 50, 60);

@@ -838,6 +838,236 @@ async function handleCreateMarket(request: Request, env: Env): Promise<Response>
 }
 
 // ============================================
+// Market Template Handlers
+// ============================================
+
+interface MarketTemplate {
+  id: number;
+  name: string;
+  title_template: string;
+  description: string | null;
+  category: string;
+  asset: string | null;
+  schedule_type: string;
+  schedule_interval: number;
+  price_levels: string;
+  default_yes_price: number;
+  duration_minutes: number;
+  is_active: number;
+  last_generated: string | null;
+}
+
+async function handleListTemplates(env: Env): Promise<Response> {
+  const results = await env.DB.prepare(
+    'SELECT * FROM market_templates ORDER BY name ASC'
+  ).all<MarketTemplate>();
+
+  const templates = (results.results || []).map(t => ({
+    ...toCamelCase(t as Record<string, unknown>),
+    priceLevels: JSON.parse(t.price_levels || '[]'),
+  }));
+
+  return jsonResponse(templates);
+}
+
+async function handleCreateTemplate(request: Request, env: Env): Promise<Response> {
+  const body = await request.json() as {
+    name: string;
+    titleTemplate: string;
+    description?: string;
+    category?: string;
+    asset?: string;
+    scheduleType: string;
+    scheduleInterval?: number;
+    priceLevels?: string[];
+    defaultYesPrice?: number;
+    durationMinutes?: number;
+  };
+
+  const {
+    name,
+    titleTemplate,
+    description,
+    category = 'crypto',
+    asset,
+    scheduleType,
+    scheduleInterval = 1,
+    priceLevels = [],
+    defaultYesPrice = 50,
+    durationMinutes = 60,
+  } = body;
+
+  if (!name || !titleTemplate || !scheduleType) {
+    return errorResponse('Missing required fields: name, titleTemplate, scheduleType', 400);
+  }
+
+  await env.DB.prepare(`
+    INSERT INTO market_templates
+    (name, title_template, description, category, asset, schedule_type, schedule_interval, price_levels, default_yes_price, duration_minutes)
+    VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+  `).bind(
+    name,
+    titleTemplate,
+    description || null,
+    category,
+    asset || null,
+    scheduleType,
+    scheduleInterval,
+    JSON.stringify(priceLevels),
+    defaultYesPrice,
+    durationMinutes
+  ).run();
+
+  return jsonResponse({ success: true }, 201);
+}
+
+async function handleUpdateTemplate(templateId: string, request: Request, env: Env): Promise<Response> {
+  const id = parseInt(templateId, 10);
+  if (isNaN(id)) {
+    return errorResponse('Invalid template ID', 400);
+  }
+
+  const body = await request.json() as { isActive?: boolean };
+
+  if (typeof body.isActive === 'boolean') {
+    await env.DB.prepare(
+      'UPDATE market_templates SET is_active = ? WHERE id = ?'
+    ).bind(body.isActive ? 1 : 0, id).run();
+  }
+
+  return jsonResponse({ success: true });
+}
+
+async function handleDeleteTemplate(templateId: string, env: Env): Promise<Response> {
+  const id = parseInt(templateId, 10);
+  if (isNaN(id)) {
+    return errorResponse('Invalid template ID', 400);
+  }
+
+  await env.DB.prepare('DELETE FROM market_templates WHERE id = ?').bind(id).run();
+  return jsonResponse({ success: true });
+}
+
+// Generate markets from templates
+async function generateMarketsFromTemplates(env: Env): Promise<{ generated: number; errors: string[] }> {
+  const now = new Date();
+  const errors: string[] = [];
+  let generated = 0;
+
+  // Get all active templates
+  const templates = await env.DB.prepare(
+    'SELECT * FROM market_templates WHERE is_active = 1'
+  ).all<MarketTemplate>();
+
+  for (const template of templates.results || []) {
+    try {
+      const lastGen = template.last_generated ? new Date(template.last_generated) : null;
+      let shouldGenerate = false;
+
+      // Check if we should generate based on schedule
+      if (!lastGen) {
+        shouldGenerate = true;
+      } else {
+        const minutesSinceLastGen = (now.getTime() - lastGen.getTime()) / (1000 * 60);
+
+        switch (template.schedule_type) {
+          case '15min':
+            shouldGenerate = minutesSinceLastGen >= 15 * template.schedule_interval;
+            break;
+          case 'hourly':
+            shouldGenerate = minutesSinceLastGen >= 60 * template.schedule_interval;
+            break;
+          case 'daily':
+            shouldGenerate = minutesSinceLastGen >= 1440 * template.schedule_interval;
+            break;
+          case 'weekly':
+            shouldGenerate = minutesSinceLastGen >= 10080 * template.schedule_interval;
+            break;
+        }
+      }
+
+      if (!shouldGenerate) continue;
+
+      // Parse price levels
+      const priceLevels = JSON.parse(template.price_levels || '[]') as string[];
+
+      // Calculate expiration time
+      const expiration = new Date(now.getTime() + template.duration_minutes * 60 * 1000);
+
+      // Format date/time for title
+      const dateStr = expiration.toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' });
+      const timeStr = expiration.toLocaleTimeString('en-US', { hour: 'numeric', minute: '2-digit', hour12: true });
+
+      // Generate a market for each price level
+      for (const priceLevel of priceLevels) {
+        const title = template.title_template
+          .replace('{date}', dateStr)
+          .replace('{time}', timeStr)
+          .replace('{price}', priceLevel);
+
+        const fullTitle = `${title} $${priceLevel} or above`;
+
+        // Check if similar market already exists
+        const existing = await env.DB.prepare(`
+          SELECT id FROM prediction_markets
+          WHERE asset = ? AND target_price = ? AND status = 'open'
+          AND datetime(expiration_time) > datetime('now')
+          LIMIT 1
+        `).bind(template.asset, priceLevel).first();
+
+        if (existing) continue;
+
+        // Create the market
+        const noPrice = 100 - template.default_yes_price;
+        await env.DB.prepare(`
+          INSERT INTO prediction_markets
+          (title, description, category, asset, target_price, comparison, expiration_time, yes_price, no_price)
+          VALUES (?, ?, ?, ?, ?, 'above', ?, ?, ?)
+        `).bind(
+          fullTitle,
+          template.description,
+          template.category,
+          template.asset,
+          priceLevel,
+          expiration.toISOString(),
+          template.default_yes_price,
+          noPrice
+        ).run();
+
+        generated++;
+      }
+
+      // Update last_generated
+      await env.DB.prepare(
+        'UPDATE market_templates SET last_generated = datetime(\'now\') WHERE id = ?'
+      ).bind(template.id).run();
+
+    } catch (err) {
+      errors.push(`Template ${template.id}: ${err}`);
+    }
+  }
+
+  return { generated, errors };
+}
+
+// Manual trigger endpoint
+async function handleGenerateMarkets(env: Env): Promise<Response> {
+  const result = await generateMarketsFromTemplates(env);
+  return jsonResponse(result);
+}
+
+// Close expired markets
+async function closeExpiredMarkets(env: Env): Promise<number> {
+  const result = await env.DB.prepare(`
+    UPDATE prediction_markets
+    SET status = 'closed'
+    WHERE status = 'open' AND datetime(expiration_time) < datetime('now')
+  `).run();
+
+  return result.meta.changes || 0;
+}
+
+// ============================================
 // Main Router
 // ============================================
 async function handleApiRequest(request: Request, env: Env, url: URL): Promise<Response> {
@@ -942,6 +1172,25 @@ async function handleApiRequest(request: Request, env: Env, url: URL): Promise<R
       return await handleGetPositions(walletAddress, env);
     }
 
+    // Market Templates (Admin)
+    if (path === '/api/templates' && method === 'GET') {
+      return await handleListTemplates(env);
+    }
+    if (path === '/api/templates' && method === 'POST') {
+      return await handleCreateTemplate(request, env);
+    }
+    if (path.match(/^\/api\/templates\/\d+$/) && method === 'PATCH') {
+      const templateId = path.split('/').pop()!;
+      return await handleUpdateTemplate(templateId, request, env);
+    }
+    if (path.match(/^\/api\/templates\/\d+$/) && method === 'DELETE') {
+      const templateId = path.split('/').pop()!;
+      return await handleDeleteTemplate(templateId, env);
+    }
+    if (path === '/api/markets/generate' && method === 'POST') {
+      return await handleGenerateMarkets(env);
+    }
+
     // File Uploads (R2 Storage)
     if (path === '/api/uploads/request-url' && method === 'POST') {
       return await handleRequestUploadUrl(request, env);
@@ -1022,6 +1271,23 @@ export default {
       } catch {
         return new Response('Not Found', { status: 404, headers: securityHeaders });
       }
+    }
+  },
+
+  // Scheduled handler for automatic market generation
+  async scheduled(event: ScheduledEvent, env: Env, ctx: ExecutionContext): Promise<void> {
+    console.log(`Scheduled event triggered at ${new Date().toISOString()}`);
+
+    // Generate markets from templates
+    const { generated, errors } = await generateMarketsFromTemplates(env);
+    console.log(`Generated ${generated} markets, ${errors.length} errors`);
+
+    // Close expired markets
+    const closed = await closeExpiredMarkets(env);
+    console.log(`Closed ${closed} expired markets`);
+
+    if (errors.length > 0) {
+      console.error('Market generation errors:', errors);
     }
   },
 };

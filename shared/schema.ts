@@ -154,11 +154,36 @@ export const marketOrders = pgTable("market_orders", {
   createdAt: timestamp("created_at").defaultNow(),
 });
 
+// Market Templates - for auto-generating recurring markets
+export const marketTemplates = pgTable("market_templates", {
+  id: serial("id").primaryKey(),
+  name: text("name").notNull(), // "BTC Hourly", "SOL 15-min", etc.
+  titleTemplate: text("title_template").notNull(), // "Bitcoin price on {date} at {time} EST?"
+  description: text("description"),
+  category: text("category").notNull().default("crypto"),
+  asset: text("asset"), // BTC, SOL, ETH
+  // Schedule configuration
+  scheduleType: text("schedule_type").notNull(), // "hourly", "15min", "daily", "weekly", "once"
+  scheduleInterval: integer("schedule_interval").default(1), // Every X intervals
+  // Price levels to generate (JSON array of target prices)
+  priceLevels: jsonb("price_levels").$type<string[]>().default([]),
+  // Initial probability settings
+  defaultYesPrice: integer("default_yes_price").default(50),
+  // Market duration in minutes
+  durationMinutes: integer("duration_minutes").default(60),
+  // Whether template is active
+  isActive: boolean("is_active").default(true).notNull(),
+  // Last time a market was generated from this template
+  lastGenerated: timestamp("last_generated"),
+  createdAt: timestamp("created_at").defaultNow(),
+});
+
 // Insert schemas for prediction market tables
 export const insertSmokeBalanceSchema = createInsertSchema(smokeBalances).omit({ id: true, updatedAt: true });
 export const insertPredictionMarketSchema = createInsertSchema(predictionMarkets).omit({ id: true, createdAt: true });
 export const insertMarketPositionSchema = createInsertSchema(marketPositions).omit({ id: true, updatedAt: true });
 export const insertMarketOrderSchema = createInsertSchema(marketOrders).omit({ id: true, createdAt: true });
+export const insertMarketTemplateSchema = createInsertSchema(marketTemplates).omit({ id: true, createdAt: true, lastGenerated: true });
 
 // Types for prediction market
 export type SmokeBalance = typeof smokeBalances.$inferSelect;
@@ -169,6 +194,8 @@ export type MarketPosition = typeof marketPositions.$inferSelect;
 export type InsertMarketPosition = z.infer<typeof insertMarketPositionSchema>;
 export type MarketOrder = typeof marketOrders.$inferSelect;
 export type InsertMarketOrder = z.infer<typeof insertMarketOrderSchema>;
+export type MarketTemplate = typeof marketTemplates.$inferSelect;
+export type InsertMarketTemplate = z.infer<typeof insertMarketTemplateSchema>;
 
 // ============================================
 // Types for Game Data (Frontend <-> Backend)

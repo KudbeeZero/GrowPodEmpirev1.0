@@ -124,9 +124,11 @@ enabled = true
 # ============================================
 # Cron Triggers (for scheduled tasks)
 # ============================================
-# Uncomment to enable security monitoring scheduled reports
-# [triggers]
-# crons = ["*/5 * * * *"]  # Every 5 minutes - adjust as needed
+# Market generator runs every 15 minutes to create new prediction markets
+[triggers]
+crons = [
+  "*/15 * * * *",  # Every 15 minutes - for 15-min and hourly markets
+]
 # Available patterns:
 #   "*/5 * * * *"  - Every 5 minutes
 #   "0 * * * *"    - Every hour
