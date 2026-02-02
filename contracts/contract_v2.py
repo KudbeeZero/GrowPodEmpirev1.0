@@ -86,7 +86,6 @@ MAX_POD_SLOTS = Int(5)
 def approval_program():
     # Scratch variables
     scratch_weight = ScratchVar(TealType.uint64)
-    scratch_bonus = ScratchVar(TealType.uint64)
     scratch_cooldown = ScratchVar(TealType.uint64)
 
     is_owner = Txn.sender() == App.globalGet(GlobalOwner)
@@ -649,6 +648,7 @@ def approval_program():
         Assert(Gtxn[Txn.group_index() - Int(3)].type_enum() == TxnType.AssetTransfer),
         Assert(Gtxn[Txn.group_index() - Int(3)].xfer_asset() == App.globalGet(GlobalBudAsset)),
         Assert(Gtxn[Txn.group_index() - Int(3)].asset_amount() >= BREED_COST),
+        Assert(Gtxn[Txn.group_index() - Int(3)].asset_receiver() == Global.current_application_address()),
 
         # Verify seed 1 transfer (index - 2)
         Assert(Gtxn[Txn.group_index() - Int(2)].type_enum() == TxnType.AssetTransfer),
@@ -711,6 +711,7 @@ def approval_program():
         Assert(Gtxn[Txn.group_index() - Int(1)].type_enum() == TxnType.AssetTransfer),
         Assert(Gtxn[Txn.group_index() - Int(1)].xfer_asset() == App.globalGet(GlobalBudAsset)),
         Assert(Gtxn[Txn.group_index() - Int(1)].asset_amount() >= SLOT_TOKEN_COST),
+        Assert(Gtxn[Txn.group_index() - Int(1)].asset_receiver() == Global.current_application_address()),
 
         InnerTxnBuilder.Begin(),
         InnerTxnBuilder.SetFields({
@@ -733,6 +734,7 @@ def approval_program():
         Assert(Gtxn[Txn.group_index() - Int(1)].type_enum() == TxnType.AssetTransfer),
         Assert(Gtxn[Txn.group_index() - Int(1)].xfer_asset() == App.globalGet(GlobalSlotAsset)),
         Assert(Gtxn[Txn.group_index() - Int(1)].asset_amount() == Int(1)),
+        Assert(Gtxn[Txn.group_index() - Int(1)].asset_receiver() == Global.current_application_address()),
 
         App.localPut(Txn.sender(), LocalPodSlots, App.localGet(Txn.sender(), LocalPodSlots) + Int(1)),
         Approve()

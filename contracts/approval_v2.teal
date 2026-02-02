@@ -122,6 +122,13 @@ gtxns AssetAmount
 int 1
 ==
 assert
+txn GroupIndex
+int 1
+-
+gtxns AssetReceiver
+global CurrentApplicationAddress
+==
+assert
 txn Sender
 byte "pod_slots"
 txn Sender
@@ -171,6 +178,13 @@ gtxns AssetAmount
 int 2500000000
 >=
 assert
+txn GroupIndex
+int 1
+-
+gtxns AssetReceiver
+global CurrentApplicationAddress
+==
+assert
 itxn_begin
 int axfer
 itxn_field TypeEnum
@@ -219,6 +233,13 @@ int 3
 gtxns AssetAmount
 int 1000000000
 >=
+assert
+txn GroupIndex
+int 3
+-
+gtxns AssetReceiver
+global CurrentApplicationAddress
+==
 assert
 txn GroupIndex
 int 2

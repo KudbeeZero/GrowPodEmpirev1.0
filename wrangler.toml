@@ -3,14 +3,15 @@
 
 name = "growpod-empire"
 main = "src/worker.ts"
-compatibility_date = "2026-01-01"
+compatibility_date = "2024-01-01"
 compatibility_flags = ["nodejs_compat"]
 
 # ============================================
 # REQUIRED: Add your Cloudflare Account ID
 # ============================================
 # Get this from: https://dash.cloudflare.com/ → Workers & Pages → Overview (right sidebar)
-account_id = "b591c2e07ca352d33076f4d2f8414b89"
+# Set via environment variable: export CLOUDFLARE_ACCOUNT_ID=your_account_id
+# account_id = ""  # DO NOT commit your account ID to version control
 
 # Serve static assets from the dist folder (new wrangler v4 syntax)
 [assets]
@@ -44,11 +45,13 @@ NODE_ENV = "production"
 # D1 Database (Cloudflare's SQLite)
 # ============================================
 # Create database: wrangler d1 create growpod-empire-db
-# Then add the database_id returned by that command below:
-[[d1_databases]]
-binding = "DB"
-database_name = "growpod-empire-db"
-database_id = "712d926f-c396-473f-96d9-f0dfc3d1d069"
+# Then add the database_id via environment variable or wrangler.local.toml
+# Set via: export CLOUDFLARE_D1_DATABASE_ID=your_database_id
+# Or create wrangler.local.toml (gitignored) with your database_id
+# [[d1_databases]]
+# binding = "DB"
+# database_name = "growpod-empire-db"
+# database_id = ""  # DO NOT commit your database ID to version control
 
 # ============================================
 # KV Namespaces (for caching and security metrics)

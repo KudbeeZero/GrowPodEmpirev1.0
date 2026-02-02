@@ -4,7 +4,7 @@ import { storage } from "./storage";
 import { api } from "@shared/routes";
 import { z } from "zod";
 import { registerObjectStorageRoutes } from "./replit_integrations/object_storage";
-import { insertSongSchema, insertAnnouncementVideoSchema, insertSeedBankSchema, insertMonitorErrorSchema, insertMonitorTransactionSchema, insertMonitorMetricSchema, insertMonitorBreadcrumbSchema } from "@shared/schema";
+import { insertSongSchema, insertAnnouncementVideoSchema, insertSeedBankSchema } from "@shared/schema";
 
 const ADMIN_WALLET = process.env.ADMIN_WALLET_ADDRESS || "";
 
