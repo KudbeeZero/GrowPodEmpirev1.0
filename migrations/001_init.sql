@@ -220,3 +220,75 @@ VALUES
   ('SOL 15-min', 'SOL price at {time} EST?', 'Quick 15-minute Solana prediction', 'crypto', 'SOL', '15min', 1, '["200","210","220","230"]', 50, 15),
   ('ETH Hourly', 'Ethereum price on {date} at {time} EST?', 'Predict if ETH will be above the target price', 'crypto', 'ETH', 'hourly', 1, '["3000","3100","3200","3300","3400","3500"]', 50, 60),
   ('ALGO Hourly', 'Algorand price on {date} at {time} EST?', 'Predict if ALGO will be above the target price', 'crypto', 'ALGO', 'hourly', 1, '["0.30","0.35","0.40","0.45","0.50"]', 50, 60);
+
+-- ============================================
+-- Biomass NFT Tables (Dynamic NFT System)
+-- ============================================
+
+-- Biomass NFTs - Harvested plant material as tradeable NFTs
+CREATE TABLE IF NOT EXISTS biomass_nfts (
+  id INTEGER PRIMARY KEY AUTOINCREMENT,
+  asset_id INTEGER UNIQUE,                    -- Algorand ASA ID (null until minted on-chain)
+  wallet_address TEXT NOT NULL,               -- Current owner
+  dna TEXT NOT NULL,                          -- DNA hash from plant
+  terpene_profile TEXT DEFAULT '[]',          -- JSON array of terpenes
+  quality_score INTEGER DEFAULT 50 NOT NULL,  -- 0-100 based on care quality
+  bud_value TEXT DEFAULT '0' NOT NULL,        -- Intrinsic $BUD value (6 decimals)
+  generation INTEGER DEFAULT 1 NOT NULL,      -- Breeding generation (G1, G2, etc.)
+  parent_a_id INTEGER,                        -- Parent Biomass NFT 1 (for bred NFTs)
+  parent_b_id INTEGER,                        -- Parent Biomass NFT 2 (for bred NFTs)
+  strain_name TEXT,                           -- Auto-generated or custom strain name
+  rarity TEXT DEFAULT 'common' NOT NULL,      -- common, uncommon, rare, legendary, mythic
+  thc_range TEXT DEFAULT '15-20%',
+  cbd_range TEXT DEFAULT '0-1%',
+  growth_bonus INTEGER DEFAULT 0,             -- Percentage bonus if used as seed
+  effects TEXT DEFAULT '[]',                  -- JSON array of effects
+  flavor_notes TEXT DEFAULT '[]',             -- JSON array of flavors
+  breeding_count INTEGER DEFAULT 0 NOT NULL,  -- Times used in breeding
+  image_cid TEXT,                             -- IPFS CID for generated image
+  is_burned INTEGER DEFAULT 0 NOT NULL,       -- 1 if redeemed for $BUD
+  harvest_timestamp TEXT DEFAULT (datetime('now')),
+  created_at TEXT DEFAULT (datetime('now')),
+  FOREIGN KEY (parent_a_id) REFERENCES biomass_nfts(id),
+  FOREIGN KEY (parent_b_id) REFERENCES biomass_nfts(id)
+);
+
+CREATE INDEX IF NOT EXISTS idx_biomass_wallet ON biomass_nfts(wallet_address);
+CREATE INDEX IF NOT EXISTS idx_biomass_rarity ON biomass_nfts(rarity);
+CREATE INDEX IF NOT EXISTS idx_biomass_generation ON biomass_nfts(generation);
+CREATE INDEX IF NOT EXISTS idx_biomass_burned ON biomass_nfts(is_burned);
+
+-- Strain Registry - Tracks unique strain discoveries
+CREATE TABLE IF NOT EXISTS strain_registry (
+  id INTEGER PRIMARY KEY AUTOINCREMENT,
+  name TEXT UNIQUE NOT NULL,                  -- Unique strain name
+  dna_signature TEXT UNIQUE NOT NULL,         -- DNA pattern that defines this strain
+  creator_wallet TEXT NOT NULL,               -- First breeder to discover
+  terpene_profile TEXT DEFAULT '[]',          -- Characteristic terpenes
+  rarity TEXT DEFAULT 'rare' NOT NULL,        -- Base rarity of strain
+  total_minted INTEGER DEFAULT 1 NOT NULL,    -- How many exist
+  base_growth_bonus INTEGER DEFAULT 10,       -- Bonus when planting this strain
+  description TEXT,                           -- Strain description
+  effects TEXT DEFAULT '[]',                  -- Characteristic effects
+  created_at TEXT DEFAULT (datetime('now'))
+);
+
+CREATE INDEX IF NOT EXISTS idx_strain_creator ON strain_registry(creator_wallet);
+CREATE INDEX IF NOT EXISTS idx_strain_rarity ON strain_registry(rarity);
+
+-- Breeding History - Tracks all breeding events
+CREATE TABLE IF NOT EXISTS breeding_history (
+  id INTEGER PRIMARY KEY AUTOINCREMENT,
+  wallet_address TEXT NOT NULL,
+  parent_a_id INTEGER NOT NULL,
+  parent_b_id INTEGER NOT NULL,
+  child_id INTEGER NOT NULL,
+  bud_cost TEXT NOT NULL,                     -- $BUD burned for breeding
+  created_at TEXT DEFAULT (datetime('now')),
+  FOREIGN KEY (parent_a_id) REFERENCES biomass_nfts(id),
+  FOREIGN KEY (parent_b_id) REFERENCES biomass_nfts(id),
+  FOREIGN KEY (child_id) REFERENCES biomass_nfts(id)
+);
+
+CREATE INDEX IF NOT EXISTS idx_breeding_wallet ON breeding_history(wallet_address);
+CREATE INDEX IF NOT EXISTS idx_breeding_child ON breeding_history(child_id);

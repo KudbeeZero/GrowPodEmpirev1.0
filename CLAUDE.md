@@ -22,10 +22,11 @@ GrowPod Empire is a blockchain-based idle farming game built on **Algorand TestN
 | Styling | Tailwind CSS (dark cyberpunk theme) |
 | Routing | Wouter |
 | State | TanStack Query |
-| Backend | Express.js + TypeScript |
-| Database | PostgreSQL + Drizzle ORM |
+| Backend | Cloudflare Workers + Hono |
+| Database | Cloudflare D1 (SQLite) |
+| Storage | Cloudflare R2 (file uploads) |
 | Blockchain | Algorand (PyTeal smart contracts) |
-| Wallet | Pera Wallet (@perawallet/connect) |
+| Wallet | Pera Wallet (@txnlab/use-wallet-react) |
 
 ## Project Structure
 
@@ -53,13 +54,12 @@ GrowPodEmpirev1.0/
 │   │   ├── context/        # React context
 │   │   │   └── AlgorandContext.tsx  # Wallet + chain state
 │   │   └── lib/            # Utilities
-├── server/                 # Express backend
-│   ├── index.ts            # Server entry
-│   ├── routes.ts           # API endpoints
-│   ├── storage.ts          # Database operations
-│   ├── db.ts               # Drizzle connection
-│   └── replit_integrations/
-│       └── object_storage/ # File uploads
+├── src/                    # Cloudflare Worker backend
+│   └── worker.ts           # Hono API server
+├── migrations/             # D1 database migrations
+│   └── 001_init.sql        # Initial schema
+├── docs/                   # Architecture documentation
+│   └── DYNAMIC_NFT_ARCHITECTURE.md
 ├── shared/                 # Shared code
 │   ├── schema.ts           # Drizzle schema + types
 │   └── routes.ts           # API route definitions
@@ -75,7 +75,7 @@ GrowPodEmpirev1.0/
 ## Development Commands
 
 ```bash
-# Start development server (frontend + backend)
+# Start development server (frontend + worker)
 npm run dev
 
 # Type checking
@@ -84,11 +84,18 @@ npm run check
 # Build for production
 npm run build
 
-# Start production server
-npm start
+# Deploy to Cloudflare Workers
+npx wrangler deploy
 
-# Push database schema changes
-npm run db:push
+# Run D1 migrations
+npx wrangler d1 execute growpod-empire-db --file=./migrations/001_init.sql
+
+# Set secrets
+npx wrangler secret put DATABASE_URL
+npx wrangler secret put ADMIN_WALLET_ADDRESS
+
+# View worker logs
+npx wrangler tail
 
 # Compile smart contract (from contracts/ directory)
 python contract.py
@@ -259,6 +266,45 @@ GROWPOD_APP_ID=<after_deployment>
 - Limited supply, 0 decimals
 - Claimed after 5 harvests + 2,500 $BUD burn
 - Burned to unlock additional pod slots (max 5)
+
+### $SMOKE (Prediction Market Token)
+- Obtained by burning $BUD (1:1 ratio)
+- Used for prediction market trading
+- Cannot be converted back to $BUD
+
+## Prediction Markets
+
+Players can trade on crypto price predictions using $SMOKE tokens.
+
+### Market Types
+- **15-minute markets** - Quick predictions on BTC, SOL, ETH
+- **Hourly markets** - Longer-term price predictions
+- **Auto-generated** - Markets created automatically via cron triggers
+
+### Database Tables
+- `smoke_balances` - User $SMOKE holdings
+- `prediction_markets` - Active and resolved markets
+- `market_positions` - User positions (yes/no shares)
+- `market_orders` - Trade history
+- `market_templates` - Templates for auto-generation
+
+## Biomass NFT System (Planned)
+
+Harvested plants become tradeable NFTs with dynamic properties.
+
+### Key Concepts
+- **Biomass NFT** - ARC-69 compliant NFT representing harvested plant
+- **DNA-based visuals** - Plant appearance derived from genetic hash
+- **Strain Registry** - Unique strain discoveries
+- **Breeding** - Combine two Biomass NFTs to create offspring
+
+### Database Tables
+- `biomass_nfts` - NFT metadata and ownership
+- `strain_registry` - Discovered strain types
+- `breeding_history` - Breeding event log
+
+### Architecture
+See `docs/DYNAMIC_NFT_ARCHITECTURE.md` for full implementation details.
 
 ## Common Tasks
 

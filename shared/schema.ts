@@ -198,6 +198,78 @@ export type MarketTemplate = typeof marketTemplates.$inferSelect;
 export type InsertMarketTemplate = z.infer<typeof insertMarketTemplateSchema>;
 
 // ============================================
+// Biomass NFT Tables (Dynamic NFT System)
+// ============================================
+
+// Biomass NFTs - Harvested plant material as tradeable NFTs
+export const biomassNfts = pgTable("biomass_nfts", {
+  id: serial("id").primaryKey(),
+  assetId: integer("asset_id").unique(), // Algorand ASA ID (null until minted)
+  walletAddress: text("wallet_address").notNull(),
+  dna: text("dna").notNull(),
+  terpeneProfile: jsonb("terpene_profile").$type<string[]>().default([]),
+  qualityScore: integer("quality_score").default(50).notNull(),
+  budValue: text("bud_value").default("0").notNull(),
+  generation: integer("generation").default(1).notNull(),
+  parentAId: integer("parent_a_id"),
+  parentBId: integer("parent_b_id"),
+  strainName: text("strain_name"),
+  rarity: text("rarity").default("common").notNull(),
+  thcRange: text("thc_range").default("15-20%"),
+  cbdRange: text("cbd_range").default("0-1%"),
+  growthBonus: integer("growth_bonus").default(0),
+  effects: jsonb("effects").$type<string[]>().default([]),
+  flavorNotes: jsonb("flavor_notes").$type<string[]>().default([]),
+  breedingCount: integer("breeding_count").default(0).notNull(),
+  imageCid: text("image_cid"),
+  isBurned: boolean("is_burned").default(false).notNull(),
+  harvestTimestamp: timestamp("harvest_timestamp").defaultNow(),
+  createdAt: timestamp("created_at").defaultNow(),
+});
+
+// Strain Registry - Tracks unique strain discoveries
+export const strainRegistry = pgTable("strain_registry", {
+  id: serial("id").primaryKey(),
+  name: text("name").unique().notNull(),
+  dnaSignature: text("dna_signature").unique().notNull(),
+  creatorWallet: text("creator_wallet").notNull(),
+  terpeneProfile: jsonb("terpene_profile").$type<string[]>().default([]),
+  rarity: text("rarity").default("rare").notNull(),
+  totalMinted: integer("total_minted").default(1).notNull(),
+  baseGrowthBonus: integer("base_growth_bonus").default(10),
+  description: text("description"),
+  effects: jsonb("effects").$type<string[]>().default([]),
+  createdAt: timestamp("created_at").defaultNow(),
+});
+
+// Breeding History - Tracks all breeding events
+export const breedingHistory = pgTable("breeding_history", {
+  id: serial("id").primaryKey(),
+  walletAddress: text("wallet_address").notNull(),
+  parentAId: integer("parent_a_id").notNull(),
+  parentBId: integer("parent_b_id").notNull(),
+  childId: integer("child_id").notNull(),
+  budCost: text("bud_cost").notNull(),
+  createdAt: timestamp("created_at").defaultNow(),
+});
+
+// Insert schemas for biomass NFT tables
+export const insertBiomassNftSchema = createInsertSchema(biomassNfts).omit({ id: true, createdAt: true, harvestTimestamp: true });
+export const insertStrainRegistrySchema = createInsertSchema(strainRegistry).omit({ id: true, createdAt: true });
+export const insertBreedingHistorySchema = createInsertSchema(breedingHistory).omit({ id: true, createdAt: true });
+
+// Types for biomass NFT
+export type BiomassNft = typeof biomassNfts.$inferSelect;
+export type InsertBiomassNft = z.infer<typeof insertBiomassNftSchema>;
+export type StrainRegistryItem = typeof strainRegistry.$inferSelect;
+export type InsertStrainRegistryItem = z.infer<typeof insertStrainRegistrySchema>;
+export type BreedingHistoryItem = typeof breedingHistory.$inferSelect;
+export type InsertBreedingHistoryItem = z.infer<typeof insertBreedingHistorySchema>;
+
+// Rarity types for biomass
+export type BiomassRarity = "common" | "uncommon" | "rare" | "legendary" | "mythic";
+
+// ============================================
 // Types for Game Data (Frontend <-> Backend)
 // ============================================
 export type PodStatus = "empty" | "planted" | "growing" | "ready_harvest" | "dead";
