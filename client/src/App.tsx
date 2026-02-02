@@ -23,6 +23,7 @@ import SeedBank from "@/pages/SeedBank";
 import Predictions from "@/pages/Predictions";
 import Admin from "@/pages/Admin";
 import Inventory from "@/pages/Inventory";
+import MonitorDashboard from "@/pages/MonitorDashboard";
 import { MiniPlayer } from "@/components/MiniPlayer";
 import NotFound from "@/pages/not-found";
 import type { AnnouncementVideo } from "@shared/schema";
@@ -103,6 +104,7 @@ function Router() {
           <Route path="/seed-bank" component={SeedBank} />
           <Route path="/predictions" component={Predictions} />
           <Route path="/admin" component={Admin} />
+          <Route path="/monitor" component={MonitorDashboard} />
           <Route component={NotFound} />
         </Switch>
         {/* Floating mini player - always available */}

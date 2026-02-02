@@ -1,6 +1,6 @@
-import { users, playerStats, songs, announcementVideos, seedBank, userSeeds, type User, type InsertUser, type PlayerStats, type Song, type InsertSong, type AnnouncementVideo, type InsertAnnouncementVideo, type SeedBankItem, type InsertSeedBankItem, type UserSeed, type InsertUserSeed } from "@shared/schema";
+import { users, playerStats, songs, announcementVideos, seedBank, userSeeds, monitorErrors, monitorTransactions, monitorMetrics, monitorBreadcrumbs, monitorHealthChecks, monitorDailyStats, type User, type InsertUser, type PlayerStats, type Song, type InsertSong, type AnnouncementVideo, type InsertAnnouncementVideo, type SeedBankItem, type InsertSeedBankItem, type UserSeed, type InsertUserSeed, type MonitorError, type InsertMonitorError, type MonitorTransaction, type InsertMonitorTransaction, type MonitorMetric, type InsertMonitorMetric, type MonitorBreadcrumb, type InsertMonitorBreadcrumb, type MonitorHealthCheck, type MonitorDailyStats } from "@shared/schema";
 import { db } from "./db";
-import { eq, desc, sql, and } from "drizzle-orm";
+import { eq, desc, sql, and, gte, lte, count } from "drizzle-orm";
 
 export interface LeaderboardEntry {
   rank: number;
@@ -41,6 +41,26 @@ export interface IStorage {
   getUserSeeds(walletAddress: string): Promise<(UserSeed & { seed: SeedBankItem })[]>;
   getUserSeedCount(walletAddress: string, seedId: number): Promise<number>;
   useUserSeed(walletAddress: string, seedId: number): Promise<boolean>;
+  // Monitor methods
+  recordMonitorError(error: InsertMonitorError): Promise<MonitorError>;
+  recordMonitorTransaction(tx: InsertMonitorTransaction): Promise<MonitorTransaction>;
+  recordMonitorMetric(metric: InsertMonitorMetric): Promise<MonitorMetric>;
+  recordMonitorBreadcrumb(breadcrumb: InsertMonitorBreadcrumb): Promise<MonitorBreadcrumb>;
+  getMonitorErrors(options: { resolved?: boolean; limit?: number; offset?: number }): Promise<MonitorError[]>;
+  getMonitorTransactions(options: { walletAddress?: string; action?: string; status?: string; limit?: number; offset?: number }): Promise<MonitorTransaction[]>;
+  getMonitorMetrics(options: { name?: string; limit?: number }): Promise<MonitorMetric[]>;
+  getMonitorDashboardStats(): Promise<{
+    errorsLast24h: number;
+    transactionsLast24h: number;
+    successRate: number;
+    avgTransactionDuration: number;
+    activeUsersLast24h: number;
+    topErrors: MonitorError[];
+    transactionsByAction: { action: string; count: number; successCount: number }[];
+    errorTrend: { hour: string; count: number }[];
+  }>;
+  resolveMonitorError(errorId: number): Promise<MonitorError | undefined>;
+  getMonitorBreadcrumbsBySession(sessionId: string): Promise<MonitorBreadcrumb[]>;
 }
 
 export class DatabaseStorage implements IStorage {
@@ -307,6 +327,216 @@ export class DatabaseStorage implements IStorage {
         .where(eq(userSeeds.id, existing.id));
     }
     return true;
+  }
+
+  // ============================================================
+  // Monitor Methods
+  // ============================================================
+
+  async recordMonitorError(error: InsertMonitorError): Promise<MonitorError> {
+    // Check if error with same hash already exists
+    const [existing] = await db.select()
+      .from(monitorErrors)
+      .where(eq(monitorErrors.errorHash, error.errorHash))
+      .limit(1);
+
+    if (existing) {
+      // Update existing error (increment count, update lastSeen)
+      const [updated] = await db.update(monitorErrors)
+        .set({
+          count: sql`${monitorErrors.count} + 1`,
+          lastSeen: new Date(),
+          // Update metadata with latest context
+          metadata: error.metadata,
+          walletAddress: error.walletAddress || existing.walletAddress,
+        })
+        .where(eq(monitorErrors.id, existing.id))
+        .returning();
+      return updated;
+    }
+
+    // Create new error
+    const [created] = await db.insert(monitorErrors)
+      .values(error as any)
+      .returning();
+    return created;
+  }
+
+  async recordMonitorTransaction(tx: InsertMonitorTransaction): Promise<MonitorTransaction> {
+    const [created] = await db.insert(monitorTransactions)
+      .values(tx as any)
+      .returning();
+    return created;
+  }
+
+  async recordMonitorMetric(metric: InsertMonitorMetric): Promise<MonitorMetric> {
+    const [created] = await db.insert(monitorMetrics)
+      .values(metric as any)
+      .returning();
+    return created;
+  }
+
+  async recordMonitorBreadcrumb(breadcrumb: InsertMonitorBreadcrumb): Promise<MonitorBreadcrumb> {
+    const [created] = await db.insert(monitorBreadcrumbs)
+      .values(breadcrumb as any)
+      .returning();
+    return created;
+  }
+
+  async getMonitorErrors(options: { resolved?: boolean; limit?: number; offset?: number }): Promise<MonitorError[]> {
+    const { resolved, limit = 50, offset = 0 } = options;
+
+    let query = db.select().from(monitorErrors);
+
+    if (resolved !== undefined) {
+      query = query.where(eq(monitorErrors.resolved, resolved)) as typeof query;
+    }
+
+    const results = await query
+      .orderBy(desc(monitorErrors.lastSeen))
+      .limit(limit)
+      .offset(offset);
+
+    return results;
+  }
+
+  async getMonitorTransactions(options: { walletAddress?: string; action?: string; status?: string; limit?: number; offset?: number }): Promise<MonitorTransaction[]> {
+    const { walletAddress, action, status, limit = 50, offset = 0 } = options;
+
+    const conditions = [];
+    if (walletAddress) conditions.push(eq(monitorTransactions.walletAddress, walletAddress));
+    if (action) conditions.push(eq(monitorTransactions.action, action));
+    if (status) conditions.push(eq(monitorTransactions.status, status));
+
+    let query = db.select().from(monitorTransactions);
+
+    if (conditions.length > 0) {
+      query = query.where(and(...conditions)) as typeof query;
+    }
+
+    const results = await query
+      .orderBy(desc(monitorTransactions.createdAt))
+      .limit(limit)
+      .offset(offset);
+
+    return results;
+  }
+
+  async getMonitorMetrics(options: { name?: string; limit?: number }): Promise<MonitorMetric[]> {
+    const { name, limit = 100 } = options;
+
+    let query = db.select().from(monitorMetrics);
+
+    if (name) {
+      query = query.where(eq(monitorMetrics.name, name)) as typeof query;
+    }
+
+    const results = await query
+      .orderBy(desc(monitorMetrics.createdAt))
+      .limit(limit);
+
+    return results;
+  }
+
+  async getMonitorDashboardStats(): Promise<{
+    errorsLast24h: number;
+    transactionsLast24h: number;
+    successRate: number;
+    avgTransactionDuration: number;
+    activeUsersLast24h: number;
+    topErrors: MonitorError[];
+    transactionsByAction: { action: string; count: number; successCount: number }[];
+    errorTrend: { hour: string; count: number }[];
+  }> {
+    const last24h = new Date(Date.now() - 24 * 60 * 60 * 1000);
+
+    // Errors in last 24h
+    const [errorStats] = await db.select({
+      count: sql<number>`COUNT(*)`,
+    })
+      .from(monitorErrors)
+      .where(gte(monitorErrors.lastSeen, last24h));
+
+    // Transactions in last 24h
+    const [txStats] = await db.select({
+      total: sql<number>`COUNT(*)`,
+      successful: sql<number>`COUNT(*) FILTER (WHERE ${monitorTransactions.status} = 'success')`,
+      avgDuration: sql<number>`AVG(${monitorTransactions.duration})`,
+    })
+      .from(monitorTransactions)
+      .where(gte(monitorTransactions.createdAt, last24h));
+
+    // Active users in last 24h
+    const [userStats] = await db.select({
+      count: sql<number>`COUNT(DISTINCT ${monitorTransactions.walletAddress})`,
+    })
+      .from(monitorTransactions)
+      .where(gte(monitorTransactions.createdAt, last24h));
+
+    // Top errors
+    const topErrors = await db.select()
+      .from(monitorErrors)
+      .where(eq(monitorErrors.resolved, false))
+      .orderBy(desc(monitorErrors.count))
+      .limit(10);
+
+    // Transactions by action
+    const txByAction = await db.select({
+      action: monitorTransactions.action,
+      count: sql<number>`COUNT(*)`,
+      successCount: sql<number>`COUNT(*) FILTER (WHERE ${monitorTransactions.status} = 'success')`,
+    })
+      .from(monitorTransactions)
+      .where(gte(monitorTransactions.createdAt, last24h))
+      .groupBy(monitorTransactions.action);
+
+    // Error trend (hourly for last 24h)
+    const errorTrend = await db.select({
+      hour: sql<string>`TO_CHAR(${monitorErrors.lastSeen}, 'HH24:00')`,
+      count: sql<number>`COUNT(*)`,
+    })
+      .from(monitorErrors)
+      .where(gte(monitorErrors.lastSeen, last24h))
+      .groupBy(sql`TO_CHAR(${monitorErrors.lastSeen}, 'HH24:00')`)
+      .orderBy(sql`TO_CHAR(${monitorErrors.lastSeen}, 'HH24:00')`);
+
+    const totalTx = Number(txStats.total) || 0;
+    const successfulTx = Number(txStats.successful) || 0;
+
+    return {
+      errorsLast24h: Number(errorStats.count) || 0,
+      transactionsLast24h: totalTx,
+      successRate: totalTx > 0 ? (successfulTx / totalTx) * 100 : 100,
+      avgTransactionDuration: Number(txStats.avgDuration) || 0,
+      activeUsersLast24h: Number(userStats.count) || 0,
+      topErrors,
+      transactionsByAction: txByAction.map(t => ({
+        action: t.action,
+        count: Number(t.count),
+        successCount: Number(t.successCount),
+      })),
+      errorTrend: errorTrend.map(e => ({
+        hour: e.hour,
+        count: Number(e.count),
+      })),
+    };
+  }
+
+  async resolveMonitorError(errorId: number): Promise<MonitorError | undefined> {
+    const [updated] = await db.update(monitorErrors)
+      .set({ resolved: true })
+      .where(eq(monitorErrors.id, errorId))
+      .returning();
+    return updated;
+  }
+
+  async getMonitorBreadcrumbsBySession(sessionId: string): Promise<MonitorBreadcrumb[]> {
+    const results = await db.select()
+      .from(monitorBreadcrumbs)
+      .where(eq(monitorBreadcrumbs.sessionId, sessionId))
+      .orderBy(monitorBreadcrumbs.timestamp)
+      .limit(100);
+    return results;
   }
 }
 

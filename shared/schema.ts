@@ -291,3 +291,109 @@ export interface PlayerState {
   terpBalance: string;
   pods: PodData[];
 }
+
+// ============================================================
+// GrowPod Monitor - Custom Error & Performance Tracking System
+// ============================================================
+
+// Error events - captures frontend and backend errors
+export const monitorErrors = pgTable("monitor_errors", {
+  id: serial("id").primaryKey(),
+  errorHash: text("error_hash").notNull(), // For grouping similar errors
+  message: text("message").notNull(),
+  stack: text("stack"),
+  type: text("type").notNull().default("error"), // error, unhandledrejection, network
+  source: text("source").notNull().default("frontend"), // frontend, backend, blockchain
+  walletAddress: text("wallet_address"),
+  url: text("url"),
+  userAgent: text("user_agent"),
+  metadata: jsonb("metadata").$type<Record<string, unknown>>(),
+  sessionId: text("session_id"),
+  count: integer("count").default(1).notNull(),
+  firstSeen: timestamp("first_seen").defaultNow(),
+  lastSeen: timestamp("last_seen").defaultNow(),
+  resolved: boolean("resolved").default(false).notNull(),
+});
+
+// Blockchain transaction tracking
+export const monitorTransactions = pgTable("monitor_transactions", {
+  id: serial("id").primaryKey(),
+  txId: text("tx_id"),
+  walletAddress: text("wallet_address").notNull(),
+  action: text("action").notNull(), // mint_pod, water, harvest, cleanup, breed, etc.
+  status: text("status").notNull().default("pending"), // pending, success, failed
+  errorMessage: text("error_message"),
+  duration: integer("duration"), // ms from start to confirmation
+  gasUsed: integer("gas_used"),
+  metadata: jsonb("metadata").$type<Record<string, unknown>>(),
+  createdAt: timestamp("created_at").defaultNow(),
+});
+
+// Performance metrics - page loads, API calls, wallet connections
+export const monitorMetrics = pgTable("monitor_metrics", {
+  id: serial("id").primaryKey(),
+  name: text("name").notNull(), // page_load, api_call, wallet_connect, etc.
+  value: integer("value").notNull(), // duration in ms or count
+  tags: jsonb("tags").$type<Record<string, string>>(),
+  walletAddress: text("wallet_address"),
+  sessionId: text("session_id"),
+  url: text("url"),
+  createdAt: timestamp("created_at").defaultNow(),
+});
+
+// Session breadcrumbs - user actions leading up to events
+export const monitorBreadcrumbs = pgTable("monitor_breadcrumbs", {
+  id: serial("id").primaryKey(),
+  sessionId: text("session_id").notNull(),
+  walletAddress: text("wallet_address"),
+  action: text("action").notNull(), // click, navigate, api_call, wallet_action, etc.
+  category: text("category").notNull(), // ui, navigation, blockchain, api
+  data: jsonb("data").$type<Record<string, unknown>>(),
+  timestamp: timestamp("timestamp").defaultNow(),
+});
+
+// Health checks / uptime monitoring
+export const monitorHealthChecks = pgTable("monitor_health_checks", {
+  id: serial("id").primaryKey(),
+  endpoint: text("endpoint").notNull(),
+  status: text("status").notNull(), // up, down, degraded
+  responseTime: integer("response_time"), // ms
+  statusCode: integer("status_code"),
+  errorMessage: text("error_message"),
+  checkedAt: timestamp("checked_at").defaultNow(),
+});
+
+// Aggregated daily stats for dashboard
+export const monitorDailyStats = pgTable("monitor_daily_stats", {
+  id: serial("id").primaryKey(),
+  date: timestamp("date").notNull(),
+  totalErrors: integer("total_errors").default(0).notNull(),
+  uniqueErrors: integer("unique_errors").default(0).notNull(),
+  totalTransactions: integer("total_transactions").default(0).notNull(),
+  successfulTransactions: integer("successful_transactions").default(0).notNull(),
+  failedTransactions: integer("failed_transactions").default(0).notNull(),
+  avgTransactionDuration: integer("avg_transaction_duration"),
+  activeUsers: integer("active_users").default(0).notNull(),
+  pageViews: integer("page_views").default(0).notNull(),
+  avgPageLoadTime: integer("avg_page_load_time"),
+});
+
+// Insert schemas
+export const insertMonitorErrorSchema = createInsertSchema(monitorErrors).omit({ id: true, firstSeen: true, lastSeen: true, count: true });
+export const insertMonitorTransactionSchema = createInsertSchema(monitorTransactions).omit({ id: true, createdAt: true });
+export const insertMonitorMetricSchema = createInsertSchema(monitorMetrics).omit({ id: true, createdAt: true });
+export const insertMonitorBreadcrumbSchema = createInsertSchema(monitorBreadcrumbs).omit({ id: true, timestamp: true });
+export const insertMonitorHealthCheckSchema = createInsertSchema(monitorHealthChecks).omit({ id: true, checkedAt: true });
+
+// Types
+export type MonitorError = typeof monitorErrors.$inferSelect;
+export type InsertMonitorError = z.infer<typeof insertMonitorErrorSchema>;
+export type MonitorTransaction = typeof monitorTransactions.$inferSelect;
+export type InsertMonitorTransaction = z.infer<typeof insertMonitorTransactionSchema>;
+export type MonitorMetric = typeof monitorMetrics.$inferSelect;
+export type InsertMonitorMetric = z.infer<typeof insertMonitorMetricSchema>;
+export type MonitorBreadcrumb = typeof monitorBreadcrumbs.$inferSelect;
+export type InsertMonitorBreadcrumb = z.infer<typeof insertMonitorBreadcrumbSchema>;
+export type MonitorHealthCheck = typeof monitorHealthChecks.$inferSelect;
+export type InsertMonitorHealthCheck = z.infer<typeof insertMonitorHealthCheckSchema>;
+export type MonitorDailyStats = typeof monitorDailyStats.$inferSelect;
