@@ -1,8 +1,10 @@
 /**
  * Multi-Wallet Provider Configuration
  *
- * Simplified to Pera Wallet only for a streamlined user experience.
- * Pera Wallet works on both Mobile (iOS/Android) and Web via QR code.
+ * Supports multiple Algorand wallets for TestNet:
+ * - Pera Wallet (Mobile & Web)
+ * - Lute (Web Wallet)
+ * - AlgoSigner (Browser Extension - Deprecated but still works)
  *
  * Using @txnlab/use-wallet-react for wallet management
  */
@@ -23,12 +25,16 @@ export const algodClient = new algosdk.Algodv2(ALGOD_TOKEN, ALGOD_SERVER, '');
 
 /**
  * Create the WalletManager instance
- * Simplified to Pera Wallet only
+ * Supports Pera, Lute, and AlgoSigner wallets
  */
 export const walletManager = new WalletManager({
   wallets: [
     // Pera Wallet - Most popular Algorand wallet (Mobile & Web)
     WalletId.PERA,
+    // Lute - Web-based wallet (great for TestNet)
+    WalletId.LUTE,
+    // Defly - Mobile wallet with DeFi features
+    WalletId.DEFLY,
   ],
   defaultNetwork: NetworkId.TESTNET,
 });
@@ -50,6 +56,20 @@ export const WALLET_METADATA: Record<string, {
     downloadUrl: 'https://perawallet.app/',
     type: 'mobile',
   },
+  [WalletId.LUTE]: {
+    name: 'Lute Wallet',
+    icon: '/wallet-icons/lute.svg',
+    description: 'Web-based Algorand wallet. No installation required!',
+    downloadUrl: 'https://lute.app/',
+    type: 'web',
+  },
+  [WalletId.DEFLY]: {
+    name: 'Defly Wallet',
+    icon: '/wallet-icons/defly.svg',
+    description: 'Mobile wallet with built-in DeFi features and swaps.',
+    downloadUrl: 'https://defly.app/',
+    type: 'mobile',
+  },
 };
 
 interface MultiWalletProviderProps {
@@ -60,9 +80,10 @@ interface MultiWalletProviderProps {
  * MultiWalletProvider - Wraps the app with wallet functionality
  *
  * Provides:
- * - Connection to Pera Wallet
+ * - Connection to Pera, Lute, and Defly Wallets
  * - Transaction signing
  * - Account management
+ * - TestNet support
  */
 export function MultiWalletProvider({ children }: MultiWalletProviderProps) {
   return (

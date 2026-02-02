@@ -77,7 +77,7 @@ CREATE TABLE IF NOT EXISTS seed_bank (
   thc_range TEXT DEFAULT '15-20%',
   cbd_range TEXT DEFAULT '0-1%',
   growth_bonus INTEGER DEFAULT 0,
-  bud_price TEXT DEFAULT '1000' NOT NULL,
+  bud_price TEXT DEFAULT '0' NOT NULL,  -- FREE for testing
   image_path TEXT,
   glow_color TEXT DEFAULT '#a855f7',
   total_supply INTEGER,
@@ -105,6 +105,20 @@ CREATE TABLE IF NOT EXISTS user_seeds (
 CREATE INDEX IF NOT EXISTS idx_user_seeds_wallet ON user_seeds(wallet_address);
 CREATE INDEX IF NOT EXISTS idx_user_seeds_seed ON user_seeds(seed_id);
 CREATE UNIQUE INDEX IF NOT EXISTS idx_user_seeds_unique ON user_seeds(wallet_address, seed_id);
+
+-- ============================================
+-- Default Test Seeds (FREE for testing)
+-- ============================================
+INSERT OR IGNORE INTO seed_bank (name, description, rarity, terpene_profile, effects, flavor_notes, thc_range, cbd_range, growth_bonus, bud_price, glow_color, max_per_user)
+VALUES
+  ('OG Kush', 'A legendary strain with earthy, pine flavors and powerful effects.', 'rare', '["Myrcene","Limonene","Caryophyllene"]', '["Relaxed","Happy","Euphoric"]', '["Pine","Earthy","Woody"]', '20-25%', '0-1%', 15, '0', '#22c55e', 5),
+  ('Blue Dream', 'A sativa-dominant hybrid with sweet berry aroma and balanced effects.', 'uncommon', '["Myrcene","Pinene","Caryophyllene"]', '["Creative","Happy","Uplifted"]', '["Blueberry","Sweet","Vanilla"]', '17-24%', '0.1-0.2%', 10, '0', '#3b82f6', 5),
+  ('Sour Diesel', 'Fast-acting energizing strain with pungent diesel aroma.', 'rare', '["Caryophyllene","Limonene","Myrcene"]', '["Energetic","Focused","Creative"]', '["Diesel","Citrus","Earthy"]', '19-25%', '0-0.2%', 12, '0', '#eab308', 5),
+  ('Purple Haze', 'Classic psychedelic strain with dreamy euphoria and berry notes.', 'legendary', '["Terpinolene","Myrcene","Caryophyllene"]', '["Euphoric","Creative","Uplifted"]', '["Berry","Earthy","Sweet"]', '16-20%', '0-0.1%', 20, '0', '#a855f7', 3),
+  ('Northern Lights', 'Pure indica with relaxing full-body effects. Great for sleep.', 'rare', '["Myrcene","Caryophyllene","Pinene"]', '["Relaxed","Sleepy","Happy"]', '["Pine","Earthy","Sweet"]', '16-21%', '0.1-0.3%', 15, '0', '#14b8a6', 5),
+  ('Girl Scout Cookies', 'Award-winning hybrid with dessert-like flavors and potent effects.', 'legendary', '["Caryophyllene","Limonene","Humulene"]', '["Euphoric","Relaxed","Creative"]', '["Sweet","Earthy","Mint"]', '25-28%', '0-0.2%', 25, '0', '#ec4899', 2),
+  ('Gelato', 'Sweet and creamy strain with colorful buds and balanced high.', 'rare', '["Limonene","Caryophyllene","Linalool"]', '["Happy","Relaxed","Euphoric"]', '["Sweet","Citrus","Creamy"]', '20-25%', '0-0.1%', 18, '0', '#f97316', 5),
+  ('Mystery Kush', 'Unknown genetics with surprising effects. Results may vary!', 'common', '["Unknown"]', '["Mysterious"]', '["Unknown"]', '15-25%', '0-2%', 5, '0', '#6b7280', 10);
 
 -- ============================================
 -- $SMOKE Balances Table (Prediction Market Currency)
