@@ -10,7 +10,9 @@ compatibility_flags = ["nodejs_compat"]
 # REQUIRED: Add your Cloudflare Account ID
 # ============================================
 # Get this from: https://dash.cloudflare.com/ → Workers & Pages → Overview (right sidebar)
-account_id = "b591c2e07ca352d33076f4d2f8414b89"
+# For deployment, provide via: wrangler deploy --account-id <YOUR_ACCOUNT_ID>
+# Or set in GitHub secrets: CLOUDFLARE_ACCOUNT_ID
+account_id = "REPLACE_WITH_YOUR_ACCOUNT_ID"
 
 # Serve static assets from the dist folder (new wrangler v4 syntax)
 [assets]
@@ -44,11 +46,12 @@ NODE_ENV = "production"
 # D1 Database (Cloudflare's SQLite)
 # ============================================
 # Create database: wrangler d1 create growpod-empire-db
-# Then add the database_id returned by that command below:
+# Then replace the database_id below with the ID returned by that command.
+# For deployment, you can also provide via: wrangler deploy --var database_id:<YOUR_DB_ID>
 [[d1_databases]]
 binding = "DB"
 database_name = "growpod-empire-db"
-database_id = "712d926f-c396-473f-96d9-f0dfc3d1d069"
+database_id = "REPLACE_WITH_YOUR_DATABASE_ID"
 
 # ============================================
 # KV Namespaces (for caching and security metrics)
