@@ -75,7 +75,7 @@ GrowPodEmpirev1.0/
 ## Development Commands
 
 ```bash
-# Start development server (frontend + worker)
+# Start development servers (frontend + backend)
 npm run dev
 
 # Type checking
