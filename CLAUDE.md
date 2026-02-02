@@ -22,9 +22,9 @@ GrowPod Empire is a blockchain-based idle farming game built on **Algorand TestN
 | Styling | Tailwind CSS (dark cyberpunk theme) |
 | Routing | Wouter |
 | State | TanStack Query |
-| Backend | Cloudflare Workers + Hono |
-| Database | Cloudflare D1 (SQLite) |
-| Storage | Cloudflare R2 (file uploads) |
+| Backend | Express.js (Node.js, deployed via Cloudflare Workers) |
+| Database | PostgreSQL (Drizzle ORM) |
+| Storage | PostgreSQL (no separate object storage service) |
 | Blockchain | Algorand (PyTeal smart contracts) |
 | Wallet | Pera Wallet (@txnlab/use-wallet-react) |
 
