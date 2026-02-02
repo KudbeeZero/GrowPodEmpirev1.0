@@ -14,7 +14,6 @@ import {
   TrendingUp,
   Loader2,
   RefreshCw,
-  Eye,
   ChevronDown,
   ChevronUp,
   Zap,
