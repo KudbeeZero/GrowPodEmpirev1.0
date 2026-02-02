@@ -645,18 +645,28 @@ def approval_program():
     breed_seeds = Seq(
         Assert(App.globalGet(GlobalBudAsset) != Int(0)),
 
+        # Security: Ensure transaction is grouped with sufficient size
+        Assert(Txn.group_index() >= Int(3)),
+        Assert(Global.group_size() >= Int(4)),
+
         # Verify $BUD payment (index - 3)
+        Assert(Gtxn[Txn.group_index() - Int(3)].sender() == Txn.sender()),
         Assert(Gtxn[Txn.group_index() - Int(3)].type_enum() == TxnType.AssetTransfer),
         Assert(Gtxn[Txn.group_index() - Int(3)].xfer_asset() == App.globalGet(GlobalBudAsset)),
         Assert(Gtxn[Txn.group_index() - Int(3)].asset_amount() >= BREED_COST),
+        Assert(Gtxn[Txn.group_index() - Int(3)].asset_receiver() == Global.current_application_address()),
 
         # Verify seed 1 transfer (index - 2)
+        Assert(Gtxn[Txn.group_index() - Int(2)].sender() == Txn.sender()),
         Assert(Gtxn[Txn.group_index() - Int(2)].type_enum() == TxnType.AssetTransfer),
         Assert(Gtxn[Txn.group_index() - Int(2)].asset_amount() == Int(1)),
+        Assert(Gtxn[Txn.group_index() - Int(2)].asset_receiver() == Global.current_application_address()),
 
         # Verify seed 2 transfer (index - 1)
+        Assert(Gtxn[Txn.group_index() - Int(1)].sender() == Txn.sender()),
         Assert(Gtxn[Txn.group_index() - Int(1)].type_enum() == TxnType.AssetTransfer),
         Assert(Gtxn[Txn.group_index() - Int(1)].asset_amount() == Int(1)),
+        Assert(Gtxn[Txn.group_index() - Int(1)].asset_receiver() == Global.current_application_address()),
 
         # Increment seed counter
         App.globalPut(GlobalSeedCounter, App.globalGet(GlobalSeedCounter) + Int(1)),
@@ -708,9 +718,16 @@ def approval_program():
         Assert(App.globalGet(GlobalBudAsset) != Int(0)),
         Assert(App.localGet(Txn.sender(), LocalHarvestCount) >= HARVESTS_FOR_SLOT),
 
+        # Security: Ensure transaction is grouped and not at index 0
+        Assert(Txn.group_index() > Int(0)),
+        Assert(Global.group_size() > Int(1)),
+
+        # Security: Verify $BUD payment comes from sender to contract
+        Assert(Gtxn[Txn.group_index() - Int(1)].sender() == Txn.sender()),
         Assert(Gtxn[Txn.group_index() - Int(1)].type_enum() == TxnType.AssetTransfer),
         Assert(Gtxn[Txn.group_index() - Int(1)].xfer_asset() == App.globalGet(GlobalBudAsset)),
         Assert(Gtxn[Txn.group_index() - Int(1)].asset_amount() >= SLOT_TOKEN_COST),
+        Assert(Gtxn[Txn.group_index() - Int(1)].asset_receiver() == Global.current_application_address()),
 
         InnerTxnBuilder.Begin(),
         InnerTxnBuilder.SetFields({
@@ -730,9 +747,16 @@ def approval_program():
         Assert(App.globalGet(GlobalSlotAsset) != Int(0)),
         Assert(App.localGet(Txn.sender(), LocalPodSlots) < MAX_POD_SLOTS),
 
+        # Security: Ensure transaction is grouped and not at index 0
+        Assert(Txn.group_index() > Int(0)),
+        Assert(Global.group_size() > Int(1)),
+
+        # Security: Verify slot token payment comes from sender to contract
+        Assert(Gtxn[Txn.group_index() - Int(1)].sender() == Txn.sender()),
         Assert(Gtxn[Txn.group_index() - Int(1)].type_enum() == TxnType.AssetTransfer),
         Assert(Gtxn[Txn.group_index() - Int(1)].xfer_asset() == App.globalGet(GlobalSlotAsset)),
         Assert(Gtxn[Txn.group_index() - Int(1)].asset_amount() == Int(1)),
+        Assert(Gtxn[Txn.group_index() - Int(1)].asset_receiver() == Global.current_application_address()),
 
         App.localPut(Txn.sender(), LocalPodSlots, App.localGet(Txn.sender(), LocalPodSlots) + Int(1)),
         Approve()
