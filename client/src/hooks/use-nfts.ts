@@ -151,12 +151,20 @@ export function useBiomassNFTs(account: string | null) {
 
             // Check if it's a BIOMASS NFT
             if (params.unitName === 'BIOMASS' && Number(params.total) === 1) {
-              // Note field may not exist in algosdk v3 types, use URL or metadata-hash
-              const noteData: Record<string, string> = {};
-              const weightMg = parseInt(noteData.weight || '0', 10);
-
               const metadata = await fetchAssetMetadata(Number(asset.assetId));
 
+              // Prefer weight from ARC-69 metadata properties (weight_mg), fall back to 0
+              const rawWeight =
+                (metadata?.properties as BiomassProperties | undefined)?.weight_mg;
+              let weightMg: number;
+              if (typeof rawWeight === 'string') {
+                const parsed = parseInt(rawWeight, 10);
+                weightMg = Number.isFinite(parsed) ? parsed : 0;
+              } else if (typeof rawWeight === 'number') {
+                weightMg = Number.isFinite(rawWeight) ? Math.floor(rawWeight) : 0;
+              } else {
+                weightMg = 0;
+              }
               biomassNFTs.push({
                 assetId: Number(asset.assetId),
                 name: params.name || `Biomass #${asset.assetId}`,
