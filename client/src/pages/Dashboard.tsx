@@ -8,7 +8,7 @@ import { Checkbox } from "@/components/ui/checkbox";
 import { Badge } from "@/components/ui/badge";
 import { useToast } from "@/hooks/use-toast";
 import { useNotifications, usePlantNotifications } from "@/hooks/use-notifications";
-import { Plus, Sprout, Leaf, FlaskConical, Flame, Zap, Sparkles, Info, Coins, ExternalLink, Bell, BellOff, X, Loader2 } from "lucide-react";
+import { Plus, Sprout, Leaf, FlaskConical, Flame, Zap, Sparkles, Info, Coins, ExternalLink, Bell, BellOff, X, Loader2, Wallet, Trophy, BookOpen } from "lucide-react";
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription } from "@/components/ui/dialog";
 import { Link } from "wouter";
@@ -452,28 +452,193 @@ export default function Dashboard() {
           </div>
 
           {!isConnected && (
-            <motion.div 
-              initial={{ opacity: 0, y: 10 }}
+            <motion.div
+              initial={{ opacity: 0, y: 20 }}
               animate={{ opacity: 1, y: 0 }}
-              className="bg-primary/10 border border-primary/20 rounded-xl p-6 mb-8 flex items-center justify-between backdrop-blur-sm"
-              data-testid="connect-wallet-banner"
+              transition={{ duration: 0.5 }}
+              className="space-y-8 mb-8"
             >
-              <div>
-                <h3 className="text-primary font-bold flex items-center gap-2">
-                  <Sprout className="h-5 w-5" />
-                  Welcome to GrowPod Empire
-                </h3>
-                <p className="text-sm text-muted-foreground mt-1">
-                  Connect your Pera Wallet to start growing on Algorand TestNet.
-                </p>
+              {/* Hero Section */}
+              <div className="bg-gradient-to-br from-primary/20 via-primary/10 to-secondary/10 border border-primary/30 rounded-2xl p-8 md:p-12 backdrop-blur-sm relative overflow-hidden">
+                <div className="absolute top-0 right-0 w-64 h-64 bg-primary/10 rounded-full blur-3xl -mr-32 -mt-32" />
+                <div className="absolute bottom-0 left-0 w-48 h-48 bg-secondary/10 rounded-full blur-3xl -ml-24 -mb-24" />
+                
+                <div className="relative z-10">
+                  <h2 className="text-4xl md:text-5xl font-display font-bold mb-4 bg-clip-text text-transparent bg-gradient-to-r from-primary via-emerald-400 to-primary">
+                    Welcome to GrowPod Empire
+                  </h2>
+                  <p className="text-lg text-muted-foreground mb-6 max-w-2xl">
+                    Build your hydroponic empire on the Algorand blockchain. Cultivate premium strains, 
+                    breed rare genetics, and harvest $BUD tokens in this innovative play-to-earn game.
+                  </p>
+                  <div className="flex flex-col sm:flex-row gap-4">
+                    <Button 
+                      onClick={() => connectWallet('pera')} 
+                      size="lg"
+                      className="bg-gradient-to-r from-primary to-emerald-600 hover:brightness-110 shadow-lg shadow-primary/20"
+                      data-testid="button-connect-wallet-hero"
+                    >
+                      <Wallet className="mr-2 h-5 w-5" />
+                      Connect Wallet to Start
+                    </Button>
+                    <Link href="/tutorial">
+                      <Button 
+                        variant="outline" 
+                        size="lg"
+                        className="border-primary/50 hover:bg-primary/10"
+                      >
+                        <BookOpen className="mr-2 h-5 w-5" />
+                        How to Play
+                      </Button>
+                    </Link>
+                  </div>
+                </div>
               </div>
-              <Button 
-                onClick={() => connectWallet('pera')} 
-                className="bg-primary hover:bg-primary/90"
-                data-testid="button-connect-wallet-banner"
-              >
-                Connect Wallet
-              </Button>
+
+              {/* Feature Cards */}
+              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+                <motion.div
+                  initial={{ opacity: 0, y: 20 }}
+                  animate={{ opacity: 1, y: 0 }}
+                  transition={{ delay: 0.1 }}
+                  className="bg-card/40 backdrop-blur-md border border-primary/20 rounded-xl p-6 hover:border-primary/40 transition-all hover:shadow-lg hover:shadow-primary/10"
+                >
+                  <div className="h-12 w-12 rounded-lg bg-primary/20 flex items-center justify-center mb-4">
+                    <Sprout className="h-6 w-6 text-primary" />
+                  </div>
+                  <h3 className="text-xl font-display font-bold mb-2">Grow & Harvest</h3>
+                  <p className="text-muted-foreground text-sm">
+                    Cultivate virtual cannabis plants through growth cycles. Water, add nutrients, 
+                    and harvest $BUD tokens based on your care quality.
+                  </p>
+                </motion.div>
+
+                <motion.div
+                  initial={{ opacity: 0, y: 20 }}
+                  animate={{ opacity: 1, y: 0 }}
+                  transition={{ delay: 0.2 }}
+                  className="bg-card/40 backdrop-blur-md border border-secondary/20 rounded-xl p-6 hover:border-secondary/40 transition-all hover:shadow-lg hover:shadow-secondary/10"
+                >
+                  <div className="h-12 w-12 rounded-lg bg-secondary/20 flex items-center justify-center mb-4">
+                    <FlaskConical className="h-6 w-6 text-secondary" />
+                  </div>
+                  <h3 className="text-xl font-display font-bold mb-2">Breed Genetics</h3>
+                  <p className="text-muted-foreground text-sm">
+                    Combine plants in the Combiner Lab to create unique hybrids. 
+                    Discover rare terpene profiles and unlock special rewards.
+                  </p>
+                </motion.div>
+
+                <motion.div
+                  initial={{ opacity: 0, y: 20 }}
+                  animate={{ opacity: 1, y: 0 }}
+                  transition={{ delay: 0.3 }}
+                  className="bg-card/40 backdrop-blur-md border border-amber-500/20 rounded-xl p-6 hover:border-amber-500/40 transition-all hover:shadow-lg hover:shadow-amber-500/10"
+                >
+                  <div className="h-12 w-12 rounded-lg bg-amber-500/20 flex items-center justify-center mb-4">
+                    <Coins className="h-6 w-6 text-amber-500" />
+                  </div>
+                  <h3 className="text-xl font-display font-bold mb-2">Dual Token Economy</h3>
+                  <p className="text-muted-foreground text-sm">
+                    Earn $BUD from harvests and discover rare $TERP tokens. 
+                    Use tokens to unlock premium seeds and expand your empire.
+                  </p>
+                </motion.div>
+
+                <motion.div
+                  initial={{ opacity: 0, y: 20 }}
+                  animate={{ opacity: 1, y: 0 }}
+                  transition={{ delay: 0.4 }}
+                  className="bg-card/40 backdrop-blur-md border border-indigo-500/20 rounded-xl p-6 hover:border-indigo-500/40 transition-all hover:shadow-lg hover:shadow-indigo-500/10"
+                >
+                  <div className="h-12 w-12 rounded-lg bg-indigo-500/20 flex items-center justify-center mb-4">
+                    <Sparkles className="h-6 w-6 text-indigo-400" />
+                  </div>
+                  <h3 className="text-xl font-display font-bold mb-2">Premium Seeds</h3>
+                  <p className="text-muted-foreground text-sm">
+                    Access the Seed Bank to purchase rare genetics with custom attributes, 
+                    higher yields, and unique visual effects.
+                  </p>
+                </motion.div>
+
+                <motion.div
+                  initial={{ opacity: 0, y: 20 }}
+                  animate={{ opacity: 1, y: 0 }}
+                  transition={{ delay: 0.5 }}
+                  className="bg-card/40 backdrop-blur-md border border-cyan-500/20 rounded-xl p-6 hover:border-cyan-500/40 transition-all hover:shadow-lg hover:shadow-cyan-500/10"
+                >
+                  <div className="h-12 w-12 rounded-lg bg-cyan-500/20 flex items-center justify-center mb-4">
+                    <Zap className="h-6 w-6 text-cyan-400" />
+                  </div>
+                  <h3 className="text-xl font-display font-bold mb-2">Algorand Powered</h3>
+                  <p className="text-muted-foreground text-sm">
+                    Built on Algorand TestNet with instant transactions, low fees, 
+                    and eco-friendly blockchain technology.
+                  </p>
+                </motion.div>
+
+                <motion.div
+                  initial={{ opacity: 0, y: 20 }}
+                  animate={{ opacity: 1, y: 0 }}
+                  transition={{ delay: 0.6 }}
+                  className="bg-card/40 backdrop-blur-md border border-rose-500/20 rounded-xl p-6 hover:border-rose-500/40 transition-all hover:shadow-lg hover:shadow-rose-500/10"
+                >
+                  <div className="h-12 w-12 rounded-lg bg-rose-500/20 flex items-center justify-center mb-4">
+                    <Trophy className="h-6 w-6 text-rose-400" />
+                  </div>
+                  <h3 className="text-xl font-display font-bold mb-2">Compete & Earn</h3>
+                  <p className="text-muted-foreground text-sm">
+                    Climb the leaderboards by optimizing your grow strategy. 
+                    Compete with other players for top grower status.
+                  </p>
+                </motion.div>
+              </div>
+
+              {/* Getting Started Steps */}
+              <div className="bg-card/40 backdrop-blur-md border border-white/10 rounded-xl p-8">
+                <h3 className="text-2xl font-display font-bold mb-6 flex items-center gap-2">
+                  <Info className="h-6 w-6 text-primary" />
+                  Getting Started
+                </h3>
+                <div className="grid grid-cols-1 md:grid-cols-4 gap-6">
+                  <div className="flex flex-col items-center text-center">
+                    <div className="h-12 w-12 rounded-full bg-primary/20 flex items-center justify-center mb-3 text-primary font-bold">
+                      1
+                    </div>
+                    <h4 className="font-semibold mb-2">Connect Wallet</h4>
+                    <p className="text-sm text-muted-foreground">
+                      Install Pera or Defly Wallet and connect to Algorand TestNet
+                    </p>
+                  </div>
+                  <div className="flex flex-col items-center text-center">
+                    <div className="h-12 w-12 rounded-full bg-primary/20 flex items-center justify-center mb-3 text-primary font-bold">
+                      2
+                    </div>
+                    <h4 className="font-semibold mb-2">Get TestNet ALGO</h4>
+                    <p className="text-sm text-muted-foreground">
+                      Visit the Algorand faucet to receive free TestNet tokens
+                    </p>
+                  </div>
+                  <div className="flex flex-col items-center text-center">
+                    <div className="h-12 w-12 rounded-full bg-primary/20 flex items-center justify-center mb-3 text-primary font-bold">
+                      3
+                    </div>
+                    <h4 className="font-semibold mb-2">Plant Your First Seed</h4>
+                    <p className="text-sm text-muted-foreground">
+                      Mint a GrowPod NFT and start cultivating your first plant
+                    </p>
+                  </div>
+                  <div className="flex flex-col items-center text-center">
+                    <div className="h-12 w-12 rounded-full bg-primary/20 flex items-center justify-center mb-3 text-primary font-bold">
+                      4
+                    </div>
+                    <h4 className="font-semibold mb-2">Grow & Earn</h4>
+                    <p className="text-sm text-muted-foreground">
+                      Water, nurture, and harvest to earn $BUD tokens
+                    </p>
+                  </div>
+                </div>
+              </div>
             </motion.div>
           )}
 
