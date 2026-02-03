@@ -9,7 +9,7 @@ export default function SeedVault() {
   const seeds = useSeeds();
   const { toast } = useToast();
 
-  const handlePlant = (seedId: string) => {
+  const handlePlant = (seedId: number) => {
     toast({
       title: "Planting Seed",
       description: `Preparing soil for seed ${seedId}. Transaction pending...`,
@@ -30,9 +30,9 @@ export default function SeedVault() {
 
       {seeds.length > 0 ? (
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-          {seeds.map((seed, idx) => (
+          {seeds.map((userSeed, idx) => (
             <motion.div
-              key={seed.id}
+              key={userSeed.id}
               initial={{ opacity: 0, scale: 0.95 }}
               animate={{ opacity: 1, scale: 1 }}
               transition={{ delay: idx * 0.1 }}
@@ -41,11 +41,11 @@ export default function SeedVault() {
               <div className="absolute top-4 right-4">
                 <span className={cn(
                   "px-2 py-1 text-xs font-bold rounded uppercase",
-                  seed.rarity === "Common" ? "bg-slate-500/20 text-slate-400" :
-                  seed.rarity === "Rare" ? "bg-blue-500/20 text-blue-400" :
+                  userSeed.seed.rarity === "common" ? "bg-slate-500/20 text-slate-400" :
+                  userSeed.seed.rarity === "rare" ? "bg-blue-500/20 text-blue-400" :
                   "bg-purple-500/20 text-purple-400"
                 )}>
-                  {seed.rarity}
+                  {userSeed.seed.rarity}
                 </span>
               </div>
 
@@ -57,13 +57,13 @@ export default function SeedVault() {
               </div>
 
               <div className="text-center mb-6">
-                <h3 className="font-display font-bold text-lg group-hover:text-indigo-400 transition-colors">{seed.name}</h3>
-                <p className="text-xs font-mono text-muted-foreground mt-1 truncate px-4">{seed.dna}</p>
+                <h3 className="font-display font-bold text-lg group-hover:text-indigo-400 transition-colors">{userSeed.seed.name}</h3>
+                <p className="text-xs font-mono text-muted-foreground mt-1 truncate px-4">{userSeed.seed.description}</p>
               </div>
 
               <Button 
                 className="w-full bg-indigo-600 hover:bg-indigo-700 text-white"
-                onClick={() => handlePlant(seed.id)}
+                onClick={() => handlePlant(userSeed.id)}
               >
                 Plant in Empty Pod <ArrowRight className="ml-2 h-4 w-4" />
               </Button>

@@ -1,4 +1,4 @@
-import { useAlgorand, useGameState, useTransactions, CONTRACT_CONFIG, MAX_PODS, WATER_COOLDOWN, WATER_COOLDOWN_TESTNET } from "@/hooks/use-algorand";
+import { useAlgorand, useGameState, useTransactions, CONTRACT_CONFIG, MAX_PODS } from "@/hooks/use-algorand";
 import { CurrencyDisplay } from "@/components/CurrencyDisplay";
 import { PodCard } from "@/components/PodCard";
 import { ShareButtons } from "@/components/ShareButtons";
@@ -8,7 +8,7 @@ import { Checkbox } from "@/components/ui/checkbox";
 import { Badge } from "@/components/ui/badge";
 import { useToast } from "@/hooks/use-toast";
 import { useNotifications, usePlantNotifications } from "@/hooks/use-notifications";
-import { Plus, Sprout, Leaf, FlaskConical, Flame, Zap, Sparkles, TestTube2, Info, Coins, ExternalLink, Bell, BellOff, X, Loader2 } from "lucide-react";
+import { Plus, Sprout, Leaf, FlaskConical, Flame, Zap, Sparkles, Info, Coins, ExternalLink, Bell, BellOff, X, Loader2 } from "lucide-react";
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription } from "@/components/ui/dialog";
 import { Link } from "wouter";
@@ -29,7 +29,6 @@ export default function Dashboard() {
   const [isOptedInApp, setIsOptedInApp] = useState(false);
   const [isOptedInBud, setIsOptedInBud] = useState(false);
   const [isOptedInTerp, setIsOptedInTerp] = useState(false);
-  const [fastModeEnabled, setFastModeEnabled] = useState(false);
   const [harvestDialogOpen, setHarvestDialogOpen] = useState(false);
   const [lastHarvestData, setLastHarvestData] = useState<{podId: number; budEarned: number; rareTerp: boolean; terpEarned: number} | null>(null);
   const [seedSelectOpen, setSeedSelectOpen] = useState(false);
@@ -56,9 +55,6 @@ export default function Dashboard() {
       queryClient.invalidateQueries({ queryKey: ["/api/user-seeds", account] });
     },
   });
-
-  // Get the active cooldown based on Fast Mode toggle
-  const activeWaterCooldown = fastModeEnabled ? WATER_COOLDOWN_TESTNET : WATER_COOLDOWN;
   
   const handleEnableNotifications = async () => {
     const granted = await requestPermission();
@@ -266,8 +262,7 @@ export default function Dashboard() {
     });
     
     try {
-      // Pass the cooldown based on Fast Mode toggle
-      const txId = await waterPlant(id, activeWaterCooldown);
+      const txId = await waterPlant(id);
       toast({
         title: "Watered Successfully!",
         description: `Your plant is growing. Next water in 10 min. TX: ${txId?.slice(0, 8)}...`,
@@ -668,28 +663,6 @@ export default function Dashboard() {
                     <span className="text-muted-foreground">Current Slots:</span>
                     <span className="font-mono text-yellow-500">{maxPods}/5</span>
                   </div>
-                </div>
-                
-                <div className="mt-3 pt-3 border-t border-white/10">
-                  <label 
-                    className="flex items-center gap-2 cursor-pointer group"
-                    data-testid="label-fast-mode"
-                  >
-                    <Checkbox 
-                      checked={fastModeEnabled}
-                      onCheckedChange={(checked) => setFastModeEnabled(checked === true)}
-                      data-testid="checkbox-fast-mode"
-                    />
-                    <div className="flex items-center gap-1.5">
-                      <TestTube2 className="h-3.5 w-3.5 text-cyan-400" />
-                      <span className="text-xs text-muted-foreground group-hover:text-foreground transition-colors">
-                        Fast Mode (TestNet)
-                      </span>
-                    </div>
-                  </label>
-                  <p className="text-xs text-muted-foreground/60 mt-1 ml-6">
-                    10 min water cooldown
-                  </p>
                 </div>
                 
                 {isSupported && (
