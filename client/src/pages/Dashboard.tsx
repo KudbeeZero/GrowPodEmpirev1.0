@@ -468,7 +468,7 @@ export default function Dashboard() {
                 </p>
               </div>
               <Button 
-                onClick={connectWallet} 
+                onClick={() => connectWallet('pera')} 
                 className="bg-primary hover:bg-primary/90"
                 data-testid="button-connect-wallet-banner"
               >
