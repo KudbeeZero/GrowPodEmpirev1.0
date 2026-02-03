@@ -568,16 +568,58 @@ export default function Jukebox() {
                       <ObjectUploader
                         maxNumberOfFiles={1}
                         maxFileSize={52428800}
+                        allowedFileTypes={[
+                          'audio/mpeg',
+                          'audio/mp3',
+                          'audio/wav',
+                          'audio/flac',
+                          'audio/ogg',
+                          'audio/mp4',
+                          'audio/m4a',
+                          'audio/x-m4a'
+                        ]}
                         onFileAdded={async (file) => {
                           try {
-                            const metadata = await parseBlob(file);
-                            const title = metadata.common.title || file.name.replace(/\.[^/.]+$/, "");
-                            const artist = metadata.common.artist || "Unknown Artist";
-                            setNewSongTitle(title);
-                            setNewSongArtist(artist);
-                          } catch {
-                            // Fallback to filename if metadata extraction fails
-                            setNewSongTitle(file.name.replace(/\.[^/.]+$/, ""));
+                            // Validate file type
+                            const validTypes = ['audio/mpeg', 'audio/mp3', 'audio/wav', 'audio/flac', 'audio/ogg', 'audio/mp4', 'audio/m4a', 'audio/x-m4a'];
+                            if (!validTypes.includes(file.type) && !file.name.match(/\.(mp3|wav|flac|ogg|m4a)$/i)) {
+                              toast({
+                                title: "Invalid File Type",
+                                description: "Please upload an audio file (mp3, wav, flac, ogg, m4a)",
+                                variant: "destructive"
+                              });
+                              return;
+                            }
+
+                            // Try to extract metadata
+                            try {
+                              const metadata = await parseBlob(file);
+                              const title = metadata.common.title || file.name.replace(/\.[^/.]+$/, "");
+                              const artist = metadata.common.artist || "Unknown Artist";
+                              setNewSongTitle(title);
+                              setNewSongArtist(artist);
+                              toast({
+                                title: "Metadata Extracted",
+                                description: `Found: ${title} by ${artist}`
+                              });
+                            } catch (metadataError) {
+                              // Fallback to filename if metadata extraction fails
+                              console.warn('Metadata extraction failed:', metadataError);
+                              const title = file.name.replace(/\.[^/.]+$/, "");
+                              setNewSongTitle(title);
+                              setNewSongArtist("Unknown Artist");
+                              toast({
+                                title: "Using Filename",
+                                description: "Could not read metadata, using filename instead"
+                              });
+                            }
+                          } catch (error) {
+                            console.error('File processing error:', error);
+                            toast({
+                              title: "File Error",
+                              description: error instanceof Error ? error.message : "Failed to process file",
+                              variant: "destructive"
+                            });
                           }
                         }}
                         onGetUploadParameters={async (file) => {
@@ -587,27 +629,43 @@ export default function Jukebox() {
                             body: JSON.stringify({
                               name: file.name,
                               size: file.size,
-                              contentType: file.type,
+                              contentType: file.type || 'audio/mpeg',
                             }),
                           });
+                          
+                          if (!res.ok) {
+                            throw new Error('Failed to get upload URL');
+                          }
+                          
                           const { uploadURL, objectPath } = await res.json();
                           // Store path in ref - don't set state yet (upload not complete)
                           pendingUploadPath.current = objectPath;
                           return {
                             method: "PUT",
                             url: uploadURL,
-                            headers: { "Content-Type": file.type },
+                            headers: { "Content-Type": file.type || 'audio/mpeg' },
                           };
                         }}
                         onComplete={() => {
                           // Now upload is complete, set the state
                           setUploadedPath(pendingUploadPath.current);
-                          toast({ title: "Audio file uploaded!" });
+                          toast({ 
+                            title: "Upload Complete!",
+                            description: "Audio file is ready to be added to the jukebox"
+                          });
+                        }}
+                        onError={(error) => {
+                          console.error('Upload error:', error);
+                          toast({
+                            title: "Upload Failed",
+                            description: error?.message || "Failed to upload file",
+                            variant: "destructive"
+                          });
                         }}
                         buttonClassName="w-full bg-gradient-to-r from-purple-600 to-pink-600 hover:from-purple-500 hover:to-pink-500 border-0"
                       >
                         <Upload className="h-4 w-4 mr-2" />
-                        Upload Audio File
+                        Upload Audio File (MP3, WAV, FLAC, OGG, M4A)
                       </ObjectUploader>
                     )}
                   </div>

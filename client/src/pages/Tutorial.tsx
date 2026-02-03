@@ -161,7 +161,7 @@ export default function Tutorial() {
             {!isConnected ? (
               <div className="flex flex-col sm:flex-row gap-4">
                 <Button 
-                  onClick={connectWallet} 
+                  onClick={() => connectWallet('pera')} 
                   disabled={isConnecting}
                   className="bg-primary"
                   data-testid="button-connect-tutorial"

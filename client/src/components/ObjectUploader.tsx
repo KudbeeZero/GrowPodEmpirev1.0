@@ -11,6 +11,7 @@ import { Button } from "@/components/ui/button";
 interface ObjectUploaderProps {
   maxNumberOfFiles?: number;
   maxFileSize?: number;
+  allowedFileTypes?: string[];
   /**
    * Function to get upload parameters for each file.
    * IMPORTANT: This receives the file object - use file.name, file.size, file.type
@@ -26,6 +27,7 @@ interface ObjectUploaderProps {
   onComplete?: (
     result: UploadResult<Record<string, unknown>, Record<string, unknown>>
   ) => void;
+  onError?: (error: Error) => void;
   /**
    * Callback when a file is added (before upload).
    * Useful for extracting metadata from the file.
@@ -67,8 +69,10 @@ interface ObjectUploaderProps {
 export function ObjectUploader({
   maxNumberOfFiles = 1,
   maxFileSize = 10485760, // 10MB default
+  allowedFileTypes,
   onGetUploadParameters,
   onComplete,
+  onError,
   onFileAdded,
   buttonClassName,
   children,
@@ -79,6 +83,7 @@ export function ObjectUploader({
       restrictions: {
         maxNumberOfFiles,
         maxFileSize,
+        allowedFileTypes,
       },
       autoProceed: false,
     })
@@ -94,6 +99,11 @@ export function ObjectUploader({
       })
       .on("complete", (result) => {
         onComplete?.(result);
+      })
+      .on("error", (error) => {
+        if (onError && error instanceof Error) {
+          onError(error);
+        }
       })
   );
 

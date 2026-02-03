@@ -10,13 +10,13 @@ export default function CombinerLab() {
   const { toast } = useToast();
   const { isConnected } = useAlgorand();
   const { breedPlants } = useTransactions();
-  const [selectedParent1, setSelectedParent1] = useState<string | null>(null);
-  const [selectedParent2, setSelectedParent2] = useState<string | null>(null);
+  const [selectedParent1, setSelectedParent1] = useState<number | null>(null);
+  const [selectedParent2, setSelectedParent2] = useState<number | null>(null);
   const [isBreeding, setIsBreeding] = useState(false);
 
   const isContractConfigured = CONTRACT_CONFIG.appId > 0;
 
-  const handleSelect = (id: string) => {
+  const handleSelect = (id: number) => {
     if (selectedParent1 === id) {
       setSelectedParent1(null);
     } else if (selectedParent2 === id) {
@@ -145,19 +145,19 @@ export default function CombinerLab() {
       <h3 className="font-display font-bold text-xl mb-6 border-b border-white/10 pb-2">Available Seeds</h3>
       {seeds.length > 0 ? (
         <div className="grid grid-cols-2 md:grid-cols-4 lg:grid-cols-5 gap-4">
-          {seeds.map((seed) => {
-            const isSelected = selectedParent1 === seed.id || selectedParent2 === seed.id;
+          {seeds.map((userSeed) => {
+            const isSelected = selectedParent1 === userSeed.id || selectedParent2 === userSeed.id;
             return (
               <div 
-                key={seed.id}
-                onClick={() => handleSelect(seed.id)}
+                key={userSeed.id}
+                onClick={() => handleSelect(userSeed.id)}
                 className={cn(
                   "cursor-pointer border rounded-lg p-4 transition-all hover:bg-white/5",
                   isSelected ? "border-purple-500 bg-purple-500/10 ring-1 ring-purple-500" : "border-white/10"
                 )}
               >
-                <div className="text-sm font-bold truncate">{seed.name}</div>
-                <div className="text-xs text-muted-foreground mt-1">{seed.rarity}</div>
+                <div className="text-sm font-bold truncate">{userSeed.seed.name}</div>
+                <div className="text-xs text-muted-foreground mt-1">{userSeed.seed.rarity}</div>
               </div>
             );
           })}

@@ -20,10 +20,12 @@
   /* Primary - Vibrant Growth Green */
   --primary: 142 71% 45%;
   --primary-foreground: 144 100% 11%;
+  --primary-rgb: 16, 163, 74; /* RGB values for glow effects */
   
   /* Secondary - Tech Blue/Purple */
   --secondary: 262 83% 58%;
   --secondary-foreground: 210 40% 98%;
+  --secondary-rgb: 124, 58, 237; /* RGB values for glow effects */
   
   /* Muted/Subtle */
   --muted: 215 25% 27%;
@@ -36,6 +38,7 @@
   /* Destructive */
   --destructive: 0 84% 60%;
   --destructive-foreground: 210 40% 98%;
+  --destructive-rgb: 239, 68, 68; /* RGB values for glow effects */
   
   /* Borders & Inputs */
   --border: 215 25% 27%;

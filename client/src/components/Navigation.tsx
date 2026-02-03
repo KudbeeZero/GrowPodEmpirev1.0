@@ -1,6 +1,7 @@
 import { Link, useLocation } from "wouter";
 import { useAlgorand, useGameState } from "@/hooks/use-algorand";
 import { CurrencyDisplay } from "./CurrencyDisplay";
+import { WalletSelector } from "./WalletSelector";
 import { cn } from "@/lib/utils";
 import { 
   Sprout, 
@@ -45,9 +46,10 @@ import {
 
 export function Navigation() {
   const [location] = useLocation();
-  const { isConnected, isConnecting, connectWallet, disconnectWallet, account } = useAlgorand();
+  const { isConnected, isConnecting, connectWallet, disconnectWallet, account, walletType } = useAlgorand();
   const { budBalance, terpBalance, pods } = useGameState(account);
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
+  const [walletSelectorOpen, setWalletSelectorOpen] = useState(false);
 
   const plantsNeedingWater = pods.filter(p => p.canWater && p.status !== 'empty' && p.status !== 'needs_cleanup').length;
   const plantsReadyToHarvest = pods.filter(p => p.status === 'harvest_ready').length;
@@ -221,11 +223,17 @@ export function Navigation() {
                 >
                   <Wallet className="mr-2 h-4 w-4" />
                   {truncatedAddress}
+                  <span className="ml-2 text-xs text-muted-foreground">
+                    ({walletType === 'pera' ? '🔷' : '🦋'})
+                  </span>
                 </Button>
               </DropdownMenuTrigger>
               <DropdownMenuContent align="end" className="w-56">
                 <DropdownMenuLabel className="font-mono text-xs">
                   {account}
+                </DropdownMenuLabel>
+                <DropdownMenuLabel className="text-xs text-muted-foreground">
+                  Connected via {walletType === 'pera' ? 'Pera Wallet' : 'Defly Wallet'}
                 </DropdownMenuLabel>
                 <DropdownMenuSeparator />
                 <DropdownMenuItem className="lg:hidden">
@@ -250,24 +258,33 @@ export function Navigation() {
               </DropdownMenuContent>
             </DropdownMenu>
           ) : (
-            <Button 
-              onClick={connectWallet}
-              disabled={isConnecting}
-              className="font-display font-semibold bg-gradient-to-r from-primary to-emerald-600 hover:brightness-110 shadow-lg shadow-primary/20"
-              data-testid="button-connect-wallet"
-            >
-              {isConnecting ? (
-                <>
-                  <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-                  Connecting...
-                </>
-              ) : (
-                <>
-                  <Wallet className="mr-2 h-4 w-4" />
-                  Connect Wallet
-                </>
-              )}
-            </Button>
+            <>
+              <Button 
+                onClick={() => setWalletSelectorOpen(true)}
+                disabled={isConnecting}
+                className="font-display font-semibold bg-gradient-to-r from-primary to-emerald-600 hover:brightness-110 shadow-lg shadow-primary/20"
+                data-testid="button-connect-wallet"
+              >
+                {isConnecting ? (
+                  <>
+                    <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                    Connecting...
+                  </>
+                ) : (
+                  <>
+                    <Wallet className="mr-2 h-4 w-4" />
+                    Connect Wallet
+                  </>
+                )}
+              </Button>
+              
+              <WalletSelector 
+                open={walletSelectorOpen}
+                onOpenChange={setWalletSelectorOpen}
+                onSelectWallet={connectWallet}
+                isConnecting={isConnecting}
+              />
+            </>
           )}
 
           <button 
