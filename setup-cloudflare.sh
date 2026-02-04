@@ -83,7 +83,7 @@ else
     npx wrangler d1 create growpod-primary
     echo ""
     
-    echo "⚠️  Please copy the database IDs from above and update wrangler.toml"
+    echo "⚠️  Please copy the database ID from above and update wrangler.toml"
 fi
 
 echo ""
