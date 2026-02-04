@@ -1,6 +1,6 @@
 # GrowPod Empire - Copilot Instructions
 
-> **Last Updated**: February 2026  
+> **Last Updated**: February 4, 2026  
 > **Status**: Active Development  
 > **Primary Documentation**: See also `CLAUDE.md` for detailed game mechanics and development patterns
 
