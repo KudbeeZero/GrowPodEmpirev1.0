@@ -1,5 +1,5 @@
 #:schema node_modules/wrangler/config-schema.json
-name = "gape"
+name = "growpod-empire-api"
 main = "dist/index.cjs"
 compatibility_date = "2026-01-30"
 compatibility_flags = ["nodejs_compat"]
