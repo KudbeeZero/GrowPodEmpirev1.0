@@ -35,11 +35,13 @@ This document provides a quick overview of the Cloudflare Workers deployment set
 Before deploying, you need to configure:
 
 ### 1. D1 Database IDs (Required)
-In `wrangler.toml`, replace these placeholders with your actual D1 database IDs:
+Your `wrangler.toml` is already configured with D1 `database_id` values for the current environment. Before deploying to your own Cloudflare account, review those IDs and update them if needed to match your D1 databases.
+
+Example configuration:
 ```toml
-database_id = "YOUR_D1_DATABASE_ID_1"  # Replace with actual ID
-database_id = "YOUR_D1_DATABASE_ID_2"  # Replace with actual ID
-database_id = "YOUR_D1_DATABASE_ID_3"  # Replace with actual ID
+database_id = "YOUR_D1_DATABASE_ID_1"
+database_id = "YOUR_D1_DATABASE_ID_2"
+database_id = "YOUR_D1_DATABASE_ID_3"
 ```
 
 **Quick Setup:**
