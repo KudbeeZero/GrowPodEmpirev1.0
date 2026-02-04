@@ -99,7 +99,7 @@ For automated deployment on every push:
   - Use "Edit Cloudflare Workers" template
   - Add as repository secret
 - [ ] Add `CLOUDFLARE_ACCOUNT_ID`:
-  - Use your Cloudflare account ID (e.g., `YOUR_ACCOUNT_ID`)
+  - Use your Cloudflare account ID from the Cloudflare dashboard
   - Add as repository secret
 
 ### 11. Test Automated Deployment
