@@ -21,7 +21,7 @@ database_id = "712d926f-c396-473f-96d9-f0dfc3d1d069"
 
 ### Domain Code ID (for reference)
 ```
-85a5b265570a47e66762a07932ce8aa8
+YOUR_DOMAIN_CODE_ID
 ```
 *Note: This ID is documented for reference. If you need to use it for domain configuration, please refer to Cloudflare's domain settings.*
 
