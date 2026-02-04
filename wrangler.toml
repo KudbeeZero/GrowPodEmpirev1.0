@@ -7,7 +7,7 @@ compatibility_flags = ["nodejs_compat"]
 # Cloudflare Account ID
 account_id = "b591c2e07ca352d33076f4d2f8414b89"
 
-# Domain Code ID (for reference): 85a5b265570a47e66762a07932ce8aa8
+# Domain Code ID (for reference): YOUR_DOMAIN_CODE_ID
 
 [observability]
 enabled = true
