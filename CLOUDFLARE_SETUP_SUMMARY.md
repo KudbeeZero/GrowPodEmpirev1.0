@@ -90,7 +90,7 @@ npm run worker:whoami
 
 # 3. Update wrangler.toml with:
 #    - account_id
-#    - database_id (all 3 D1 databases)
+#    - database_id (D1 database)
 
 # 4. Set up secrets
 npx wrangler secret put DATABASE_URL
