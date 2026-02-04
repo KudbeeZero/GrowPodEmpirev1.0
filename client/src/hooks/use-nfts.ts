@@ -356,7 +356,7 @@ export function useNFTTransactions() {
         appArgs: [encodeArg('breed')],
       });
 
-      const txns = [paymentTxn, seed1Txn, seed2Txn, appTxn];
+      const txns = [seed1Txn, seed2Txn, paymentTxn, appTxn];
       algosdk.assignGroupID(txns);
 
       const signedTxns = await signTransactions(txns);
