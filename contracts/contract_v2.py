@@ -715,6 +715,10 @@ def approval_program():
         Assert(Gtxn[Txn.group_index() - Int(1)].xfer_asset() == App.globalGet(GlobalBudAsset)),
         Assert(Gtxn[Txn.group_index() - Int(1)].asset_amount() >= SLOT_TOKEN_COST),
         Assert(Gtxn[Txn.group_index() - Int(1)].asset_receiver() == Global.current_application_address()),
+        Assert(Gtxn[Txn.group_index() - Int(1)].sender() == Txn.sender()),
+        Assert(Gtxn[Txn.group_index() - Int(1)].rekey_to() == Global.zero_address()),
+        Assert(Gtxn[Txn.group_index() - Int(1)].asset_close_to() == Global.zero_address()),
+        Assert(Gtxn[Txn.group_index() - Int(1)].asset_sender() == Global.zero_address()),
 
         InnerTxnBuilder.Begin(),
         InnerTxnBuilder.SetFields({
