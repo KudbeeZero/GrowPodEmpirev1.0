@@ -58,13 +58,13 @@ if [ "$has_db_ids" = "y" ] || [ "$has_db_ids" = "Y" ]; then
         # Create a backup
         cp wrangler.toml wrangler.toml.backup
         
-        # Determine cross-platform sed in-place flag and update the database ID
-        if sed --version >/dev/null 2>&1; then
-            # GNU sed
-            sed -i "s/database_id = \"YOUR_D1_DATABASE_ID\"/database_id = \"$db_id_1\"/" wrangler.toml
-        else
+        # Determine cross-platform sed in-place flag based on OS and update the database ID
+        if [[ "$OSTYPE" == "darwin"* ]]; then
             # BSD/macOS sed requires an explicit (possibly empty) backup extension
             sed -i '' "s/database_id = \"YOUR_D1_DATABASE_ID\"/database_id = \"$db_id_1\"/" wrangler.toml
+        else
+            # GNU/Linux and other platforms typically support sed -i without an explicit extension
+            sed -i "s/database_id = \"YOUR_D1_DATABASE_ID\"/database_id = \"$db_id_1\"/" wrangler.toml
         fi
         
         echo ""
