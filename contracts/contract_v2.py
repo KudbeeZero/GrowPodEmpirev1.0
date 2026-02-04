@@ -735,6 +735,9 @@ def approval_program():
         Assert(Gtxn[Txn.group_index() - Int(1)].xfer_asset() == App.globalGet(GlobalSlotAsset)),
         Assert(Gtxn[Txn.group_index() - Int(1)].asset_amount() == Int(1)),
         Assert(Gtxn[Txn.group_index() - Int(1)].asset_receiver() == Global.current_application_address()),
+        Assert(Gtxn[Txn.group_index() - Int(1)].rekey_to() == Global.zero_address()),
+        Assert(Gtxn[Txn.group_index() - Int(1)].asset_close_to() == Global.zero_address()),
+        Assert(Gtxn[Txn.group_index() - Int(1)].asset_sender() == Global.zero_address()),
 
         App.localPut(Txn.sender(), LocalPodSlots, App.localGet(Txn.sender(), LocalPodSlots) + Int(1)),
         Approve()
