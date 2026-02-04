@@ -220,34 +220,13 @@ export function useNFTTransactions() {
     if (!account || !CONTRACT_CONFIG.appId) return null;
 
     try {
-      const suggestedParams = await algodClient.getTransactionParams().do();
-      const appArg = podId === 2 ? 'plant_seed_2' : 'plant_seed';
-
-      // Transaction 1: Transfer Seed NFT to contract
-      const seedTransferTxn = algosdk.makeAssetTransferTxnWithSuggestedParamsFromObject({
-        sender: account,
-        receiver: CONTRACT_CONFIG.appAddress,
-        amount: BigInt(1),
-        assetIndex: seedAssetId,
-        suggestedParams,
-      });
-
-      // Transaction 2: Call plant_seed on contract
-      const appTxn = algosdk.makeApplicationNoOpTxnFromObject({
-        sender: account,
-        suggestedParams,
-        appIndex: CONTRACT_CONFIG.appId,
-        appArgs: [encodeArg(appArg)],
-      });
-
-      const txns = [seedTransferTxn, appTxn];
-      algosdk.assignGroupID(txns);
-
-      const signedTxns = await signTransactions(txns);
-      const txId = await submitTransaction(signedTxns);
-
-      setTimeout(refreshNFTs, 2000);
-      return txId;
+      // NOTE: The current on-chain contract does not implement `plant_seed` / `plant_seed_2`.
+      // To avoid submitting failing transaction groups, we disable this action until
+      // the contract supports it and the TEAL is recompiled/deployed.
+      console.warn(
+        'plantSeed(): planting Seed NFTs is currently disabled because the contract does not implement plant_seed/plant_seed_2.'
+      );
+      return null;
     } catch (error) {
       console.error('Plant seed failed:', error);
       throw error;
