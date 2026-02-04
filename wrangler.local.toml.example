@@ -1,6 +1,11 @@
 # Local Wrangler Configuration
 # Copy this file to wrangler.local.toml and fill in your actual values
 # wrangler.local.toml is gitignored to keep secrets safe
+#
+# Note: Wrangler does NOT automatically merge wrangler.local.toml with wrangler.toml.
+# To use this local config, run Wrangler with the -c flag, for example:
+#   wrangler dev -c wrangler.local.toml
+#   wrangler deploy -c wrangler.local.toml
 
 account_id = "YOUR_CLOUDFLARE_ACCOUNT_ID"
 
