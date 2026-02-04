@@ -62,9 +62,12 @@ export function SeedInventory({ onPlantSeed, selectionMode = false, selectedSeed
 
     try {
       const txId = await mintSeed();
+      if (!txId) {
+        throw new Error('Minting is currently unavailable. Please try again later.');
+      }
       toast({
         title: 'Seed Minted!',
-        description: `New seed added to your inventory. TX: ${txId?.slice(0, 8)}...`,
+        description: `New seed added to your inventory. TX: ${txId.slice(0, 8)}...`,
       });
     } catch (error) {
       const errorMessage = error instanceof Error ? error.message : 'Transaction failed';
