@@ -6,7 +6,7 @@ Your Cloudflare Workers deployment has been configured with your specific IDs.
 
 ### Cloudflare Account ID
 ```
-b591c2e07ca352d33076f4d2f8414b89
+YOUR_ACCOUNT_ID
 ```
 ✅ **Status**: Configured in `wrangler.toml` (line 8)
 
