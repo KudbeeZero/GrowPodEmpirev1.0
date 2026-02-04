@@ -17,7 +17,7 @@ enabled = true
 [[d1_databases]]
 binding = "DB"
 database_name = "growpod-primary"
-database_id = "712d926f-c396-473f-96d9-f0dfc3d1d069"
+database_id = "YOUR_D1_DATABASE_ID"
 
 # Environment Variables (non-sensitive)
 [vars]
