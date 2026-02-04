@@ -4,7 +4,7 @@ This guide explains how to configure GitHub repository secrets for automated Clo
 
 ## Required Secrets
 
-To enable automated deployment via GitHub Actions, you need to configure two secrets in your GitHub repository:
+To enable automated deployment via GitHub Actions, you need to configure secrets in your GitHub repository:
 
 ### 1. CLOUDFLARE_API_TOKEN
 
@@ -56,6 +56,23 @@ This is your Cloudflare account ID.
 4. Name: `CLOUDFLARE_ACCOUNT_ID`
 5. Value: Paste your account ID
 6. Click **Add secret**
+
+### 3. DATABASE_URL (Optional but Recommended)
+
+**⚠️ Important**: The application uses PostgreSQL, which requires special handling in Cloudflare Workers.
+
+If you want the application to have database access when deployed:
+
+1. Set up a Workers-compatible PostgreSQL connection:
+   - Use [Neon](https://neon.tech) with their serverless driver
+   - Use [Supabase](https://supabase.com) with HTTP/REST API
+   - Use Cloudflare's Hyperdrive for PostgreSQL
+   
+2. Add the connection string as a secret:
+   - Name: `DATABASE_URL`
+   - Value: Your Workers-compatible database connection string
+
+**Note**: Without this secret, the worker will deploy but database operations will fail.
 
 ## Workflow Configuration
 
