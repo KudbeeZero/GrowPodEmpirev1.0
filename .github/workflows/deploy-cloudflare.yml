@@ -29,7 +29,9 @@ jobs:
         run: npm run check
 
       - name: Build application
-        run: npm run build
+        run: BUILD_TARGET=worker npm run build
+        env:
+          NODE_ENV: production
 
       - name: Deploy to Cloudflare Workers
         uses: cloudflare/wrangler-action@v3
