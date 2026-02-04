@@ -146,7 +146,7 @@ To enable automated deployments via GitHub Actions, add these secrets to your re
    - Use "Edit Cloudflare Workers" template
 
 3. Add `CLOUDFLARE_ACCOUNT_ID`:
-   - Value: `b591c2e07ca352d33076f4d2f8414b89`
+   - Value: `YOUR_CLOUDFLARE_ACCOUNT_ID`
 
 See [GITHUB_ACTIONS_SETUP.md](./GITHUB_ACTIONS_SETUP.md) for detailed instructions.
 
