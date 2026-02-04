@@ -46,23 +46,26 @@ if [ "$has_db_ids" = "y" ] || [ "$has_db_ids" = "Y" ]; then
     echo "Please enter your D1 Database ID:"
     echo ""
     read -p "D1 Database ID: " db_id_1
+
+    # Basic validation: D1 IDs are UUID-like (alphanumeric and dashes only)
+    if ! [[ "$db_id_1" =~ ^[A-Za-z0-9-]+$ ]]; then
+        echo "❌ Error: Invalid D1 Database ID format. Expected only letters, numbers, and dashes."
+        exit 1
+    fi
     
     # Update wrangler.toml with the provided ID
     if [ -f "wrangler.toml" ]; then
         # Create a backup
         cp wrangler.toml wrangler.toml.backup
         
-        # Determine cross-platform sed in-place flag
+        # Determine cross-platform sed in-place flag and update the database ID
         if sed --version >/dev/null 2>&1; then
             # GNU sed
-            SED_INPLACE="sed -i"
+            sed -i "s/database_id = \"YOUR_D1_DATABASE_ID\"/database_id = \"$db_id_1\"/" wrangler.toml
         else
             # BSD/macOS sed requires an explicit (possibly empty) backup extension
-            SED_INPLACE="sed -i ''"
+            sed -i '' "s/database_id = \"YOUR_D1_DATABASE_ID\"/database_id = \"$db_id_1\"/" wrangler.toml
         fi
-        
-        # Update the database ID
-        eval "$SED_INPLACE 's/database_id = \"YOUR_D1_DATABASE_ID\"/database_id = \"$db_id_1\"/' wrangler.toml"
         
         echo ""
         echo "✅ Updated wrangler.toml with your D1 database ID"
