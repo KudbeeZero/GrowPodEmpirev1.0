@@ -32,8 +32,8 @@ NODE_ENV = "production"
 # - Any API keys or sensitive credentials
 
 # Build configuration
-[build]
-command = "BUILD_TARGET=worker npm run build"
+# Note: Build is handled by GitHub Actions workflow before deployment
+# If deploying manually, run: BUILD_TARGET=worker npm run build
 
 # Assets configuration for static files
 [assets]
