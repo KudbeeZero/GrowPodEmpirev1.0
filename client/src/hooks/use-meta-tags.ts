@@ -27,7 +27,7 @@ export function useMetaTags(tags: {
   twitterCard?: string;
 }) {
   useEffect(() => {
-    const metaElements: Array<{ element: HTMLMetaElement; originalContent: string; isNew: boolean }> = [];
+    const metaElements: Array<{ element: HTMLMetaElement; originalContent: string }> = [];
     const createdElements: HTMLMetaElement[] = [];
 
     // Update or create description meta tag
@@ -36,7 +36,7 @@ export function useMetaTags(tags: {
       if (descMeta) {
         const originalContent = descMeta.content;
         descMeta.content = tags.description;
-        metaElements.push({ element: descMeta, originalContent, isNew: false });
+        metaElements.push({ element: descMeta, originalContent });
       } else {
         const newMeta = document.createElement("meta");
         newMeta.name = "description";
@@ -52,7 +52,7 @@ export function useMetaTags(tags: {
       if (keywordsMeta) {
         const originalContent = keywordsMeta.content;
         keywordsMeta.content = tags.keywords;
-        metaElements.push({ element: keywordsMeta, originalContent, isNew: false });
+        metaElements.push({ element: keywordsMeta, originalContent });
       } else {
         const newMeta = document.createElement("meta");
         newMeta.name = "keywords";
@@ -68,7 +68,7 @@ export function useMetaTags(tags: {
       if (ogTitleMeta) {
         const originalContent = ogTitleMeta.content;
         ogTitleMeta.content = tags.ogTitle;
-        metaElements.push({ element: ogTitleMeta, originalContent, isNew: false });
+        metaElements.push({ element: ogTitleMeta, originalContent });
       } else {
         const newMeta = document.createElement("meta");
         newMeta.setAttribute("property", "og:title");
@@ -84,7 +84,7 @@ export function useMetaTags(tags: {
       if (ogDescMeta) {
         const originalContent = ogDescMeta.content;
         ogDescMeta.content = tags.ogDescription;
-        metaElements.push({ element: ogDescMeta, originalContent, isNew: false });
+        metaElements.push({ element: ogDescMeta, originalContent });
       } else {
         const newMeta = document.createElement("meta");
         newMeta.setAttribute("property", "og:description");
@@ -100,7 +100,7 @@ export function useMetaTags(tags: {
       if (twitterMeta) {
         const originalContent = twitterMeta.content;
         twitterMeta.content = tags.twitterCard;
-        metaElements.push({ element: twitterMeta, originalContent, isNew: false });
+        metaElements.push({ element: twitterMeta, originalContent });
       } else {
         const newMeta = document.createElement("meta");
         newMeta.name = "twitter:card";
@@ -112,10 +112,8 @@ export function useMetaTags(tags: {
 
     // Cleanup function to restore original values and remove created elements
     return () => {
-      metaElements.forEach(({ element, originalContent, isNew }) => {
-        if (!isNew) {
-          element.content = originalContent;
-        }
+      metaElements.forEach(({ element, originalContent }) => {
+        element.content = originalContent;
       });
       
       // Remove any newly created meta tags

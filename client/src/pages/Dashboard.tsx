@@ -8,7 +8,10 @@ import { Checkbox } from "@/components/ui/checkbox";
 import { Badge } from "@/components/ui/badge";
 import { useToast } from "@/hooks/use-toast";
 import { useNotifications, usePlantNotifications } from "@/hooks/use-notifications";
-import { Plus, Sprout, Leaf, FlaskConical, Flame, Zap, Sparkles, Info, Coins, ExternalLink, Bell, BellOff, X, Loader2, Wallet, Trophy, BookOpen, Lightbulb } from "lucide-react";
+import { 
+  Plus, Sprout, Leaf, FlaskConical, Flame, Zap, Sparkles, Info, Coins,
+  ExternalLink, Bell, BellOff, X, Loader2, Wallet, Trophy, BookOpen, Lightbulb
+} from "lucide-react";
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription } from "@/components/ui/dialog";
 import { Link } from "wouter";

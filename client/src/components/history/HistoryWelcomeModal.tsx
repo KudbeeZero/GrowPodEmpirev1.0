@@ -4,6 +4,9 @@ import { Button } from "@/components/ui/button";
 import { Checkbox } from "@/components/ui/checkbox";
 import { BookOpen, Clock, Brain, MapPin, Trophy } from "lucide-react";
 
+// Delay before showing welcome modal to allow page to render smoothly
+const WELCOME_MODAL_DELAY_MS = 500;
+
 interface WelcomeModalProps {
   onClose: () => void;
 }
@@ -141,7 +144,7 @@ export function useHistoryWelcome() {
     const hasSeenWelcome = localStorage.getItem("history-welcome-seen");
     if (!hasSeenWelcome) {
       // Show welcome modal after a short delay for better UX
-      const timer = setTimeout(() => setShowWelcome(true), 500);
+      const timer = setTimeout(() => setShowWelcome(true), WELCOME_MODAL_DELAY_MS);
       return () => clearTimeout(timer);
     }
   }, []);
