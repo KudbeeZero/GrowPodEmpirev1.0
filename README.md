@@ -55,49 +55,34 @@ pip install py-algorand-sdk pyteal
 # https://bank.testnet.algorand.network/
 ```
 
-### 2. Set Environment Variables
+### 2. Deploy Smart Contract to TestNet
+
+**Quick Start: Use the deployment script**
 ```bash
+./scripts/deploy-testnet.sh
+```
+
+This automated script will:
+- Compile the contract
+- Deploy to TestNet using the configured admin wallet
+- Bootstrap $BUD, $TERP, and Slot tokens
+- Output environment variables for your configuration
+
+**For detailed deployment instructions and admin wallet information, see:**
+- `ADMIN_WALLET_DEPLOYMENT.md` - Complete deployment guide with admin wallet setup
+
+**Alternative: Manual deployment**
+```bash
+# Set environment variable
 export ALGO_MNEMONIC="your twenty five word mnemonic here"
-```
 
-### 3. Compile Smart Contract
-```bash
+# Compile and deploy
 cd contracts
-python contract.py
+python3 contract.py
+python3 deploy.py
 ```
 
-This generates:
-- `approval.teal` - Main contract logic
-- `clear.teal` - Clear state program
-
-### 4. Deploy Contract (AlgoKit)
-```bash
-# Build the contract
-algokit build
-
-# Deploy to TestNet
-algokit deploy --network testnet
-```
-
-### 5. Bootstrap ASAs ($BUD and $TERP)
-```bash
-python contracts/bootstrap.py
-```
-
-Save the output Asset IDs and update:
-- `CONTRACT_CONFIG` in `client/src/hooks/use-algorand.ts`
-- Environment variables for scripts
-
-### 6. Set ASA IDs in Contract
-```bash
-export GROWPOD_APP_ID=<your_app_id>
-export BUD_ASSET_ID=<bud_asset_id>
-export TERP_ASSET_ID=<terp_asset_id>
-
-python contracts/bootstrap.py  # If APP_ID is set, it will call set_asa_ids
-```
-
-### 7. Run Frontend
+### 3. Run Frontend
 ```bash
 npm install
 npm run dev
@@ -107,13 +92,10 @@ npm run dev
 
 | Script | Description |
 |--------|-------------|
-| `contracts/contract.py` | Main smart contract (PyTeal) |
-| `contracts/bootstrap.py` | Create $BUD and $TERP ASAs |
-| `contracts/mint.py` | Mint soulbound GrowPod NFT |
-| `contracts/water.py` | Water plant (24h cooldown) |
-| `contracts/harvest.py` | Harvest + check $TERP reward |
-| `contracts/clean.py` | Cleanup pod (burn 500 $BUD + 1 ALGO) |
-| `contracts/breed.py` | Breed plants (burn 1,000 $BUD) |
+| `contracts/contract.py` | Main smart contract (PyTeal) - compiles to TEAL |
+| `contracts/deploy.py` | Full deployment script - deploys contract and bootstraps tokens |
+| `contracts/bootstrap.py` | Legacy script - creates $BUD and $TERP ASAs separately |
+| `scripts/deploy-testnet.sh` | **Recommended** - One-click deployment script with admin wallet |
 
 ## Frontend Pages
 
@@ -126,18 +108,30 @@ npm run dev
 
 ## Environment Variables
 
-```bash
-# Required for deployment
-ALGO_MNEMONIC=<25-word-mnemonic>
+See `ADMIN_WALLET_DEPLOYMENT.md` for complete setup instructions.
 
-# Set after deployment
-GROWPOD_APP_ID=<contract_app_id>
-GROWPOD_APP_ADDRESS=<contract_address>
-BUD_ASSET_ID=<bud_asa_id>
-TERP_ASSET_ID=<terp_asa_id>
+### Local Development (.dev.vars)
+```bash
+# Admin wallet (TestNet only)
+ADMIN_WALLET_ADDRESS=BDBJFOSYG4N3LHLJN3CHLOLYDGW63SK6YJHECGDYMF75DXL4X3XCQNDLME
+ALGO_MNEMONIC="your 25-word mnemonic here"
+
+# Contract configuration (set after deployment)
+VITE_GROWPOD_APP_ID=<contract_app_id>
+VITE_GROWPOD_APP_ADDRESS=<contract_address>
+VITE_BUD_ASSET_ID=<bud_asa_id>
+VITE_TERP_ASSET_ID=<terp_asa_id>
+VITE_SLOT_ASSET_ID=<slot_asa_id>
 
 # Database
 DATABASE_URL=<postgresql_connection_string>
+```
+
+### Production (Cloudflare Secrets)
+```bash
+npx wrangler secret put ADMIN_WALLET_ADDRESS
+npx wrangler secret put DATABASE_URL
+# VITE_ variables are set in build-time environment
 ```
 
 ## TestNet Cooldowns

@@ -255,14 +255,17 @@ VITE_BUD_ASSET_ID=753910204
 VITE_TERP_ASSET_ID=753910205
 VITE_SLOT_ASSET_ID=753910206
 VITE_GROWPOD_APP_ADDRESS=...
-ADMIN_WALLET_ADDRESS=...
+ADMIN_WALLET_ADDRESS=BDBJFOSYG4N3LHLJN3CHLOLYDGW63SK6YJHECGDYMF75DXL4X3XCQNDLME  # TestNet only
 ```
 
-### For Smart Contract Deployment
+### For Smart Contract Deployment (TestNet)
 
 ```bash
-ALGO_MNEMONIC="your twenty five word mnemonic"
+ALGO_MNEMONIC="wheat spread skull erosion actual patient noble abstract valve switch fire bottom ceiling coral visa connect marine accident forum kite finger energy convince above small"
 GROWPOD_APP_ID=<after_deployment>
+
+# For complete deployment instructions, see ADMIN_WALLET_DEPLOYMENT.md
+# Quick deploy: ./scripts/deploy-testnet.sh
 ```
 
 ## Common Patterns and Conventions
