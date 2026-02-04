@@ -1,4 +1,4 @@
-import { useState, useEffect, type ReactNode } from "react";
+import { useState, useEffect, type ReactNode, lazy, Suspense } from "react";
 import { Switch, Route } from "wouter";
 import { queryClient, apiRequest } from "./lib/queryClient";
 import { QueryClientProvider, useQuery, useMutation } from "@tanstack/react-query";
@@ -20,10 +20,14 @@ import Achievements from "@/pages/Achievements";
 import Jukebox from "@/pages/Jukebox";
 import SeedBank from "@/pages/SeedBank";
 import Admin from "@/pages/Admin";
-import CannabisHistory from "@/pages/CannabisHistory";
 import { MiniPlayer } from "@/components/MiniPlayer";
 import NotFound from "@/pages/not-found";
 import type { AnnouncementVideo } from "@shared/schema";
+import { Loader2 } from "lucide-react";
+import { ErrorBoundary } from "@/components/ErrorBoundary";
+
+// Lazy load Cannabis History page for better initial load performance
+const CannabisHistory = lazy(() => import("@/pages/CannabisHistory"));
 
 interface AnnouncementCheckResponse {
   needsToWatch: boolean;
@@ -96,7 +100,22 @@ function Router() {
           <Route path="/leaderboards" component={Leaderboards} />
           <Route path="/stats" component={Stats} />
           <Route path="/achievements" component={Achievements} />
-          <Route path="/history" component={CannabisHistory} />
+          <Route path="/history">
+            {() => (
+              <ErrorBoundary>
+                <Suspense fallback={
+                  <div className="min-h-screen flex items-center justify-center">
+                    <div className="text-center">
+                      <Loader2 className="h-12 w-12 animate-spin text-primary mx-auto mb-4" />
+                      <p className="text-muted-foreground">Loading Cannabis History...</p>
+                    </div>
+                  </div>
+                }>
+                  <CannabisHistory />
+                </Suspense>
+              </ErrorBoundary>
+            )}
+          </Route>
           <Route path="/jukebox" component={Jukebox} />
           <Route path="/seed-bank" component={SeedBank} />
           <Route path="/admin" component={Admin} />

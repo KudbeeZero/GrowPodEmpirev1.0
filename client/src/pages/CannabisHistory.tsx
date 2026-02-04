@@ -18,7 +18,8 @@ import {
   Clock,
   Sparkles,
   ChevronRight,
-  Play
+  Play,
+  Home
 } from "lucide-react";
 import { motion, AnimatePresence } from "framer-motion";
 import { cn } from "@/lib/utils";
@@ -26,6 +27,9 @@ import { HistoricalTimeline } from "@/components/history/HistoricalTimeline";
 import { TriviaQuiz } from "@/components/history/TriviaQuiz";
 import { MythBuster } from "@/components/history/MythBuster";
 import { CannabisWorldMap } from "@/components/history/CannabisWorldMap";
+import { HistoryWelcomeModal, useHistoryWelcome } from "@/components/history/HistoryWelcomeModal";
+import { Link } from "wouter";
+import { useDocumentTitle, useMetaTags } from "@/hooks/use-meta-tags";
 
 const sections = [
   { id: "ancient", label: "Ancient History", icon: Clock, color: "text-amber-400" },
@@ -45,9 +49,30 @@ const interactiveFeatures = [
 export default function CannabisHistory() {
   const [activeSection, setActiveSection] = useState("ancient");
   const [activeFeature, setActiveFeature] = useState<string | null>(null);
+  const { showWelcome, closeWelcome } = useHistoryWelcome();
+
+  // Set page title and meta tags for SEO
+  useDocumentTitle("Cannabis History | GrowPod Empire");
+  useMetaTags({
+    description: "Explore 10,000+ years of cannabis cultivation history. From ancient civilizations to modern medical breakthroughs, discover the rich cultural and scientific heritage of cannabis.",
+    keywords: "cannabis history, hemp cultivation, cannabis culture, marijuana history, cannabis science, ancient cannabis, medical cannabis history",
+    ogTitle: "Cannabis History | GrowPod Empire",
+    ogDescription: "Journey through 10,000+ years of cannabis cultivation with interactive timelines, quizzes, and historical insights.",
+    twitterCard: "summary_large_image",
+  });
 
   return (
     <div className="min-h-screen py-12 px-4 container mx-auto">
+      {/* Breadcrumb Navigation */}
+      <nav className="flex items-center gap-2 text-sm text-muted-foreground mb-6" aria-label="Breadcrumb">
+        <Link href="/" className="hover:text-primary transition-colors flex items-center gap-1">
+          <Home className="h-4 w-4" />
+          <span>Dashboard</span>
+        </Link>
+        <ChevronRight className="h-4 w-4" />
+        <span className="text-foreground font-medium">Cannabis History</span>
+      </nav>
+
       {/* Header */}
       <motion.div 
         initial={{ opacity: 0, y: -20 }}
@@ -88,15 +113,18 @@ export default function CannabisHistory() {
             <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
               {interactiveFeatures.map((feature) => {
                 const Icon = feature.icon;
+                const isActive = activeFeature === feature.id;
                 return (
                   <Button
                     key={feature.id}
-                    variant={activeFeature === feature.id ? "default" : "outline"}
+                    variant={isActive ? "default" : "outline"}
                     className={cn(
                       "h-auto flex flex-col items-center gap-2 py-4",
-                      activeFeature === feature.id && "bg-primary"
+                      isActive && "bg-primary"
                     )}
-                    onClick={() => setActiveFeature(activeFeature === feature.id ? null : feature.id)}
+                    onClick={() => setActiveFeature(isActive ? null : feature.id)}
+                    aria-label={`${isActive ? 'Close' : 'Open'} ${feature.label}`}
+                    aria-pressed={isActive}
                   >
                     <Icon className={cn("h-6 w-6", feature.color)} />
                     <span className="text-sm font-medium text-center">{feature.label}</span>
@@ -128,7 +156,10 @@ export default function CannabisHistory() {
 
       {/* Main Content Tabs */}
       <Tabs value={activeSection} onValueChange={setActiveSection} className="space-y-6">
-        <TabsList className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-5 h-auto gap-2 bg-transparent p-0">
+        <TabsList 
+          className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-5 h-auto gap-2 bg-transparent p-0"
+          aria-label="Cannabis history sections"
+        >
           {sections.map((section) => {
             const Icon = section.icon;
             return (
@@ -136,6 +167,7 @@ export default function CannabisHistory() {
                 key={section.id}
                 value={section.id}
                 className="flex items-center gap-2 data-[state=active]:bg-primary/20 data-[state=active]:text-primary border border-white/5 py-3"
+                aria-label={`View ${section.label} section`}
               >
                 <Icon className={cn("h-4 w-4", section.color)} />
                 <span className="hidden sm:inline">{section.label}</span>
@@ -164,6 +196,9 @@ export default function CannabisHistory() {
           <IndustrialUsesContent />
         </TabsContent>
       </Tabs>
+
+      {/* Welcome Modal for First-Time Visitors */}
+      {showWelcome && <HistoryWelcomeModal onClose={closeWelcome} />}
     </div>
   );
 }
