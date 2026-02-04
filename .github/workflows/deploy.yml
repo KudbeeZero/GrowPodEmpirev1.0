@@ -67,7 +67,7 @@ jobs:
           node-version: '20'
 
       - name: Install Wrangler
-        run: npm install -g wrangler
+        run: npm install -g wrangler@4.61.1
 
       - name: Run D1 Migrations
         run: |
