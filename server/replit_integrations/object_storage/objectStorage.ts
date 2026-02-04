@@ -1,6 +1,5 @@
 import { Storage, File } from "@google-cloud/storage";
 import { Response } from "express";
-import { randomUUID } from "crypto";
 import {
   ObjectAclPolicy,
   ObjectPermission,
@@ -10,6 +9,58 @@ import {
 } from "./objectAcl";
 
 const REPLIT_SIDECAR_ENDPOINT = "http://127.0.0.1:1106";
+
+// Use Web Crypto API for generating UUIDs (compatible with both Node.js and Workers)
+function generateUUID(): string {
+  const cryptoObj = (typeof globalThis !== "undefined" ? (globalThis as any).crypto : undefined);
+
+  // Prefer native randomUUID if available (Node.js 16.7.0+ and modern browsers)
+  if (cryptoObj && typeof cryptoObj.randomUUID === "function") {
+    return cryptoObj.randomUUID();
+  }
+
+  // Fallback: generate RFC4122 v4 UUID using crypto.getRandomValues
+  if (cryptoObj && typeof cryptoObj.getRandomValues === "function") {
+    const bytes = new Uint8Array(16);
+    cryptoObj.getRandomValues(bytes);
+
+    // Per RFC 4122 section 4.4: set the version to 4 and the variant to RFC4122
+    bytes[6] = (bytes[6] & 0x0f) | 0x40; // version 4
+    bytes[8] = (bytes[8] & 0x3f) | 0x80; // variant 10xxxxxx
+
+    const byteToHex: string[] = [];
+    for (let i = 0; i < 256; i++) {
+      byteToHex.push((i + 0x100).toString(16).substring(1));
+    }
+
+    const b = bytes;
+    return (
+      byteToHex[b[0]] +
+      byteToHex[b[1]] +
+      byteToHex[b[2]] +
+      byteToHex[b[3]] +
+      "-" +
+      byteToHex[b[4]] +
+      byteToHex[b[5]] +
+      "-" +
+      byteToHex[b[6]] +
+      byteToHex[b[7]] +
+      "-" +
+      byteToHex[b[8]] +
+      byteToHex[b[9]] +
+      "-" +
+      byteToHex[b[10]] +
+      byteToHex[b[11]] +
+      byteToHex[b[12]] +
+      byteToHex[b[13]] +
+      byteToHex[b[14]] +
+      byteToHex[b[15]]
+    );
+  }
+
+  // If no secure random source is available, fail explicitly rather than using Math.random().
+  throw new Error("Secure UUID generation is not supported in this environment");
+}
 
 // The object storage client is used to interact with the object storage service.
 export const objectStorageClient = new Storage({
@@ -140,7 +191,7 @@ export class ObjectStorageService {
       );
     }
 
-    const objectId = randomUUID();
+    const objectId = generateUUID();
     const fullPath = `${privateObjectDir}/uploads/${objectId}`;
 
     const { bucketName, objectName } = parseObjectPath(fullPath);

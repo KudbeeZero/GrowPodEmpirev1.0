@@ -9,7 +9,7 @@ export default function SeedVault() {
   const seeds = useSeeds();
   const { toast } = useToast();
 
-  const handlePlant = (seedId: string) => {
+  const handlePlant = (seedId: number) => {
     toast({
       title: "Planting Seed",
       description: `Preparing soil for seed ${seedId}. Transaction pending...`,
@@ -41,11 +41,11 @@ export default function SeedVault() {
               <div className="absolute top-4 right-4">
                 <span className={cn(
                   "px-2 py-1 text-xs font-bold rounded uppercase",
-                  seed.rarity === "Common" ? "bg-slate-500/20 text-slate-400" :
-                  seed.rarity === "Rare" ? "bg-blue-500/20 text-blue-400" :
+                  seed.seed.rarity === "Common" ? "bg-slate-500/20 text-slate-400" :
+                  seed.seed.rarity === "Rare" ? "bg-blue-500/20 text-blue-400" :
                   "bg-purple-500/20 text-purple-400"
                 )}>
-                  {seed.rarity}
+                  {seed.seed.rarity}
                 </span>
               </div>
 
@@ -57,8 +57,8 @@ export default function SeedVault() {
               </div>
 
               <div className="text-center mb-6">
-                <h3 className="font-display font-bold text-lg group-hover:text-indigo-400 transition-colors">{seed.name}</h3>
-                <p className="text-xs font-mono text-muted-foreground mt-1 truncate px-4">{seed.dna}</p>
+                <h3 className="font-display font-bold text-lg group-hover:text-indigo-400 transition-colors">{seed.seed.name}</h3>
+                <p className="text-xs font-mono text-muted-foreground mt-1 truncate px-4">{seed.seed.description}</p>
               </div>
 
               <Button 
