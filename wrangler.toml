@@ -3,8 +3,7 @@ name = "gape"
 main = "dist/worker.mjs"
 compatibility_date = "2026-01-30"
 
-# Cloudflare Account ID
-account_id = "b591c2e07ca352d33076f4d2f8414b89"
+# Cloudflare Account ID is provided via environment (e.g. CLOUDFLARE_ACCOUNT_ID in CI)
 
 # Domain Code ID (for reference): 85a5b265570a47e66762a07932ce8aa8
 
