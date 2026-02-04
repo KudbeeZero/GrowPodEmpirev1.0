@@ -79,8 +79,10 @@ database_id = "REPLACE_WITH_YOUR_DATABASE_ID"
 # ============================================
 # Build Configuration
 # ============================================
-[build]
-command = "npm run build"
+# Note: Build is handled separately in CI/CD pipeline before deployment
+# Uncomment below if you want wrangler to handle builds automatically
+# [build]
+# command = "npm run build"
 
 # ============================================
 # Development Server
