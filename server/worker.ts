@@ -1,6 +1,7 @@
 import express, { type Request, Response, NextFunction } from "express";
 import { registerRoutes } from "./routes";
 import { Readable } from "stream";
+import { EventEmitter } from "events";
 
 // Create Express app
 const app = express();
@@ -103,14 +104,13 @@ function createNodeRequest(request: globalThis.Request, url: URL) {
 }
 
 // Convert Node.js ServerResponse to Web Response
-function createNodeResponse(resolve: (response: globalThis.Response) => void) {
+function createNodeResponse(resolve: (response: globalThis.Response) => void): EventEmitter & any {
   const chunks: Buffer[] = [];
   let statusCode = 200;
   let statusMessage = 'OK';
   const headers: Record<string, string | string[]> = {};
   let headersSent = false;
 
-  const EventEmitter = require('events');
   const response = Object.assign(new EventEmitter(), {
     statusCode,
     statusMessage,
@@ -196,7 +196,7 @@ function createNodeResponse(resolve: (response: globalThis.Response) => void) {
         headers: responseHeaders,
       });
       
-      this.emit('finish');
+      response.emit('finish');
       if (callback) callback();
       resolve(webResponse);
     },
