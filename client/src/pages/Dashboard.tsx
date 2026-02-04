@@ -8,15 +8,30 @@ import { Checkbox } from "@/components/ui/checkbox";
 import { Badge } from "@/components/ui/badge";
 import { useToast } from "@/hooks/use-toast";
 import { useNotifications, usePlantNotifications } from "@/hooks/use-notifications";
-import { Plus, Sprout, Leaf, FlaskConical, Flame, Zap, Sparkles, Info, Coins, ExternalLink, Bell, BellOff, X, Loader2, Wallet, Trophy, BookOpen } from "lucide-react";
+import { Plus, Sprout, Leaf, FlaskConical, Flame, Zap, Sparkles, Info, Coins, ExternalLink, Bell, BellOff, X, Loader2, Wallet, Trophy, BookOpen, Lightbulb } from "lucide-react";
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription } from "@/components/ui/dialog";
 import { Link } from "wouter";
 import { motion } from "framer-motion";
-import { useState, useEffect } from "react";
+import { useState, useEffect, useMemo } from "react";
 import { useQuery, useMutation } from "@tanstack/react-query";
 import { queryClient, apiRequest } from "@/lib/queryClient";
 import type { UserSeed, SeedBankItem } from "@shared/schema";
+import { FeatureHighlight } from "@/components/FeatureHighlight";
+
+// Cannabis history facts for "Did You Know?" feature
+const cannabisFacts = [
+  "Cannabis has been cultivated for over 10,000 years, making it one of humanity's oldest crops.",
+  "Ancient Chinese Emperor Shen Nung prescribed cannabis for ailments like gout and malaria around 2737 BCE.",
+  "The US Declaration of Independence was drafted on hemp paper in 1776.",
+  "George Washington grew hemp at Mount Vernon as one of his primary crops.",
+  "Cannabis was listed in the US Pharmacopeia from 1850 until 1942 as a recognized medicine.",
+  "The word 'canvas' comes from 'cannabis' - hemp was used to make sails and rope for ships.",
+  "In ancient India, cannabis was considered one of the five sacred plants mentioned in the Vedas.",
+  "Cannabis contains over 100 different cannabinoids, each with unique properties and effects.",
+  "Hemp can be used to make biodegradable plastics, paper, textiles, biofuel, and building materials.",
+  "The first known use of cannabis as medicine dates back to 2800 BCE in ancient China.",
+];
 
 export default function Dashboard() {
   const { account, isConnected, connectWallet } = useAlgorand();
@@ -851,6 +866,43 @@ export default function Dashboard() {
                     )}
                   </div>
                 )}
+              </CardContent>
+            </Card>
+          </div>
+
+          {/* Cannabis History Feature Highlight - New Section Promotion */}
+          <div className="grid grid-cols-1 lg:grid-cols-3 gap-4 mb-8">
+            <div className="lg:col-span-2">
+              <FeatureHighlight
+                title="Explore Cannabis History"
+                description="Journey through 10,000+ years of cannabis cultivation, from ancient civilizations to modern medical breakthroughs. Test your knowledge with interactive quizzes, explore our timeline, and discover the truth behind common myths."
+                href="/history"
+                icon={BookOpen}
+                badge="NEW"
+                gradient="from-amber-400 via-orange-500 to-amber-400"
+              />
+            </div>
+            
+            {/* Did You Know? Random Fact */}
+            <Card className="bg-card/40 border-amber-500/20">
+              <CardHeader className="pb-2">
+                <CardTitle className="text-sm font-medium text-muted-foreground flex items-center gap-2">
+                  <Lightbulb className="h-4 w-4 text-amber-500" />
+                  Did You Know?
+                </CardTitle>
+              </CardHeader>
+              <CardContent>
+                <p className="text-sm text-foreground mb-3">
+                  {cannabisFacts[Math.floor(Math.random() * cannabisFacts.length)]}
+                </p>
+                <Link href="/history">
+                  <Button 
+                    variant="ghost" 
+                    className="w-full text-xs text-amber-500 hover:text-amber-400 hover:bg-amber-500/10"
+                  >
+                    Learn More <BookOpen className="ml-2 h-3 w-3" />
+                  </Button>
+                </Link>
               </CardContent>
             </Card>
           </div>
