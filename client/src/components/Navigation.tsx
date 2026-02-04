@@ -67,6 +67,7 @@ export function Navigation() {
     { href: "/leaderboards", label: "Leaderboards", icon: Trophy, description: "See top growers" },
     { href: "/stats", label: "Stats", icon: BarChart3, description: "Global game statistics" },
     { href: "/achievements", label: "Achievements", icon: Award, description: "Your milestones" },
+    { href: "/history", label: "Cannabis History", icon: BookOpen, description: "Explore cannabis history" },
     { href: "/tutorial", label: "How to Play", icon: BookOpen, description: "Learn the basics" },
   ];
 

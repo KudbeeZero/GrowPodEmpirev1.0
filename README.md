@@ -9,6 +9,7 @@ A blockchain-based idle/farming game built on **Algorand TestNet**. Players mana
 - **[AI_WORKFLOW_GUIDE.md](./AI_WORKFLOW_GUIDE.md)** - Working with AI tools
 - **[CLAUDE.md](./CLAUDE.md)** - Detailed development guide
 - **[CLOUDFLARE_DEPLOYMENT.md](./CLOUDFLARE_DEPLOYMENT.md)** - Deployment guide
+- **[CANNABIS_HISTORY_FEATURE.md](./CANNABIS_HISTORY_FEATURE.md)** - History of Cannabis feature documentation
 
 ## Tech Stack
 
@@ -121,6 +122,7 @@ npm run dev
 - **Combiner Lab**: Breed two plants for hybrid seeds
 - **Supply Store**: Buy nutrients/controls with $BUD
 - **Cure Vault**: Cure $BUD for bonus yields
+- **Cannabis History**: Educational section exploring 5000 years of cannabis history with interactive features (Timeline, Quiz, Myths, World Map)
 
 ## Environment Variables
 

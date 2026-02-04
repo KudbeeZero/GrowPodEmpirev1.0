@@ -20,6 +20,7 @@ import Achievements from "@/pages/Achievements";
 import Jukebox from "@/pages/Jukebox";
 import SeedBank from "@/pages/SeedBank";
 import Admin from "@/pages/Admin";
+import CannabisHistory from "@/pages/CannabisHistory";
 import { MiniPlayer } from "@/components/MiniPlayer";
 import NotFound from "@/pages/not-found";
 import type { AnnouncementVideo } from "@shared/schema";
@@ -95,6 +96,7 @@ function Router() {
           <Route path="/leaderboards" component={Leaderboards} />
           <Route path="/stats" component={Stats} />
           <Route path="/achievements" component={Achievements} />
+          <Route path="/history" component={CannabisHistory} />
           <Route path="/jukebox" component={Jukebox} />
           <Route path="/seed-bank" component={SeedBank} />
           <Route path="/admin" component={Admin} />
