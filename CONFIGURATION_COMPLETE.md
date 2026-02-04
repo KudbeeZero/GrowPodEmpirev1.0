@@ -12,7 +12,7 @@ YOUR_ACCOUNT_ID
 
 ### D1 Database
 ```
-Database ID: 712d926f-c396-473f-96d9-f0dfc3d1d069
+Database ID: YOUR_D1_DATABASE_ID
 Binding Name: DB
 Database Name: growpod-primary
 ```
