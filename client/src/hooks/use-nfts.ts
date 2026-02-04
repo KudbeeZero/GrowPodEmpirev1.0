@@ -89,33 +89,40 @@ export function useSeedNFTs(account: string | null) {
         const accountInfo = await algodClient.accountInformation(account).do();
         const assets = accountInfo.assets || [];
 
-        const seedNFTs: SeedNFT[] = [];
-
-        for (const asset of assets) {
+        const seedNFTPromises = assets
           // Only include assets with balance > 0
-          if (asset.amount <= 0) continue;
+          .filter((asset: any) => asset.amount > 0)
+          .map(async (asset: any): Promise<SeedNFT | null> => {
+            try {
+              const assetInfo = await algodClient.getAssetByID(asset.assetId).do();
+              const params = assetInfo.params;
 
-          try {
-            const assetInfo = await algodClient.getAssetByID(asset.assetId).do();
-            const params = assetInfo.params;
+              // Check if it's a SEED NFT
+              if (params.unitName === 'SEED' && Number(params.total) === 1) {
+                const metadata = await fetchAssetMetadata(Number(asset.assetId));
 
-            // Check if it's a SEED NFT
-            if (params.unitName === 'SEED' && Number(params.total) === 1) {
-              const metadata = await fetchAssetMetadata(Number(asset.assetId));
+                return {
+                  assetId: Number(asset.assetId),
+                  name: params.name || `Seed #${asset.assetId}`,
+                  unitName: params.unitName,
+                  metadata: metadata?.properties || null,
+                  imageUrl:
+                    metadata?.image?.replace('ipfs://', 'https://ipfs.io/ipfs/') || null,
+                };
+              }
 
-              seedNFTs.push({
-                assetId: Number(asset.assetId),
-                name: params.name || `Seed #${asset.assetId}`,
-                unitName: params.unitName,
-                metadata: metadata?.properties || null,
-                imageUrl: metadata?.image?.replace('ipfs://', 'https://ipfs.io/ipfs/') || null,
-              });
+              // Not a SEED NFT
+              return null;
+            } catch (e) {
+              console.error(`Error fetching asset ${asset.assetId}:`, e);
+              return null;
             }
-          } catch (e) {
-            console.error(`Error fetching asset ${asset.assetId}:`, e);
-          }
-        }
+          });
 
+        const seedNFTResults = await Promise.all(seedNFTPromises);
+        const seedNFTs: SeedNFT[] = seedNFTResults.filter(
+          (nft): nft is SeedNFT => nft !== null,
+        );
         return seedNFTs;
       } catch (error) {
         console.error('Error fetching seed NFTs:', error);
