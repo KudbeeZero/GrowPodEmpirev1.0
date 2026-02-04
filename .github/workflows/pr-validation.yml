@@ -26,9 +26,28 @@ jobs:
       - name: Install dependencies
         run: npm ci
       
-      - name: Type check
-        run: npm run check
-        continue-on-error: true
+      - name: Type check (allow up to 14 known errors)
+        run: |
+          set -o pipefail
+          
+          # Run type check, capture stderr to a log file, but do not fail immediately
+          npm run check 2>ts-check.log || true
+          
+          # Show the type check output for debugging
+          echo "===== TypeScript check output (stderr) ====="
+          cat ts-check.log || true
+          echo "==========================================="
+          
+          # Count lines that look like TypeScript errors
+          ERROR_COUNT=$(grep -E "error TS[0-9]+" ts-check.log | wc -l || echo 0)
+          echo "Detected TypeScript error count: $ERROR_COUNT"
+          
+          # Allow up to 14 known type errors; fail if more are introduced
+          ALLOWED_ERRORS=14
+          if [ "$ERROR_COUNT" -gt "$ALLOWED_ERRORS" ]; then
+            echo "::error::TypeScript error count ($ERROR_COUNT) exceeds allowed baseline of $ALLOWED_ERRORS known issues. Please fix new type errors before merging."
+            exit 1
+          fi
       
       - name: Build application
         run: npm run build
