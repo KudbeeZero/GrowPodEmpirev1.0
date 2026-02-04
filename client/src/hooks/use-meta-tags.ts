@@ -27,7 +27,8 @@ export function useMetaTags(tags: {
   twitterCard?: string;
 }) {
   useEffect(() => {
-    const metaElements: Array<{ element: HTMLMetaElement; originalContent: string }> = [];
+    const metaElements: Array<{ element: HTMLMetaElement; originalContent: string; isNew: boolean }> = [];
+    const createdElements: HTMLMetaElement[] = [];
 
     // Update or create description meta tag
     if (tags.description) {
@@ -35,12 +36,13 @@ export function useMetaTags(tags: {
       if (descMeta) {
         const originalContent = descMeta.content;
         descMeta.content = tags.description;
-        metaElements.push({ element: descMeta, originalContent });
+        metaElements.push({ element: descMeta, originalContent, isNew: false });
       } else {
         const newMeta = document.createElement("meta");
         newMeta.name = "description";
         newMeta.content = tags.description;
         document.head.appendChild(newMeta);
+        createdElements.push(newMeta);
       }
     }
 
@@ -50,12 +52,13 @@ export function useMetaTags(tags: {
       if (keywordsMeta) {
         const originalContent = keywordsMeta.content;
         keywordsMeta.content = tags.keywords;
-        metaElements.push({ element: keywordsMeta, originalContent });
+        metaElements.push({ element: keywordsMeta, originalContent, isNew: false });
       } else {
         const newMeta = document.createElement("meta");
         newMeta.name = "keywords";
         newMeta.content = tags.keywords;
         document.head.appendChild(newMeta);
+        createdElements.push(newMeta);
       }
     }
 
@@ -65,12 +68,13 @@ export function useMetaTags(tags: {
       if (ogTitleMeta) {
         const originalContent = ogTitleMeta.content;
         ogTitleMeta.content = tags.ogTitle;
-        metaElements.push({ element: ogTitleMeta, originalContent });
+        metaElements.push({ element: ogTitleMeta, originalContent, isNew: false });
       } else {
         const newMeta = document.createElement("meta");
         newMeta.setAttribute("property", "og:title");
         newMeta.content = tags.ogTitle;
         document.head.appendChild(newMeta);
+        createdElements.push(newMeta);
       }
     }
 
@@ -80,12 +84,13 @@ export function useMetaTags(tags: {
       if (ogDescMeta) {
         const originalContent = ogDescMeta.content;
         ogDescMeta.content = tags.ogDescription;
-        metaElements.push({ element: ogDescMeta, originalContent });
+        metaElements.push({ element: ogDescMeta, originalContent, isNew: false });
       } else {
         const newMeta = document.createElement("meta");
         newMeta.setAttribute("property", "og:description");
         newMeta.content = tags.ogDescription;
         document.head.appendChild(newMeta);
+        createdElements.push(newMeta);
       }
     }
 
@@ -95,19 +100,29 @@ export function useMetaTags(tags: {
       if (twitterMeta) {
         const originalContent = twitterMeta.content;
         twitterMeta.content = tags.twitterCard;
-        metaElements.push({ element: twitterMeta, originalContent });
+        metaElements.push({ element: twitterMeta, originalContent, isNew: false });
       } else {
         const newMeta = document.createElement("meta");
         newMeta.name = "twitter:card";
         newMeta.content = tags.twitterCard;
         document.head.appendChild(newMeta);
+        createdElements.push(newMeta);
       }
     }
 
-    // Cleanup function to restore original values
+    // Cleanup function to restore original values and remove created elements
     return () => {
-      metaElements.forEach(({ element, originalContent }) => {
-        element.content = originalContent;
+      metaElements.forEach(({ element, originalContent, isNew }) => {
+        if (!isNew) {
+          element.content = originalContent;
+        }
+      });
+      
+      // Remove any newly created meta tags
+      createdElements.forEach((element) => {
+        if (element.parentNode) {
+          element.parentNode.removeChild(element);
+        }
       });
     };
   }, [tags.description, tags.keywords, tags.ogTitle, tags.ogDescription, tags.twitterCard]);

@@ -49,6 +49,12 @@ export default function Dashboard() {
   const [seedSelectOpen, setSeedSelectOpen] = useState(false);
   const [selectedSeed, setSelectedSeed] = useState<(UserSeed & { seed: SeedBankItem }) | null>(null);
 
+  // Memoize random fact to prevent it from changing on every render
+  const randomFact = useMemo(() => 
+    cannabisFacts[Math.floor(Math.random() * cannabisFacts.length)],
+    [] // Empty dependency array means this only runs once on mount
+  );
+
   // Fetch user's seed inventory
   const { data: userSeeds = [], isLoading: loadingSeeds } = useQuery<(UserSeed & { seed: SeedBankItem })[]>({
     queryKey: ["/api/user-seeds", account],
@@ -893,7 +899,7 @@ export default function Dashboard() {
               </CardHeader>
               <CardContent>
                 <p className="text-sm text-foreground mb-3">
-                  {cannabisFacts[Math.floor(Math.random() * cannabisFacts.length)]}
+                  {randomFact}
                 </p>
                 <Link href="/history">
                   <Button 
