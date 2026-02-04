@@ -1,6 +1,6 @@
 #:schema node_modules/wrangler/config-schema.json
 name = "gape"
-main = "dist/index.cjs"
+main = "dist/index.js"
 compatibility_date = "2026-01-30"
 compatibility_flags = ["nodejs_compat"]
 
@@ -32,7 +32,7 @@ NODE_ENV = "production"
 
 # Build configuration
 [build]
-command = "npm run build"
+command = "BUILD_TARGET=worker npm run build"
 
 # Assets configuration for static files
 [assets]

@@ -46,12 +46,18 @@ async function buildAll() {
   ];
   const externals = allDeps.filter((dep) => !allowlist.includes(dep));
 
+  // Check if we're building for Cloudflare Workers
+  const isWorkerBuild = process.env.BUILD_TARGET === "worker";
+  const entryPoint = isWorkerBuild ? "server/worker.ts" : "server/index.ts";
+  
+  console.log(`Building server for ${isWorkerBuild ? "Cloudflare Workers" : "Node.js"}...`);
+
   await esbuild({
-    entryPoints: ["server/index.ts"],
+    entryPoints: [entryPoint],
     platform: "node",
     bundle: true,
-    format: "cjs",
-    outfile: "dist/index.cjs",
+    format: isWorkerBuild ? "esm" : "cjs",
+    outfile: isWorkerBuild ? "dist/index.js" : "dist/index.cjs",
     define: {
       "process.env.NODE_ENV": '"production"',
     },

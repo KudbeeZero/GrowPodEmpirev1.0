@@ -1,6 +1,17 @@
 # Cloudflare Workers Deployment Guide
 
-This guide explains how to deploy GrowPod Empire to Cloudflare Workers with D1 databases.
+This guide explains how to deploy GrowPod Empire to Cloudflare Workers.
+
+## ⚠️ Important: Database Architecture
+
+**Current Status**: The application currently uses PostgreSQL with the `node-postgres` driver. Direct PostgreSQL connections are **not supported** in Cloudflare Workers due to TCP socket limitations.
+
+**Recommended Solutions**:
+1. **Use a PostgreSQL HTTP Proxy** like [Neon](https://neon.tech) or [Supabase](https://supabase.com) with HTTP/REST APIs
+2. **Migrate to Cloudflare D1** (SQLite-based, requires code changes)
+3. **Use Cloudflare's Hyperdrive** to proxy PostgreSQL connections
+
+**For GitHub Actions Deployment**: Ensure `DATABASE_URL` is set as a repository secret and points to a Workers-compatible database connection.
 
 ## Prerequisites
 
