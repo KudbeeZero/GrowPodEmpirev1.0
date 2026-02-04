@@ -5,16 +5,16 @@ Use this checklist to complete your Cloudflare Workers deployment setup.
 ## ✅ Completed Pre-Deployment Steps
 
 ### ✅ 1. Cloudflare Account ID - CONFIGURED
-- [x] Account ID obtained: `b591c2e07ca352d33076f4d2f8414b89`
+- [x] Account ID obtained: `YOUR_ACCOUNT_ID`
 - [x] Updated in `wrangler.toml`
 
 ### ✅ 2. D1 Database ID - CONFIGURED
-- [x] D1 Database ID obtained: `712d926f-c396-473f-96d9-f0dfc3d1d069`
+- [x] D1 Database ID obtained: `YOUR_D1_DATABASE_ID`
 - [x] Updated in `wrangler.toml`
 - [x] Binding name: `DB` (accessible via `env.DB` in code)
 
 ### ✅ 3. Domain Code ID - DOCUMENTED
-- [x] Domain Code ID: `85a5b265570a47e66762a07932ce8aa8`
+- [x] Domain Code ID: `YOUR_DOMAIN_CODE_ID`
 - [x] Documented in `wrangler.toml` for reference
 
 ## ⚠️ Required Next Steps
