@@ -184,7 +184,7 @@ npm run worker:tail
 
 ## ✅ Next Steps
 
-1. [ ] Update `wrangler.toml` with your 3 D1 database IDs
+1. [ ] Update `wrangler.toml` with your D1 database ID
 2. [ ] Update `wrangler.toml` with your account ID
 3. [ ] Set up secrets (at minimum: DATABASE_URL)
 4. [ ] Test local deployment: `npm run worker:dev`
