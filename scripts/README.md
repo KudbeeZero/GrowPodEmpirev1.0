@@ -1,8 +1,69 @@
-# Branch Management Scripts
+# GrowPod Empire - Scripts
 
-This directory contains utility scripts for managing branches in the GrowPod Empire repository.
+This directory contains utility scripts for managing the GrowPod Empire repository, including deployment and branch management.
 
-## Scripts
+## Deployment Scripts
+
+### `deploy-testnet.sh`
+**Automated TestNet deployment script**
+
+One-click script that deploys the smart contract to Algorand TestNet.
+
+**Usage:**
+```bash
+./scripts/deploy-testnet.sh
+```
+
+**What it does:**
+- Checks Python dependencies
+- Compiles the PyTeal contract
+- Deploys to Algorand TestNet
+- Funds the contract address
+- Bootstraps $BUD, $TERP, and Slot tokens
+- Outputs environment variables
+
+**Prerequisites:**
+- Python 3.11+ with `py-algorand-sdk` and `pyteal`
+- Admin wallet funded with 2+ TestNet ALGO
+- Admin mnemonic configured
+
+**See also:** `ADMIN_WALLET_DEPLOYMENT.md` for complete instructions
+
+---
+
+### `verify-deployment.py`
+**Post-deployment verification tool**
+
+Verifies that the smart contract is correctly deployed and configured.
+
+**Usage:**
+```bash
+python scripts/verify-deployment.py <APP_ID>
+```
+
+**Example:**
+```bash
+python scripts/verify-deployment.py 753910199
+```
+
+**What it checks:**
+- ✅ Contract exists on TestNet
+- ✅ Owner matches expected admin wallet
+- ✅ All tokens ($BUD, $TERP, Slot) created
+- ✅ Token creators match admin wallet
+- ✅ Global state configured correctly
+- ✅ Schema matches expected values
+
+**Output:**
+- Contract verification status
+- Token details and AlgoExplorer links
+- Environment variables for configuration
+
+**See also:** `POST_DEPLOYMENT_CHECKLIST.md` for full verification steps
+
+---
+
+## Branch Management Scripts
 
 ### cleanup-branches.sh
 
@@ -223,6 +284,12 @@ cleanup-branches.sh
 
 ## Related Documentation
 
+### Deployment
+- [ADMIN_WALLET_DEPLOYMENT.md](../ADMIN_WALLET_DEPLOYMENT.md) - Complete deployment guide
+- [POST_DEPLOYMENT_CHECKLIST.md](../POST_DEPLOYMENT_CHECKLIST.md) - Verification checklist
+- [ADMIN_WALLET_UPDATE_SUMMARY.md](../ADMIN_WALLET_UPDATE_SUMMARY.md) - Quick reference
+
+### Branch Management
 - [CONTRIBUTING.md](../CONTRIBUTING.md) - Branch workflow guidelines
 - [BRANCH_PROTECTION_GUIDE.md](../BRANCH_PROTECTION_GUIDE.md) - Protecting main branch
 - [AI_WORKFLOW_GUIDE.md](../AI_WORKFLOW_GUIDE.md) - Working with AI tools
@@ -239,4 +306,16 @@ If you improve these scripts or add new ones:
 
 ---
 
-**Last Updated**: 2026-02-02
+**Last Updated**: 2026-02-04
+
+## Quick Links
+
+### Deployment
+- [ADMIN_WALLET_DEPLOYMENT.md](../ADMIN_WALLET_DEPLOYMENT.md) - Complete deployment guide
+- [POST_DEPLOYMENT_CHECKLIST.md](../POST_DEPLOYMENT_CHECKLIST.md) - Verification checklist
+- [ADMIN_WALLET_UPDATE_SUMMARY.md](../ADMIN_WALLET_UPDATE_SUMMARY.md) - Quick reference
+
+### Branch Management
+- [CONTRIBUTING.md](../CONTRIBUTING.md) - Branch workflow guidelines
+- [BRANCH_PROTECTION_GUIDE.md](../BRANCH_PROTECTION_GUIDE.md) - Protecting main branch
+- [AI_WORKFLOW_GUIDE.md](../AI_WORKFLOW_GUIDE.md) - Working with AI tools
