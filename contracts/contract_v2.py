@@ -649,6 +649,9 @@ def approval_program():
         Assert(Gtxn[Txn.group_index() - Int(3)].xfer_asset() == App.globalGet(GlobalBudAsset)),
         Assert(Gtxn[Txn.group_index() - Int(3)].asset_amount() >= BREED_COST),
         Assert(Gtxn[Txn.group_index() - Int(3)].asset_receiver() == Global.current_application_address()),
+        Assert(Gtxn[Txn.group_index() - Int(3)].rekey_to() == Global.zero_address()),
+        Assert(Gtxn[Txn.group_index() - Int(3)].asset_close_to() == Global.zero_address()),
+        Assert(Gtxn[Txn.group_index() - Int(3)].asset_sender() == Global.zero_address()),
 
         # Verify seed 1 transfer (index - 2)
         Assert(Gtxn[Txn.group_index() - Int(2)].type_enum() == TxnType.AssetTransfer),
