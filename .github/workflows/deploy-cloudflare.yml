@@ -26,11 +26,31 @@ jobs:
         run: npm ci
 
       # Note: `npm run check` currently reports 14 known TypeScript errors in 3 files.
-      # These type inference issues do not block the build and are accepted for now.
+      # These type inference issues do not block the build and are accepted for now,
+      # but we enforce that the error count does not increase beyond 14.
       - name: Type check
-        run: npm run check
-        continue-on-error: true
+        run: |
+          # Run type checking, capture all output, but do not fail the job yet.
+          npm run check 2>&1 | tee typecheck.log || true
 
+      - name: Enforce TypeScript error budget
+        run: |
+          # Count TypeScript errors in the typecheck.log file.
+          # This assumes standard tsc-style messages containing "error TS<code>".
+          if [ -f typecheck.log ]; then
+            ERROR_COUNT=$(grep -E "error TS[0-9]+" typecheck.log | wc -l || true)
+          else
+            echo "typecheck.log not found; assuming 0 TypeScript errors."
+            ERROR_COUNT=0
+          fi
+
+          echo "Detected TypeScript errors: ${ERROR_COUNT}"
+
+          # Allow up to 14 known errors, but fail if the count increases.
+          if [ "${ERROR_COUNT}" -gt 14 ]; then
+            echo "TypeScript error count (${ERROR_COUNT}) exceeds the allowed maximum of 14."
+            exit 1
+          fi
       - name: Build application
         run: npm run build
 
