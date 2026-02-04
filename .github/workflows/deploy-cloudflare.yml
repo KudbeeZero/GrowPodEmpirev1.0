@@ -36,9 +36,10 @@ jobs:
       - name: Enforce TypeScript error budget
         run: |
           # Count TypeScript errors in the typecheck.log file.
-          # This assumes standard tsc-style messages containing "error TS<code>".
+          # This assumes standard tsc-style messages containing "error TS<code>:"
+          # and avoids masking failures with a blanket `|| true` on the pipeline.
           if [ -f typecheck.log ]; then
-            ERROR_COUNT=$(grep -E "error TS[0-9]+" typecheck.log | wc -l || true)
+            ERROR_COUNT=$(grep -E -c "error TS[0-9]{4}:" typecheck.log || echo 0)
           else
             echo "typecheck.log not found; assuming 0 TypeScript errors."
             ERROR_COUNT=0
