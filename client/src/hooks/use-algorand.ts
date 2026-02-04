@@ -2,6 +2,7 @@ import { useMemo, useCallback } from 'react';
 import algosdk from 'algosdk';
 import { useQuery, useQueryClient } from '@tanstack/react-query';
 import { useAlgorandContext, CONTRACT_CONFIG, algodClient } from '@/context/AlgorandContext';
+import type { UserSeed, SeedBankItem } from '@shared/schema';
 
 export { CONTRACT_CONFIG } from '@/context/AlgorandContext';
 
@@ -13,6 +14,7 @@ export type PodStatus = 'empty' | 'seedling' | 'vegetative' | 'flowering' | 'mat
 export const WATER_COOLDOWN = 600; // 10 minutes in seconds (TestNet)
 export const WATER_COOLDOWN_TESTNET = 600; // 10 minutes in seconds (TestNet)
 export const NUTRIENT_COOLDOWN = 600; // 10 minutes in seconds (TestNet)
+export const MAX_PODS = 5; // Maximum number of pod slots
 
 export interface GrowPod {
   id: number;
@@ -261,7 +263,7 @@ export function useInventory() {
   return [];
 }
 
-export function useSeeds() {
+export function useSeeds(): (UserSeed & { seed: SeedBankItem })[] {
   // Seeds will be loaded from blockchain/backend when implemented
   return [];
 }

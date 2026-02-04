@@ -10,13 +10,13 @@ export default function CombinerLab() {
   const { toast } = useToast();
   const { isConnected } = useAlgorand();
   const { breedPlants } = useTransactions();
-  const [selectedParent1, setSelectedParent1] = useState<string | null>(null);
-  const [selectedParent2, setSelectedParent2] = useState<string | null>(null);
+  const [selectedParent1, setSelectedParent1] = useState<number | null>(null);
+  const [selectedParent2, setSelectedParent2] = useState<number | null>(null);
   const [isBreeding, setIsBreeding] = useState(false);
 
   const isContractConfigured = CONTRACT_CONFIG.appId > 0;
 
-  const handleSelect = (id: string) => {
+  const handleSelect = (id: number) => {
     if (selectedParent1 === id) {
       setSelectedParent1(null);
     } else if (selectedParent2 === id) {
@@ -156,8 +156,8 @@ export default function CombinerLab() {
                   isSelected ? "border-purple-500 bg-purple-500/10 ring-1 ring-purple-500" : "border-white/10"
                 )}
               >
-                <div className="text-sm font-bold truncate">{seed.name}</div>
-                <div className="text-xs text-muted-foreground mt-1">{seed.rarity}</div>
+                <div className="text-sm font-bold truncate">{seed.seed.name}</div>
+                <div className="text-xs text-muted-foreground mt-1">{seed.seed.rarity}</div>
               </div>
             );
           })}
