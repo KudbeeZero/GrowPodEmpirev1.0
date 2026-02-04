@@ -18,7 +18,8 @@ import {
   Clock,
   Sparkles,
   ChevronRight,
-  Play
+  Play,
+  Home
 } from "lucide-react";
 import { motion, AnimatePresence } from "framer-motion";
 import { cn } from "@/lib/utils";
@@ -26,6 +27,8 @@ import { HistoricalTimeline } from "@/components/history/HistoricalTimeline";
 import { TriviaQuiz } from "@/components/history/TriviaQuiz";
 import { MythBuster } from "@/components/history/MythBuster";
 import { CannabisWorldMap } from "@/components/history/CannabisWorldMap";
+import { Link } from "wouter";
+import { useDocumentTitle, useMetaTags } from "@/hooks/use-meta-tags";
 
 const sections = [
   { id: "ancient", label: "Ancient History", icon: Clock, color: "text-amber-400" },
@@ -46,8 +49,28 @@ export default function CannabisHistory() {
   const [activeSection, setActiveSection] = useState("ancient");
   const [activeFeature, setActiveFeature] = useState<string | null>(null);
 
+  // Set page title and meta tags for SEO
+  useDocumentTitle("Cannabis History | GrowPod Empire");
+  useMetaTags({
+    description: "Explore 10,000+ years of cannabis cultivation history. From ancient civilizations to modern medical breakthroughs, discover the rich cultural and scientific heritage of cannabis.",
+    keywords: "cannabis history, hemp cultivation, cannabis culture, marijuana history, cannabis science, ancient cannabis, medical cannabis history",
+    ogTitle: "Cannabis History | GrowPod Empire",
+    ogDescription: "Journey through 10,000+ years of cannabis cultivation with interactive timelines, quizzes, and historical insights.",
+    twitterCard: "summary_large_image",
+  });
+
   return (
     <div className="min-h-screen py-12 px-4 container mx-auto">
+      {/* Breadcrumb Navigation */}
+      <nav className="flex items-center gap-2 text-sm text-muted-foreground mb-6" aria-label="Breadcrumb">
+        <Link href="/" className="hover:text-primary transition-colors flex items-center gap-1">
+          <Home className="h-4 w-4" />
+          <span>Dashboard</span>
+        </Link>
+        <ChevronRight className="h-4 w-4" />
+        <span className="text-foreground font-medium">Cannabis History</span>
+      </nav>
+
       {/* Header */}
       <motion.div 
         initial={{ opacity: 0, y: -20 }}
