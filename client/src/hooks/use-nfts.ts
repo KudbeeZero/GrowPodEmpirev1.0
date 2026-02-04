@@ -305,38 +305,11 @@ export function useNFTTransactions() {
   const mintSeed = useCallback(async (): Promise<string | null> => {
     if (!account || !CONTRACT_CONFIG.appId || !CONTRACT_CONFIG.budAssetId) return null;
 
-    try {
-      const suggestedParams = await algodClient.getTransactionParams().do();
-
-      // Transaction 1: Pay 250 $BUD
-      const paymentTxn = algosdk.makeAssetTransferTxnWithSuggestedParamsFromObject({
-        sender: account,
-        receiver: CONTRACT_CONFIG.appAddress,
-        amount: BigInt(250000000), // 250 $BUD
-        assetIndex: CONTRACT_CONFIG.budAssetId,
-        suggestedParams,
-      });
-
-      // Transaction 2: Call mint_seed on contract
-      const appTxn = algosdk.makeApplicationNoOpTxnFromObject({
-        sender: account,
-        suggestedParams,
-        appIndex: CONTRACT_CONFIG.appId,
-        appArgs: [encodeArg('mint_seed')],
-      });
-
-      const txns = [paymentTxn, appTxn];
-      algosdk.assignGroupID(txns);
-
-      const signedTxns = await signTransactions(txns);
-      const txId = await submitTransaction(signedTxns);
-
-      setTimeout(refreshNFTs, 2000);
-      return txId;
-    } catch (error) {
-      console.error('Mint seed failed:', error);
-      throw error;
-    }
+    // NOTE: The current on-chain contract does not implement a `mint_seed` method.
+    // To avoid submitting failing transactions, this action is temporarily disabled
+    // until the contract supports it and TEAL is recompiled.
+    console.warn('mintSeed is currently disabled: the smart contract does not expose a `mint_seed` method.');
+    return null;
   }, [account, signTransactions]);
 
   /**
