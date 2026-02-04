@@ -2,6 +2,14 @@
 
 A blockchain-based idle/farming game built on **Algorand TestNet**. Players manage virtual hydroponic grow pods, cultivating plants through a 10-day growth cycle to harvest **$BUD** tokens. Features genetic breeding mechanics, terpene discovery, pest/disease management, and a dual-token economy.
 
+## 📚 Documentation
+
+- **[CONTRIBUTING.md](./CONTRIBUTING.md)** - Contribution guidelines and workflow
+- **[BRANCH_PROTECTION_GUIDE.md](./BRANCH_PROTECTION_GUIDE.md)** - Branch protection setup
+- **[AI_WORKFLOW_GUIDE.md](./AI_WORKFLOW_GUIDE.md)** - Working with AI tools
+- **[CLAUDE.md](./CLAUDE.md)** - Detailed development guide
+- **[CLOUDFLARE_DEPLOYMENT.md](./CLOUDFLARE_DEPLOYMENT.md)** - Deployment guide
+
 ## Tech Stack
 
 - **Smart Contracts**: PyTeal (Algorand)
@@ -195,6 +203,48 @@ Automated deployment is configured via `.github/workflows/deploy-cloudflare.yml`
 Required repository secrets:
 - `CLOUDFLARE_API_TOKEN` - Your Cloudflare API token
 - `CLOUDFLARE_ACCOUNT_ID` - Your Cloudflare account ID
+
+## Repository Management
+
+### Branch Management
+
+The `main` branch is the single source of truth for this project. All development work should:
+1. Start from the latest `main` branch
+2. Go through pull request review
+3. Merge back to `main` after approval
+4. Delete feature branches after merge
+
+See [CONTRIBUTING.md](./CONTRIBUTING.md) for detailed workflow guidelines.
+
+### Branch Cleanup Tools
+
+Use the provided scripts to manage branches:
+
+```bash
+# Generate AI branch report
+./scripts/ai-branch-report.sh
+
+# Clean up stale branches (dry run)
+./scripts/cleanup-branches.sh
+
+# Actually delete stale branches
+./scripts/cleanup-branches.sh --delete
+```
+
+### Setting Up Branch Protection
+
+To protect the `main` branch from accidental changes:
+1. Go to **Settings** → **Branches** → **Add rule**
+2. Follow the guide in [BRANCH_PROTECTION_GUIDE.md](./BRANCH_PROTECTION_GUIDE.md)
+
+## Contributing
+
+We welcome contributions! Please read [CONTRIBUTING.md](./CONTRIBUTING.md) for guidelines on:
+- Branching strategy
+- Development workflow
+- Pull request process
+- Code standards
+- Working with AI tools
 
 ## License
 
