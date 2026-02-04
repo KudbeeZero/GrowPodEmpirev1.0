@@ -43,15 +43,26 @@ read -p "Do you already have a D1 database ID? (y/n): " has_db_id
 
 if [ "$has_db_id" = "y" ] || [ "$has_db_id" = "Y" ]; then
     echo ""
-    echo "Please enter your D1 Database ID:"
+    echo "Please enter your D1 Database ID (cannot be empty):"
     echo ""
-    read -p "D1 Database ID: " db_id_1
+    while true; do
+        read -p "D1 Database ID: " db_id_1
 
-    # Basic validation: D1 IDs are UUID-like (alphanumeric and dashes only)
-    if ! [[ "$db_id_1" =~ ^[A-Za-z0-9-]+$ ]]; then
-        echo "❌ Error: Invalid D1 Database ID format. Expected only letters, numbers, and dashes."
-        exit 1
-    fi
+        # Ensure the ID is not empty
+        if [ -z "$db_id_1" ]; then
+            echo "❌ Error: D1 Database ID cannot be empty. Please try again."
+            continue
+        fi
+
+        # Basic validation: D1 IDs are UUID-like (alphanumeric and dashes only)
+        if ! [[ "$db_id_1" =~ ^[A-Za-z0-9-]+$ ]]; then
+            echo "❌ Error: Invalid D1 Database ID format. Expected only letters, numbers, and dashes."
+            continue
+        fi
+
+        # Valid, non-empty ID provided
+        break
+    done
     
     # Update wrangler.toml with the provided ID
     if [ -f "wrangler.toml" ]; then
