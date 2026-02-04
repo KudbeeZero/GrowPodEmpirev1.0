@@ -129,6 +129,27 @@ gtxns AssetReceiver
 global CurrentApplicationAddress
 ==
 assert
+txn GroupIndex
+int 1
+-
+gtxns AssetSender
+txn Sender
+==
+assert
+txn GroupIndex
+int 1
+-
+gtxns AssetCloseTo
+global ZeroAddress
+==
+assert
+txn GroupIndex
+int 1
+-
+gtxns RekeyTo
+global ZeroAddress
+==
+assert
 txn Sender
 byte "pod_slots"
 txn Sender
