@@ -18,10 +18,9 @@ import {
   generateBranchCurve,
   drawTaperedBezier,
   evaluateBezier,
-  getBezierTangent,
 } from './utils/bezier';
-import { perlin2, smoothSway, seededRandom } from './utils/noise';
-import { hexToRgba, adjustBrightness } from './utils/colors';
+import { smoothSway, seededRandom } from './utils/noise';
+import { adjustBrightness } from './utils/colors';
 
 export class PlantRenderer {
   private colors: PlantColors;
@@ -344,7 +343,6 @@ export class PlantRenderer {
 
     const baseY = height * 0.78;
     const stemHeight = height * 0.35;
-    const traits = plantState.traits;
 
     // Add pre-flowers/buds at nodes
     const stemCurve = generateStemCurve(
@@ -441,7 +439,7 @@ export class PlantRenderer {
    * Stage 6: Needs cleanup (dead plant)
    */
   private renderCleanup(context: RenderContext): void {
-    const { ctx, width, height, animState } = context;
+    const { ctx, width, height } = context;
 
     const baseY = height * 0.78;
 
