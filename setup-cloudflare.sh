@@ -39,9 +39,9 @@ echo "You can either:"
 echo "  A) Use an existing D1 database ID (if already provided)"
 echo "  B) Create a new D1 database"
 echo ""
-read -p "Do you already have a D1 database ID? (y/n): " has_db_ids
+read -p "Do you already have a D1 database ID? (y/n): " has_db_id
 
-if [ "$has_db_ids" = "y" ] || [ "$has_db_ids" = "Y" ]; then
+if [ "$has_db_id" = "y" ] || [ "$has_db_id" = "Y" ]; then
     echo ""
     echo "Please enter your D1 Database ID:"
     echo ""
