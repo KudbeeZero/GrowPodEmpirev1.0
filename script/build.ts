@@ -38,7 +38,7 @@ async function buildAll() {
   console.log("building client...");
   await viteBuild();
 
-  console.log("building server...");
+  console.log("building server (Node.js)...");
   const pkg = JSON.parse(await readFile("package.json", "utf-8"));
   const allDeps = [
     ...Object.keys(pkg.dependencies || {}),
@@ -46,6 +46,7 @@ async function buildAll() {
   ];
   const externals = allDeps.filter((dep) => !allowlist.includes(dep));
 
+  // Build for local Node.js (CommonJS)
   await esbuild({
     entryPoints: ["server/index.ts"],
     platform: "node",
@@ -58,6 +59,22 @@ async function buildAll() {
     minify: true,
     external: externals,
     logLevel: "info",
+  });
+
+  console.log("building worker (Cloudflare Workers)...");
+  // Build dedicated worker entry point (ES Module)
+  await esbuild({
+    entryPoints: ["server/worker-entry.ts"],
+    platform: "browser",  // Workers runtime, not Node.js
+    bundle: true,
+    format: "esm",
+    outfile: "dist/worker.mjs",
+    define: {
+      "process.env.NODE_ENV": '"production"',
+    },
+    minify: true,
+    logLevel: "info",
+    target: "es2022",
   });
 }
 
