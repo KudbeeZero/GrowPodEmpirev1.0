@@ -1,6 +1,5 @@
 import { Storage, File } from "@google-cloud/storage";
 import { Response } from "express";
-import { randomUUID } from "crypto";
 import {
   ObjectAclPolicy,
   ObjectPermission,
@@ -10,6 +9,21 @@ import {
 } from "./objectAcl";
 
 const REPLIT_SIDECAR_ENDPOINT = "http://127.0.0.1:1106";
+
+// Use Web Crypto API for generating UUIDs (compatible with both Node.js and Workers)
+function generateUUID(): string {
+  // Check if crypto.randomUUID is available (Node.js 16.7.0+ and modern browsers)
+  if (typeof crypto !== 'undefined' && typeof crypto.randomUUID === 'function') {
+    return crypto.randomUUID();
+  }
+  
+  // Fallback for older environments
+  return 'xxxxxxxx-xxxx-4xxx-yxxx-xxxxxxxxxxxx'.replace(/[xy]/g, function(c) {
+    const r = Math.random() * 16 | 0;
+    const v = c === 'x' ? r : (r & 0x3 | 0x8);
+    return v.toString(16);
+  });
+}
 
 // The object storage client is used to interact with the object storage service.
 export const objectStorageClient = new Storage({
@@ -140,7 +154,7 @@ export class ObjectStorageService {
       );
     }
 
-    const objectId = randomUUID();
+    const objectId = generateUUID();
     const fullPath = `${privateObjectDir}/uploads/${objectId}`;
 
     const { bucketName, objectName } = parseObjectPath(fullPath);

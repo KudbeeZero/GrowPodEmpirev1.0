@@ -80,19 +80,51 @@ app.use((req, res, next) => {
     await setupVite(httpServer, app);
   }
 
-  // ALWAYS serve the app on the port specified in the environment variable PORT
-  // Other ports are firewalled. Default to 5000 if not specified.
-  // this serves both the API and the client.
-  // It is the only port that is not firewalled.
-  const port = parseInt(process.env.PORT || "5000", 10);
-  httpServer.listen(
-    {
-      port,
-      host: "0.0.0.0",
-      reusePort: true,
-    },
-    () => {
-      log(`serving on port ${port}`);
-    },
-  );
+  // For Cloudflare Workers, export a fetch handler instead of starting a server
+  // Check if we're in a Workers environment (no process.versions.node in Workers)
+  const isCloudflareWorkers = typeof process === 'undefined' || !process.versions?.node;
+  
+  if (!isCloudflareWorkers) {
+    // ALWAYS serve the app on the port specified in the environment variable PORT
+    // Other ports are firewalled. Default to 5000 if not specified.
+    // this serves both the API and the client.
+    // It is the only port that is not firewalled.
+    const port = parseInt(process.env.PORT || "5000", 10);
+    httpServer.listen(
+      {
+        port,
+        host: "0.0.0.0",
+        reusePort: true,
+      },
+      () => {
+        log(`serving on port ${port}`);
+      },
+    );
+  }
 })();
+
+// Export for Cloudflare Workers (with nodejs_compat, this will be picked up)
+// This is the ES Module default export pattern
+export default {
+  async fetch(request: Request, env: any, ctx: any): Promise<Response> {
+    try {
+      // Simple response to confirm the worker is running
+      // Note: Full Express integration requires additional adapter setup
+      return new Response(JSON.stringify({
+        status: "ok",
+        message: "GrowPod Empire Worker",
+        url: request.url,
+        method: request.method,
+      }), {
+        status: 200,
+        headers: { "Content-Type": "application/json" },
+      });
+    } catch (error) {
+      console.error("Worker fetch error:", error);
+      return new Response("Internal Server Error", {
+        status: 500,
+        headers: { "Content-Type": "text/plain" },
+      });
+    }
+  },
+};
