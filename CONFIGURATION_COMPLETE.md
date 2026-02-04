@@ -22,7 +22,7 @@ Database Name: growpod-primary
 
 ### Domain Code ID
 ```
-85a5b265570a47e66762a07932ce8aa8
+YOUR_DOMAIN_CODE_ID
 ```
 ✅ **Status**: Documented in `wrangler.toml` (line 10) for reference
 
