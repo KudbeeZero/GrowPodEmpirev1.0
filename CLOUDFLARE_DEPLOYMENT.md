@@ -28,38 +28,22 @@ Copy your account ID and add it to `wrangler.toml`:
 account_id = "YOUR_ACCOUNT_ID_HERE"
 ```
 
-## Step 3: Create D1 Databases
+## Step 3: Create D1 Database
 
-You need to create 3 D1 databases (or update to use the ones provided):
+You need to create a D1 database (or update to use the one provided):
 
 ```bash
 # Create primary database
 npx wrangler d1 create growpod-primary
-
-# Create secondary database (if needed)
-npx wrangler d1 create growpod-secondary
-
-# Create tertiary database (if needed)
-npx wrangler d1 create growpod-tertiary
 ```
 
-**Important**: If you were already provided with D1 database IDs, update the `database_id` values in `wrangler.toml`:
+**Important**: If you were already provided with a D1 database ID, update the `database_id` value in `wrangler.toml`:
 
 ```toml
 [[d1_databases]]
 binding = "DB"
 database_name = "growpod-primary"
-database_id = "YOUR_PROVIDED_D1_ID_1"
-
-[[d1_databases]]
-binding = "DB2"
-database_name = "growpod-secondary"
-database_id = "YOUR_PROVIDED_D1_ID_2"
-
-[[d1_databases]]
-binding = "DB3"
-database_name = "growpod-tertiary"
-database_id = "YOUR_PROVIDED_D1_ID_3"
+database_id = "YOUR_D1_DATABASE_ID"
 ```
 
 ## Step 4: Run Database Migrations

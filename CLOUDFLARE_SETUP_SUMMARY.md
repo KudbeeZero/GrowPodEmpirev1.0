@@ -34,14 +34,12 @@ This document provides a quick overview of the Cloudflare Workers deployment set
 
 Before deploying, you need to configure:
 
-### 1. D1 Database IDs (Required)
-Your `wrangler.toml` is already configured with D1 `database_id` values for the current environment. Before deploying to your own Cloudflare account, review those IDs and update them if needed to match your D1 databases.
+### 1. D1 Database ID (Required)
+Your `wrangler.toml` is already configured with a D1 `database_id` value for the current environment. Before deploying to your own Cloudflare account, review the ID and update it if needed to match your D1 database.
 
 Example configuration:
 ```toml
-database_id = "YOUR_D1_DATABASE_ID_1"
-database_id = "YOUR_D1_DATABASE_ID_2"
-database_id = "YOUR_D1_DATABASE_ID_3"
+database_id = "YOUR_D1_DATABASE_ID"
 ```
 
 **Quick Setup:**
@@ -117,13 +115,11 @@ npm run worker:deploy
 
 ## 🎯 Key Features
 
-### D1 Database Bindings
-The configuration supports 3 D1 databases:
+### D1 Database Binding
+The configuration uses a single D1 database:
 - **DB** - Primary database (growpod-primary)
-- **DB2** - Secondary database (growpod-secondary)
-- **DB3** - Tertiary database (growpod-tertiary)
 
-These are accessible in your worker code via `env.DB`, `env.DB2`, and `env.DB3`.
+This is accessible in your worker code via `env.DB`.
 
 ### Node.js Compatibility
 - `nodejs_compat` flag enabled in `wrangler.toml`

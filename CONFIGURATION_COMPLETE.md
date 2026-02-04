@@ -32,15 +32,15 @@ Your `wrangler.toml` has been updated:
 
 ```toml
 #:schema node_modules/wrangler/config-schema.json
-name = "growpod-empire"
+name = "growpod-empire-api"
 main = "dist/index.cjs"
 compatibility_date = "2026-01-30"
 compatibility_flags = ["nodejs_compat"]
 
 # Cloudflare Account ID
-account_id = "b591c2e07ca352d33076f4d2f8414b89"
+account_id = "YOUR_ACCOUNT_ID"
 
-# Domain Code ID (for reference): 85a5b265570a47e66762a07932ce8aa8
+# Domain Code ID (for reference): YOUR_DOMAIN_CODE_ID
 
 [observability]
 enabled = true
@@ -49,7 +49,7 @@ enabled = true
 [[d1_databases]]
 binding = "DB"
 database_name = "growpod-primary"
-database_id = "712d926f-c396-473f-96d9-f0dfc3d1d069"
+database_id = "YOUR_D1_DATABASE_ID"
 
 # ... rest of configuration
 ```
@@ -100,13 +100,13 @@ npm run worker:tail
 ```bash
 npm run worker:whoami
 ```
-Should show account ID: `b591c2e07ca352d33076f4d2f8414b89`
+Should show your Cloudflare account information.
 
 ### List D1 Databases
 ```bash
 npx wrangler d1 list
 ```
-Should show your database: `growpod-primary` (ID: 712d926f-c396-473f-96d9-f0dfc3d1d069)
+Should show your database: `growpod-primary`
 
 ### Check Configured Secrets
 ```bash

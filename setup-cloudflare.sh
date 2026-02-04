@@ -32,35 +32,40 @@ echo ""
 echo "⚠️  Please copy your Account ID from above and update wrangler.toml"
 echo ""
 
-# Step 3: Configure D1 Database IDs
-echo "📝 Step 3: Configure D1 Database IDs"
+# Step 3: Configure D1 Database ID
+echo "📝 Step 3: Configure D1 Database ID"
 echo ""
 echo "You can either:"
-echo "  A) Use existing D1 database IDs (if already provided)"
-echo "  B) Create new D1 databases"
+echo "  A) Use an existing D1 database ID (if already provided)"
+echo "  B) Create a new D1 database"
 echo ""
-read -p "Do you already have D1 database IDs? (y/n): " has_db_ids
+read -p "Do you already have a D1 database ID? (y/n): " has_db_ids
 
 if [ "$has_db_ids" = "y" ] || [ "$has_db_ids" = "Y" ]; then
     echo ""
-    echo "Please enter your D1 Database IDs:"
+    echo "Please enter your D1 Database ID:"
     echo ""
-    read -p "Primary Database ID (DB): " db_id_1
-    read -p "Secondary Database ID (DB2): " db_id_2
-    read -p "Tertiary Database ID (DB3): " db_id_3
+    read -p "D1 Database ID: " db_id_1
     
-    # Update wrangler.toml with the provided IDs
+    # Update wrangler.toml with the provided ID
     if [ -f "wrangler.toml" ]; then
         # Create a backup
         cp wrangler.toml wrangler.toml.backup
         
-        # Update the database IDs
-        sed -i "s/database_id = \"YOUR_D1_DATABASE_ID_1\"/database_id = \"$db_id_1\"/" wrangler.toml
-        sed -i "s/database_id = \"YOUR_D1_DATABASE_ID_2\"/database_id = \"$db_id_2\"/" wrangler.toml
-        sed -i "s/database_id = \"YOUR_D1_DATABASE_ID_3\"/database_id = \"$db_id_3\"/" wrangler.toml
+        # Determine cross-platform sed in-place flag
+        if sed --version >/dev/null 2>&1; then
+            # GNU sed
+            SED_INPLACE="sed -i"
+        else
+            # BSD/macOS sed requires an explicit (possibly empty) backup extension
+            SED_INPLACE="sed -i ''"
+        fi
+        
+        # Update the database ID
+        eval "$SED_INPLACE 's/database_id = \"YOUR_D1_DATABASE_ID\"/database_id = \"$db_id_1\"/' wrangler.toml"
         
         echo ""
-        echo "✅ Updated wrangler.toml with your D1 database IDs"
+        echo "✅ Updated wrangler.toml with your D1 database ID"
         echo "   (backup saved as wrangler.toml.backup)"
     else
         echo "❌ Error: wrangler.toml not found"
@@ -68,19 +73,11 @@ if [ "$has_db_ids" = "y" ] || [ "$has_db_ids" = "Y" ]; then
     fi
 else
     echo ""
-    echo "Creating new D1 databases..."
+    echo "Creating new D1 database..."
     echo ""
     
     echo "Creating primary database..."
     npx wrangler d1 create growpod-primary
-    echo ""
-    
-    echo "Creating secondary database..."
-    npx wrangler d1 create growpod-secondary
-    echo ""
-    
-    echo "Creating tertiary database..."
-    npx wrangler d1 create growpod-tertiary
     echo ""
     
     echo "⚠️  Please copy the database IDs from above and update wrangler.toml"
@@ -120,7 +117,7 @@ echo "============================================="
 echo ""
 echo "Next steps:"
 echo "  1. Update wrangler.toml with your account_id (if not done already)"
-echo "  2. Update wrangler.toml with your D1 database IDs (if not done already)"
+echo "  2. Update wrangler.toml with your D1 database ID (if not done already)"
 echo "  3. Edit .dev.vars with your local development environment variables"
 echo "  4. Run 'npm run build' to build the application"
 echo "  5. Run 'npm run worker:deploy' to deploy to Cloudflare Workers"
