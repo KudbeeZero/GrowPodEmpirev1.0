@@ -495,14 +495,36 @@ def approval_program():
         Approve()
     )
 
-    # Breed Action - Combine two plants
+    # Breed Action - Combine two plants with seed NFT validation
+    # Transaction group expected:
+    # - Index-2: Seed 1 NFT transfer to application
+    # - Index-1: Seed 2 NFT transfer to application
+    # - Index: Application call to breed
+    # Args: breed, seed_1_asset_id (8 bytes), seed_2_asset_id (8 bytes)
     breed = Seq(
         Assert(App.globalGet(GlobalBudAsset) != Int(0)),
         
+        # Extract expected seed asset IDs from arguments
+        # Args[1] = seed_1_asset_id, Args[2] = seed_2_asset_id
+        Assert(Txn.application_args.length() >= Int(3)),
+        
+        # Check seed 1 transfer (index - 2)
+        Assert(Gtxn[Txn.group_index() - Int(2)].type_enum() == TxnType.AssetTransfer),
+        Assert(Gtxn[Txn.group_index() - Int(2)].asset_amount() == Int(1)),
+        Assert(Gtxn[Txn.group_index() - Int(2)].asset_receiver() == Global.current_application_address()),
+        Assert(Gtxn[Txn.group_index() - Int(2)].xfer_asset() == Btoi(Txn.application_args[1])),
+        Assert(Gtxn[Txn.group_index() - Int(2)].rekey_to() == Global.zero_address()),
+        Assert(Gtxn[Txn.group_index() - Int(2)].close_remainder_to() == Global.zero_address()),
+        Assert(Gtxn[Txn.group_index() - Int(2)].asset_sender() == Global.zero_address()),
+        
+        # Check seed 2 transfer (index - 1)
         Assert(Gtxn[Txn.group_index() - Int(1)].type_enum() == TxnType.AssetTransfer),
-        Assert(Gtxn[Txn.group_index() - Int(1)].xfer_asset() == App.globalGet(GlobalBudAsset)),
-        Assert(Gtxn[Txn.group_index() - Int(1)].asset_amount() >= BREED_BURN),
+        Assert(Gtxn[Txn.group_index() - Int(1)].asset_amount() == Int(1)),
         Assert(Gtxn[Txn.group_index() - Int(1)].asset_receiver() == Global.current_application_address()),
+        Assert(Gtxn[Txn.group_index() - Int(1)].xfer_asset() == Btoi(Txn.application_args[2])),
+        Assert(Gtxn[Txn.group_index() - Int(1)].rekey_to() == Global.zero_address()),
+        Assert(Gtxn[Txn.group_index() - Int(1)].close_remainder_to() == Global.zero_address()),
+        Assert(Gtxn[Txn.group_index() - Int(1)].asset_sender() == Global.zero_address()),
         
         Approve()
     )

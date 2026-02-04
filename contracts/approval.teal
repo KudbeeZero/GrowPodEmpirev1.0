@@ -212,6 +212,60 @@ app_global_get
 int 0
 !=
 assert
+txn NumAppArgs
+int 3
+>=
+assert
+txn GroupIndex
+int 2
+-
+gtxns TypeEnum
+int axfer
+==
+assert
+txn GroupIndex
+int 2
+-
+gtxns AssetAmount
+int 1
+==
+assert
+txn GroupIndex
+int 2
+-
+gtxns AssetReceiver
+global CurrentApplicationAddress
+==
+assert
+txn GroupIndex
+int 2
+-
+gtxns XferAsset
+txna ApplicationArgs 1
+btoi
+==
+assert
+txn GroupIndex
+int 2
+-
+gtxns RekeyTo
+global ZeroAddress
+==
+assert
+txn GroupIndex
+int 2
+-
+gtxns CloseRemainderTo
+global ZeroAddress
+==
+assert
+txn GroupIndex
+int 2
+-
+gtxns AssetSender
+global ZeroAddress
+==
+assert
 txn GroupIndex
 int 1
 -
@@ -222,23 +276,44 @@ assert
 txn GroupIndex
 int 1
 -
-gtxns XferAsset
-byte "bud_asset"
-app_global_get
-==
-assert
-txn GroupIndex
-int 1
--
 gtxns AssetAmount
-int 1000000000
->=
+int 1
+==
 assert
 txn GroupIndex
 int 1
 -
 gtxns AssetReceiver
 global CurrentApplicationAddress
+==
+assert
+txn GroupIndex
+int 1
+-
+gtxns XferAsset
+txna ApplicationArgs 2
+btoi
+==
+assert
+txn GroupIndex
+int 1
+-
+gtxns RekeyTo
+global ZeroAddress
+==
+assert
+txn GroupIndex
+int 1
+-
+gtxns CloseRemainderTo
+global ZeroAddress
+==
+assert
+txn GroupIndex
+int 1
+-
+gtxns AssetSender
+global ZeroAddress
 ==
 assert
 int 1
