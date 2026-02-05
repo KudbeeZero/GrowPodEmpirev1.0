@@ -1,7 +1,7 @@
 # GrowPod Empire - Cloudflare Workers Configuration
 # Documentation: https://developers.cloudflare.com/workers/wrangler/configuration/
 
-name = "growpod-empire"
+name = "growpodempire"
 main = "src/worker.ts"
 compatibility_date = "2026-01-01"
 compatibility_flags = ["nodejs_compat"]
@@ -12,7 +12,7 @@ compatibility_flags = ["nodejs_compat"]
 # Get this from: https://dash.cloudflare.com/ → Workers & Pages → Overview (right sidebar)
 # For deployment, provide via: wrangler deploy --account-id <YOUR_ACCOUNT_ID>
 # Or set in GitHub secrets: CLOUDFLARE_ACCOUNT_ID
-account_id = "REPLACE_WITH_YOUR_ACCOUNT_ID"
+account_id = "b591c2e07ca352d33076f4d2f8414b89"
 
 # Serve static assets from the dist folder (new wrangler v4 syntax)
 [assets]
@@ -95,14 +95,14 @@ local_protocol = "http"
 # Production Environment
 # ============================================
 [env.production]
-name = "growpod-empire-prod"
+name = "growpodempire-prod"
 # Add production-specific variables here
 
 # ============================================
 # Staging Environment
 # ============================================
 [env.staging]
-name = "growpod-empire-staging"
+name = "growpodempire-staging"
 # Add staging-specific variables here
 
 # ============================================

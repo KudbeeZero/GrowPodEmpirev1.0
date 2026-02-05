@@ -11,7 +11,7 @@ compatibility_flags = ["nodejs_compat"]
 # ============================================
 # For deployment, provide via: wrangler deploy -c wrangler.security.toml --account-id <YOUR_ACCOUNT_ID>
 # Or set in GitHub secrets: CLOUDFLARE_ACCOUNT_ID
-account_id = "REPLACE_WITH_YOUR_ACCOUNT_ID"
+account_id = "b591c2e07ca352d33076f4d2f8414b89"
 
 # ============================================
 # Scheduled Triggers
