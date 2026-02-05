@@ -564,17 +564,36 @@ def approval_program():
     # ========================================
     # Args: [0]="process", [1]=weight_amount (from NFT metadata)
     # Requires: Biomass NFT transfer to contract
+    # 
+    # Security Note: The weight argument must be validated on-chain.
+    # In production, weight should be stored in box storage keyed by asset ID
+    # during harvest and retrieved here rather than trusting a user-supplied value.
 
     process_biomass = Seq(
         Assert(App.globalGet(GlobalBudAsset) != Int(0)),
 
-        # Verify biomass NFT transfer
+        # Security: Ensure transaction is grouped and not at index 0
+        Assert(Txn.group_index() > Int(0)),
+        Assert(Global.group_size() > Int(1)),
+
+        # Security: Verify biomass NFT transfer comes from sender to contract
+        Assert(Gtxn[Txn.group_index() - Int(1)].sender() == Txn.sender()),
         Assert(Gtxn[Txn.group_index() - Int(1)].type_enum() == TxnType.AssetTransfer),
         Assert(Gtxn[Txn.group_index() - Int(1)].asset_amount() == Int(1)),
         Assert(Gtxn[Txn.group_index() - Int(1)].asset_receiver() == Global.current_application_address()),
 
-        # Get weight from args (verified off-chain from NFT metadata)
+        # Get weight from args
+        # WARNING: In production, this should be retrieved from box storage
+        # that was populated during harvest, not trusted from user input
         scratch_weight.store(Btoi(Txn.application_args[1])),
+
+        # Security: Validate weight does not exceed global biomass tracking
+        # This prevents minting more BUD than was actually harvested
+        Assert(scratch_weight.load() <= App.globalGet(GlobalTotalBiomassWeight)),
+
+        # Security: Validate weight is non-zero and reasonable (max 10g = 10M micro-units)
+        Assert(scratch_weight.load() > Int(0)),
+        Assert(scratch_weight.load() <= Int(10000000)),
 
         # Mint $BUD equal to weight (1mg = 1 $BUD micro-unit)
         InnerTxnBuilder.Begin(),
@@ -586,7 +605,9 @@ def approval_program():
         }),
         InnerTxnBuilder.Submit(),
 
-        # Update global tracking
+        # Update global tracking with underflow protection
+        # Assert is redundant here due to check above, but explicit for clarity
+        Assert(App.globalGet(GlobalTotalBiomassWeight) >= scratch_weight.load()),
         App.globalPut(GlobalTotalBiomassWeight,
             App.globalGet(GlobalTotalBiomassWeight) - scratch_weight.load()),
 
