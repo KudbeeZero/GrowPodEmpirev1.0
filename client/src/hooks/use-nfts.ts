@@ -277,8 +277,8 @@ export function useNFTTransactions() {
     try {
       const suggestedParams = await algodClient.getTransactionParams().do();
 
-      // Transaction 1: Pay 1000 $BUD breeding cost
-      const paymentTxn = algosdk.makeAssetTransferTxnWithSuggestedParamsFromObject({
+      // Payment transaction: Burn 1000 $BUD for breeding
+      const budBurnTxn = algosdk.makeAssetTransferTxnWithSuggestedParamsFromObject({
         sender: account,
         receiver: CONTRACT_CONFIG.appAddress,
         amount: BigInt(1000000000), // 1000 $BUD
@@ -286,36 +286,19 @@ export function useNFTTransactions() {
         suggestedParams,
       });
 
-      // Transaction 2: Transfer Seed 1
-      const seed1Txn = algosdk.makeAssetTransferTxnWithSuggestedParamsFromObject({
-        sender: account,
-        receiver: CONTRACT_CONFIG.appAddress,
-        amount: BigInt(1),
-        assetIndex: seed1AssetId,
-        suggestedParams,
-      });
-
-      // Transaction 3: Transfer Seed 2
-      const seed2Txn = algosdk.makeAssetTransferTxnWithSuggestedParamsFromObject({
-        sender: account,
-        receiver: CONTRACT_CONFIG.appAddress,
-        amount: BigInt(1),
-        assetIndex: seed2AssetId,
-        suggestedParams,
-      });
-
-      // Transaction 4: Call breed on contract
-      const appTxn = algosdk.makeApplicationNoOpTxnFromObject({
+      // App call with seed IDs as arguments (contract will verify ownership on-chain)
+      const breedAppCall = algosdk.makeApplicationNoOpTxnFromObject({
         sender: account,
         suggestedParams,
         appIndex: CONTRACT_CONFIG.appId,
         appArgs: [encodeArg('breed')],
+        foreignAssets: [seed1AssetId, seed2AssetId],
       });
 
-      const txns = [seed1Txn, seed2Txn, paymentTxn, appTxn];
-      algosdk.assignGroupID(txns);
+      const txnGroup = [budBurnTxn, breedAppCall];
+      algosdk.assignGroupID(txnGroup);
 
-      const signedTxns = await signTransactions(txns);
+      const signedTxns = await signTransactions(txnGroup);
       const txId = await submitTransaction(signedTxns);
 
       setTimeout(refreshNFTs, 2000);

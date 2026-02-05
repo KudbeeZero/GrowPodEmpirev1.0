@@ -72,6 +72,7 @@ export function PlantCanvas({
   const canvasRef = useRef<HTMLCanvasElement>(null);
   const animationRef = useRef<number | null>(null);
   const rendererRef = useRef<PlantRenderer | null>(null);
+  const ctxCacheRef = useRef<CanvasRenderingContext2D | null>(null);
   const lastTimeRef = useRef<number>(0);
 
   // Merge traits with defaults
@@ -116,6 +117,9 @@ export function PlantCanvas({
     const ctx = canvas.getContext('2d');
     if (!ctx) return;
 
+    // Cache the context to avoid repeated getContext calls
+    ctxCacheRef.current = ctx;
+
     // Handle retina displays
     const scale = window.devicePixelRatio || 1;
     canvas.width = width * scale;
@@ -127,6 +131,7 @@ export function PlantCanvas({
 
     return () => {
       rendererRef.current = null;
+      ctxCacheRef.current = null;
     };
   }, [width, height, colors]);
 
@@ -134,7 +139,7 @@ export function PlantCanvas({
   const animate = useCallback(
     (timestamp: number) => {
       const canvas = canvasRef.current;
-      const ctx = canvas?.getContext('2d');
+      const ctx = ctxCacheRef.current;
       const renderer = rendererRef.current;
 
       if (!canvas || !ctx || !renderer) return;

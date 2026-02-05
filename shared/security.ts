@@ -213,29 +213,6 @@ export const purchaseSeedRequestSchema = z.object({
 });
 
 // ============================================
-// Environment Variable Validation
-// ============================================
-export function requireEnv(name: string): string {
-  const value = process.env[name];
-  if (!value) {
-    throw new Error(`FATAL: Required environment variable ${name} is not set`);
-  }
-  return value;
-}
-
-export function getEnvOrDefault(name: string, defaultValue: string): string {
-  return process.env[name] || defaultValue;
-}
-
-// Validate all required env vars at startup
-export function validateRequiredEnvVars(required: string[]): void {
-  const missing = required.filter((name) => !process.env[name]);
-  if (missing.length > 0) {
-    throw new Error(`FATAL: Missing required environment variables: ${missing.join(', ')}`);
-  }
-}
-
-// ============================================
 // Secure Logging (never log secrets)
 // ============================================
 const SENSITIVE_PATTERNS = [

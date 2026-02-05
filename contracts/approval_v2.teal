@@ -101,6 +101,21 @@ int 5
 <
 assert
 txn GroupIndex
+int 0
+>
+assert
+global GroupSize
+int 1
+>
+assert
+txn GroupIndex
+int 1
+-
+gtxns Sender
+txn Sender
+==
+assert
+txn GroupIndex
 int 1
 -
 gtxns TypeEnum
@@ -120,6 +135,13 @@ int 1
 -
 gtxns AssetAmount
 int 1
+==
+assert
+txn GroupIndex
+int 1
+-
+gtxns AssetReceiver
+global CurrentApplicationAddress
 ==
 assert
 txn Sender
@@ -150,6 +172,21 @@ int 5
 >=
 assert
 txn GroupIndex
+int 0
+>
+assert
+global GroupSize
+int 1
+>
+assert
+txn GroupIndex
+int 1
+-
+gtxns Sender
+txn Sender
+==
+assert
+txn GroupIndex
 int 1
 -
 gtxns TypeEnum
@@ -170,6 +207,13 @@ int 1
 gtxns AssetAmount
 int 2500000000
 >=
+assert
+txn GroupIndex
+int 1
+-
+gtxns AssetReceiver
+global CurrentApplicationAddress
+==
 assert
 itxn_begin
 int axfer
@@ -200,6 +244,21 @@ int 0
 assert
 txn GroupIndex
 int 3
+>=
+assert
+global GroupSize
+int 4
+>=
+assert
+txn GroupIndex
+int 3
+-
+gtxns Sender
+txn Sender
+==
+assert
+txn GroupIndex
+int 3
 -
 gtxns TypeEnum
 int axfer
@@ -221,6 +280,20 @@ int 1000000000
 >=
 assert
 txn GroupIndex
+int 3
+-
+gtxns AssetReceiver
+global CurrentApplicationAddress
+==
+assert
+txn GroupIndex
+int 2
+-
+gtxns Sender
+txn Sender
+==
+assert
+txn GroupIndex
 int 2
 -
 gtxns TypeEnum
@@ -235,6 +308,20 @@ int 1
 ==
 assert
 txn GroupIndex
+int 2
+-
+gtxns AssetReceiver
+global CurrentApplicationAddress
+==
+assert
+txn GroupIndex
+int 1
+-
+gtxns Sender
+txn Sender
+==
+assert
+txn GroupIndex
 int 1
 -
 gtxns TypeEnum
@@ -246,6 +333,13 @@ int 1
 -
 gtxns AssetAmount
 int 1
+==
+assert
+txn GroupIndex
+int 1
+-
+gtxns AssetReceiver
+global CurrentApplicationAddress
 ==
 assert
 byte "seed_counter"
