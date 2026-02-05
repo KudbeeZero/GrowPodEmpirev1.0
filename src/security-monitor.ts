@@ -235,6 +235,21 @@ async function getActivityMetrics(db: D1Database): Promise<{ totalUsers: number;
 // ============================================
 
 /**
+ * Sanitize text content for safe HTML insertion
+ */
+function cleanTextForHtml(input: string): string {
+  const replaceMap = new Map([
+    ['&', '&amp;'],
+    ['<', '&lt;'],
+    ['>', '&gt;'],
+    ['"', '&quot;'],
+    ["'", '&#39;'],
+  ]);
+  
+  return Array.from(input).map(ch => replaceMap.get(ch) || ch).join('');
+}
+
+/**
  * Generate HTML security report
  */
 function generateHtmlReport(metrics: SecurityMetrics): string {
@@ -246,19 +261,26 @@ function generateHtmlReport(metrics: SecurityMetrics): string {
   };
 
   const suspiciousHtml = metrics.suspiciousActivities.length > 0
-    ? metrics.suspiciousActivities.map(a => `
-      <tr style="background: ${a.severity === 'critical' ? '#fef2f2' : a.severity === 'high' ? '#fef3c7' : '#f0fdf4'}">
+    ? metrics.suspiciousActivities.map(a => {
+        const bgColor = a.severity === 'critical' ? '#fef2f2' : a.severity === 'high' ? '#fef3c7' : '#f0fdf4';
+        const safeType = cleanTextForHtml(a.type);
+        const safeDesc = cleanTextForHtml(a.description);
+        const safeAddr = a.walletAddress ? cleanTextForHtml(a.walletAddress.slice(0, 12) + '...') : 'N/A';
+        
+        return `
+      <tr style="background: ${bgColor}">
         <td style="padding: 12px; border: 1px solid #e5e7eb;">
           <span style="display: inline-block; width: 12px; height: 12px; border-radius: 50%; background: ${severityColors[a.severity]}; margin-right: 8px;"></span>
           ${a.severity.toUpperCase()}
         </td>
-        <td style="padding: 12px; border: 1px solid #e5e7eb;">${a.type}</td>
-        <td style="padding: 12px; border: 1px solid #e5e7eb;">${a.description}</td>
+        <td style="padding: 12px; border: 1px solid #e5e7eb;">${safeType}</td>
+        <td style="padding: 12px; border: 1px solid #e5e7eb;">${safeDesc}</td>
         <td style="padding: 12px; border: 1px solid #e5e7eb; font-family: monospace; font-size: 12px;">
-          ${a.walletAddress ? a.walletAddress.slice(0, 12) + '...' : 'N/A'}
+          ${safeAddr}
         </td>
       </tr>
-    `).join('')
+    `;
+      }).join('')
     : `<tr><td colspan="4" style="padding: 20px; text-align: center; color: #10b981;">No suspicious activities detected</td></tr>`;
 
   const dbHealthHtml = Object.entries(metrics.databaseHealth)
