@@ -124,7 +124,7 @@ export class Agent {
    * List all available commands
    */
   listCommands(): void {
-    const config = this.whitelist.getConfig();
+
     this.cli.header('AVAILABLE COMMANDS');
 
     const categories = this.whitelist.getCategories();
