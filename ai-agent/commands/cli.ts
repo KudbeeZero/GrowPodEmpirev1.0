@@ -9,6 +9,33 @@ export class CLI {
 
   constructor() {
     this.rl = readline.createInterface({ input, output });
+
+    // Ensure the readline interface is always cleaned up, even in
+    // non-interactive modes or when unexpected errors occur.
+    const cleanup = () => {
+      try {
+        this.rl.close();
+      } catch {
+        // Ignore errors if the interface is already closed or closing.
+      }
+    };
+
+    process.once('beforeExit', cleanup);
+    process.once('SIGINT', () => {
+      cleanup();
+      process.exit(130); // 128 + SIGINT
+    });
+    process.once('SIGTERM', () => {
+      cleanup();
+      process.exit(143); // 128 + SIGTERM
+    });
+    process.once('uncaughtException', (err) => {
+      cleanup();
+      throw err;
+    });
+    process.once('unhandledRejection', () => {
+      cleanup();
+    });
   }
 
   /**
