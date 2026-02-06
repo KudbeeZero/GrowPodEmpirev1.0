@@ -1,0 +1,194 @@
+name: Repository Consistency Check
+
+on:
+  # Run on pull requests
+  pull_request:
+    branches:
+      - main
+      - production
+  
+  # Run on pushes to main branches
+  push:
+    branches:
+      - main
+      - production
+  
+  # Run daily at midnight UTC
+  schedule:
+    - cron: '0 0 * * *'
+  
+  # Allow manual trigger
+  workflow_dispatch:
+
+jobs:
+  validate-consistency:
+    runs-on: ubuntu-latest
+    name: Validate Repository Consistency
+    permissions:
+      contents: read
+      pull-requests: write
+      issues: write
+    
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+      
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+          cache: 'npm'
+      
+      - name: Install dependencies
+        run: npm ci
+      
+      - name: Run consistency validation
+        id: validation
+        run: |
+          echo "::group::Repository Consistency Validation"
+          node scripts/validate-consistency.js
+          VALIDATION_EXIT_CODE=$?
+          echo "::endgroup::"
+          
+          # Store exit code for later steps
+          echo "exit_code=$VALIDATION_EXIT_CODE" >> $GITHUB_OUTPUT
+          
+          # Exit with the validation exit code
+          exit $VALIDATION_EXIT_CODE
+        continue-on-error: true
+      
+      - name: Upload validation reports
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: validation-reports
+          path: |
+            validation-report.json
+            validation-report.md
+          retention-days: 30
+      
+      - name: Comment PR with validation results
+        if: github.event_name == 'pull_request' && always()
+        uses: actions/github-script@v7
+        with:
+          github-token: ${{ secrets.GITHUB_TOKEN }}
+          script: |
+            const fs = require('fs');
+            const exitCode = '${{ steps.validation.outputs.exit_code }}';
+            
+            // Read the markdown report if it exists
+            let reportContent = '';
+            try {
+              reportContent = fs.readFileSync('validation-report.md', 'utf8');
+            } catch (error) {
+              reportContent = '❌ Validation report not found. Check the workflow logs for details.';
+            }
+            
+            // Create comment body
+            const commentBody = `## 🔍 Repository Consistency Validation
+            
+            **Status:** ${exitCode === '0' ? '✅ PASSED' : '❌ FAILED'}
+            
+            <details>
+            <summary>View Detailed Report</summary>
+            
+            ${reportContent}
+            
+            </details>
+            
+            ---
+            
+            💡 **Tip:** Download the full validation reports from the workflow artifacts for more details.
+            `;
+            
+            // Find existing comment
+            const { data: comments } = await github.rest.issues.listComments({
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              issue_number: context.issue.number,
+            });
+            
+            const botComment = comments.find(comment => 
+              comment.user.type === 'Bot' && 
+              comment.body.includes('Repository Consistency Validation')
+            );
+            
+            // Update or create comment
+            if (botComment) {
+              await github.rest.issues.updateComment({
+                owner: context.repo.owner,
+                repo: context.repo.repo,
+                comment_id: botComment.id,
+                body: commentBody
+              });
+            } else {
+              await github.rest.issues.createComment({
+                owner: context.repo.owner,
+                repo: context.repo.repo,
+                issue_number: context.issue.number,
+                body: commentBody
+              });
+            }
+      
+      - name: Create GitHub annotations for errors
+        if: steps.validation.outputs.exit_code != '0' && always()
+        uses: actions/github-script@v7
+        with:
+          github-token: ${{ secrets.GITHUB_TOKEN }}
+          script: |
+            const fs = require('fs');
+            
+            if (!fs.existsSync('validation-report.json')) {
+              console.log('No validation report found');
+              return;
+            }
+            
+            const report = JSON.parse(fs.readFileSync('validation-report.json', 'utf8'));
+            
+            // Sanitize and create error annotations
+            report.errors.forEach(error => {
+              const file = String(error.file || 'unknown').replace(/[:\n\r]/g, '_');
+              const line = parseInt(error.line) || 1;
+              const rule = String(error.rule || 'unknown').replace(/[:\n\r]/g, '_');
+              const message = String(error.message || 'Validation error').replace(/\n/g, ' ').replace(/:/g, ' -');
+              
+              core.error(message, {
+                file: file,
+                startLine: line,
+                title: `Consistency Error [${rule}]`
+              });
+            });
+            
+            // Sanitize and create warning annotations
+            report.warnings.forEach((warning) => {
+              const message = String(warning).replace(/\n/g, ' ').replace(/:/g, ' -');
+              core.warning(message, {
+                title: 'Consistency Warning'
+              });
+            });
+      
+      - name: Fail job if validation failed
+        if: steps.validation.outputs.exit_code != '0'
+        run: |
+          echo "::error::Repository consistency validation failed. Please review the errors above and fix the inconsistencies."
+          exit 1
+      
+      - name: Validation summary
+        if: always()
+        run: |
+          echo "================================================"
+          echo "  Repository Consistency Validation Summary"
+          echo "================================================"
+          echo ""
+          echo "Status: ${{ steps.validation.outputs.exit_code == '0' && '✅ PASSED' || '❌ FAILED' }}"
+          echo "Workflow: ${{ github.workflow }}"
+          echo "Triggered by: ${{ github.event_name }}"
+          echo ""
+          if [ "${{ steps.validation.outputs.exit_code }}" != "0" ]; then
+            echo "⚠️  Validation failed. Please review the errors and fix inconsistencies."
+            echo "📋 Check the validation reports artifact for detailed information."
+          else
+            echo "✅ All consistency checks passed!"
+          fi

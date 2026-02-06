@@ -11,3 +11,7 @@ vite.config.ts.*
 
 # Wrangler
 .wrangler
+
+# Validation reports
+validation-report.json
+validation-report.md

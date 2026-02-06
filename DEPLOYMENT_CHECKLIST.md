@@ -27,9 +27,10 @@ Use this checklist to complete your Cloudflare Workers deployment setup.
   ```
   Enter your PostgreSQL connection string when prompted
 
-- [ ] (Optional) Configure other secrets if needed:
+- [ ] (Optional) Configure admin wallet for TestNet:
   ```bash
   npx wrangler secret put ADMIN_WALLET_ADDRESS
+  # Enter: ZK55X7SGIGMLGORVNJHHPTYZMZOGSQNVROBHX7N27X6ZEQRHAZ2UPKOXQU
   ```
 
 ### 5. Local Development Setup

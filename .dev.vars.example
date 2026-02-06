@@ -14,7 +14,7 @@ DATABASE_URL=postgresql://user:password@localhost:5432/growpod_empire
 # VITE_GROWPOD_APP_ADDRESS=
 
 # Admin Configuration - Optional
-# ADMIN_WALLET_ADDRESS=BDBJFOSYG4N3LHLJN3CHLOLYDGW63SK6YJHECGDYMF75DXL4X3XCQNDLME
+# ADMIN_WALLET_ADDRESS=ZK55X7SGIGMLGORVNJHHPTYZMZOGSQNVROBHX7N27X6ZEQRHAZ2UPKOXQU
 
 # Algorand Deployment - Required for contract deployment to TestNet
-# ALGO_MNEMONIC="wheat spread skull erosion actual patient noble abstract valve switch fire bottom ceiling coral visa connect marine accident forum kite finger energy convince above small"
+# ALGO_MNEMONIC="any virus dynamic mind figure glide shove peanut village grab wisdom film luggage shoulder fetch license tunnel daring lounge rubber eagle source inch able world"
