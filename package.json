@@ -9,6 +9,8 @@
     "start": "NODE_ENV=production node dist/index.cjs",
     "check": "tsc",
     "db:push": "drizzle-kit push",
+    "validate": "node scripts/validate-consistency.js",
+    "validate:quiet": "node scripts/validate-consistency.js > /dev/null 2>&1",
     "worker:dev": "wrangler dev",
     "worker:deploy": "wrangler deploy",
     "worker:tail": "wrangler tail",

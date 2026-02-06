@@ -10,6 +10,8 @@ A blockchain-based idle/farming game built on **Algorand TestNet**. Players mana
 - **[CLAUDE.md](./CLAUDE.md)** - Detailed development guide
 - **[CLOUDFLARE_DEPLOYMENT.md](./CLOUDFLARE_DEPLOYMENT.md)** - Deployment guide
 - **[CANNABIS_HISTORY_FEATURE.md](./CANNABIS_HISTORY_FEATURE.md)** - History of Cannabis feature documentation
+- **[VALIDATION_SYSTEM.md](./VALIDATION_SYSTEM.md)** - Repository consistency validation system
+- **[VALIDATION_QUICK_REFERENCE.md](./VALIDATION_QUICK_REFERENCE.md)** - Quick reference for validation commands
 
 ## Tech Stack
 
