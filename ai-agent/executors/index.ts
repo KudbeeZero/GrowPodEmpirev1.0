@@ -74,7 +74,7 @@ export class Executor {
   ): Promise<ExecutionResult> {
     try {
       // Parse the command
-      const match = command.match(/update\s+(\.env[.\w]*)\s+(\w+)=(.*)/i);
+      const match = command.match(/update\s+(\.env[.\w]*)\s+(\w+)=([^\n\r]*)/i);
       if (!match) {
         throw new Error('Invalid command format');
       }
