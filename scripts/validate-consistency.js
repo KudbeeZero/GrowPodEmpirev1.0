@@ -215,6 +215,7 @@ class ConsistencyValidator {
         console.log(`    ${colors.green}✓${colors.reset} ${file}`);
       } else {
         this.warnings.push(`Network ${rule.network} not found in ${file}`);
+        console.log(`    ${colors.yellow}⚠${colors.reset} ${file} - Network not found`);
       }
     });
 
