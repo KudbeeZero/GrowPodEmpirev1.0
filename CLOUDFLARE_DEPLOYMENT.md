@@ -93,8 +93,11 @@ Set up sensitive environment variables as Cloudflare secrets:
 # If using external PostgreSQL (recommended for production)
 npx wrangler secret put DATABASE_URL
 
-# Other secrets as needed
+# TestNet admin wallet address
 npx wrangler secret put ADMIN_WALLET_ADDRESS
+# Enter: BDBJFOSYG4N3LHLJN3CHLOLYDGW63SK6YJHECGDYMF75DXL4X3XCQNDLME
+
+# TestNet deployment mnemonic (if needed)
 npx wrangler secret put ALGO_MNEMONIC
 ```
 
