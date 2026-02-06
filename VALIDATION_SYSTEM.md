@@ -254,7 +254,7 @@ Errors are displayed as inline annotations in the GitHub Files Changed view:
 ### Check Everything
 
 ```bash
-node scripts/validate-consistency.js
+npm run validate
 ```
 
 ### Check Specific Files Only
