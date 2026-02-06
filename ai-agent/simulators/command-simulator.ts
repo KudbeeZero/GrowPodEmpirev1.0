@@ -15,7 +15,7 @@ export class CommandSimulator {
     config: CommandConfig,
     context: AgentContext
   ): Promise<SimulationResult> {
-    const startTime = Date.now();
+
 
     try {
       // Parse package name if provided
