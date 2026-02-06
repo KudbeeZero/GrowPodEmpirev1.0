@@ -46,7 +46,7 @@ export class Agent {
   /**
    * Process a single command
    */
-  async processCommand(command: string): Promise<boolean> {
+  async processCommand(command: string, interactive: boolean = true): Promise<boolean> {
     try {
       // Validate command safety
       const validation = validateCommand(command);
@@ -87,14 +87,18 @@ export class Agent {
         return false;
       }
 
-      // Ask for confirmation if required
-      if (match.config.requiresConfirmation) {
+      // Ask for confirmation if required and in interactive mode
+      if (match.config.requiresConfirmation && interactive) {
         this.cli.print('');
         const confirmed = await this.cli.confirm('Do you want to execute this command?');
         if (!confirmed) {
           this.cli.warning('Command execution cancelled by user.');
           return false;
         }
+      } else if (match.config.requiresConfirmation && !interactive) {
+        this.cli.warning('Command requires confirmation but running in non-interactive mode.');
+        this.cli.warning('Skipping execution. Use interactive mode for commands requiring confirmation.');
+        return false;
       }
 
       // Execute the command

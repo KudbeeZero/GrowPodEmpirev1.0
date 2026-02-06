@@ -23,9 +23,9 @@ async function main() {
       // Show help
       showHelp();
     } else {
-      // Execute a single command
+      // Execute a single command (non-interactive mode)
       const command = args.join(' ');
-      const success = await agent.processCommand(command);
+      const success = await agent.processCommand(command, false); // false = non-interactive
       process.exit(success ? 0 : 1);
     }
   } catch (error) {
