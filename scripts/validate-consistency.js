@@ -56,9 +56,26 @@ class ConsistencyValidator {
     }
   }
 
+  /**
+   * Escape special regex characters for literal string matching
+   * @param {string} str - String to escape
+   * @returns {string} Escaped string safe for use in RegExp
+   */
+  escapeRegex(str) {
+    return str.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
+  }
+
   readFile(filePath) {
     try {
       const fullPath = path.join(ROOT_DIR, filePath);
+      
+      // Validate path to prevent traversal attacks
+      const resolvedPath = path.resolve(fullPath);
+      if (!resolvedPath.startsWith(ROOT_DIR)) {
+        console.error(`${colors.red}✗${colors.reset} Path traversal detected: ${filePath}`);
+        return null;
+      }
+      
       if (!fs.existsSync(fullPath)) {
         return null;
       }
@@ -71,7 +88,10 @@ class ConsistencyValidator {
   findInFile(content, pattern, filePath) {
     const matches = [];
     const lines = content.split('\n');
-    const regex = new RegExp(pattern, 'g');
+    
+    // Escape pattern for literal matching to prevent ReDoS attacks
+    const escapedPattern = this.escapeRegex(pattern);
+    const regex = new RegExp(escapedPattern, 'g');
 
     lines.forEach((line, index) => {
       const lineMatches = [...line.matchAll(regex)];
@@ -225,8 +245,7 @@ class ConsistencyValidator {
       const content = this.readFile(file);
       if (!content) return;
 
-      const escapedUrl = rule.algod_server.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
-      const matches = this.findInFile(content, escapedUrl, file);
+      const matches = this.findInFile(content, rule.algod_server, file);
       if (matches.length > 0) {
         console.log(`    ${colors.green}✓${colors.reset} ${file}`);
       } else {
@@ -362,8 +381,7 @@ class ConsistencyValidator {
           let found = false;
 
           for (const pattern of patterns) {
-            const escapedPattern = pattern.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
-            const matches = this.findInFile(content, escapedPattern, file);
+            const matches = this.findInFile(content, pattern, file);
             if (matches.length > 0) {
               found = true;
               break;

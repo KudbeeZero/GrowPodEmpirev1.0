@@ -13,7 +13,7 @@ This system consists of three main components:
 ## Features
 
 ✅ **Dynamic Configuration** - All validation rules are defined in `validation-config.json`
-✅ **Modular Design** - Reusable validation functions in `scripts/lib/validators.js`
+✅ **Modular Design** - Clean separation of concerns with helper methods
 ✅ **Automated Checks** - Runs on PRs, pushes, and daily schedule
 ✅ **Detailed Reporting** - JSON and Markdown reports with line-level details
 ✅ **GitHub Integration** - PR comments, annotations, and status checks
@@ -332,10 +332,10 @@ if (DEBUG) {
 
 ### Adding Custom Validators
 
-1. Create validator function in `scripts/lib/validators.js`
-2. Export the function
-3. Import and use in `scripts/validate-consistency.js`
-4. Add configuration to `validation-config.json`
+1. Add validation method to `scripts/validate-consistency.js`
+2. Add configuration to `validation-config.json`
+3. Call the method in the `run()` method
+4. Test locally with `npm run validate`
 
 ### Integrating with CI/CD
 

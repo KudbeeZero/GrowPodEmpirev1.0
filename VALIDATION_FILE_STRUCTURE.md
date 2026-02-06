@@ -15,8 +15,6 @@ GrowPodEmpirev1.0/
 │       └── repository-consistency-check.yml   ⭐ NEW - Main validation workflow
 │
 ├── scripts/
-│   ├── lib/
-│   │   └── validators.js                      ⭐ NEW - Reusable validation functions
 │   ├── validate-consistency.js                ⭐ NEW - Main validation script (executable)
 │   ├── ai-branch-report.sh                    (existing)
 │   ├── cleanup-branches.sh                    (existing)
@@ -67,16 +65,7 @@ GrowPodEmpirev1.0/
   - Colored console output
 - **Usage**: `npm run validate` or `node scripts/validate-consistency.js`
 
-#### 3. scripts/lib/validators.js
-- **Size**: 1.3 KB
-- **Type**: ES6 module
-- **Purpose**: Reusable validation utility functions
-- **Exports**:
-  - `readFileSafe()` - Safe file reading
-  - `findPatternMatches()` - Pattern matching in content
-- **Used by**: validate-consistency.js
-
-#### 4. .github/workflows/repository-consistency-check.yml
+#### 3. .github/workflows/repository-consistency-check.yml
 - **Size**: 5.9 KB
 - **Type**: GitHub Actions workflow
 - **Purpose**: Automated validation in CI/CD
@@ -223,9 +212,8 @@ These files are generated when validation runs and are excluded from Git:
 ┌─────────────────────────────────┐
 │  validate-consistency.js        │
 │  1. Loads validation-config.json│
-│  2. Uses lib/validators.js      │
-│  3. Scans files                 │
-│  4. Generates reports           │
+│  2. Scans files                 │
+│  3. Generates reports           │
 └───────────┬─────────────────────┘
             │
             ├─────────────────────┐

@@ -134,27 +134,40 @@ jobs:
       
       - name: Create GitHub annotations for errors
         if: steps.validation.outputs.exit_code != '0' && always()
-        run: |
-          # Parse JSON report and create annotations
-          if [ -f validation-report.json ]; then
-            node -e "
-              const fs = require('fs');
-              const report = JSON.parse(fs.readFileSync('validation-report.json', 'utf8'));
+        uses: actions/github-script@v7
+        with:
+          github-token: ${{ secrets.GITHUB_TOKEN }}
+          script: |
+            const fs = require('fs');
+            
+            if (!fs.existsSync('validation-report.json')) {
+              console.log('No validation report found');
+              return;
+            }
+            
+            const report = JSON.parse(fs.readFileSync('validation-report.json', 'utf8'));
+            
+            // Sanitize and create error annotations
+            report.errors.forEach(error => {
+              const file = String(error.file || 'unknown').replace(/[:\n\r]/g, '_');
+              const line = parseInt(error.line) || 1;
+              const rule = String(error.rule || 'unknown').replace(/[:\n\r]/g, '_');
+              const message = String(error.message || 'Validation error').replace(/\n/g, ' ').replace(/:/g, ' -');
               
-              report.errors.forEach(error => {
-                const file = error.file || 'unknown';
-                const line = error.line || 1;
-                const message = error.message || 'Validation error';
-                const rule = error.rule || 'unknown';
-                
-                console.log(\`::error file=\${file},line=\${line},title=Consistency Error [\${rule}]::\${message}\`);
+              core.error(message, {
+                file: file,
+                startLine: line,
+                title: `Consistency Error [${rule}]`
               });
-              
-              report.warnings.forEach((warning, index) => {
-                console.log(\`::warning title=Consistency Warning::${warning}\`);
+            });
+            
+            // Sanitize and create warning annotations
+            report.warnings.forEach((warning) => {
+              const message = String(warning).replace(/\n/g, ' ').replace(/:/g, ' -');
+              core.warning(message, {
+                title: 'Consistency Warning'
               });
-            "
-          fi
+            });
       
       - name: Fail job if validation failed
         if: steps.validation.outputs.exit_code != '0'

@@ -96,15 +96,10 @@ cat validation-report.json
 ### 2. Static Analyzer (`scripts/validate-consistency.js`)
 - Main validation engine
 - Pattern matching and file scanning
-- Report generation
+- Report generation with built-in helper methods
 - 17 KB, executable
 
-### 3. Validation Library (`scripts/lib/validators.js`)
-- Reusable validation functions
-- Safe file reading and pattern matching
-- 1.3 KB, ES6 module
-
-### 4. GitHub Actions (`.github/workflows/repository-consistency-check.yml`)
+### 3. GitHub Actions (`.github/workflows/repository-consistency-check.yml`)
 - Automated CI/CD integration
 - Runs on PRs, commits, daily schedule
 - PR comments and status checks
