@@ -47,7 +47,7 @@ Validates consistency of the admin wallet address across the repository.
 {
   "admin_wallet": {
     "enabled": true,
-    "expected_value": "BDBJFOSYG4N3LHLJN3CHLOLYDGW63SK6YJHECGDYMF75DXL4X3XCQNDLME",
+    "expected_value": "ZK55X7SGIGMLGORVNJHHPTYZMZOGSQNVROBHX7N27X6ZEQRHAZ2UPKOXQU",
     "files_to_check": [
       ".dev.vars.example",
       "README.md",
@@ -388,7 +388,7 @@ Validates token economy values in documentation.
   "validation_rules": {
     "admin_wallet": {
       "enabled": true,
-      "expected_value": "BDBJFOSYG4N3LHLJN3CHLOLYDGW63SK6YJHECGDYMF75DXL4X3XCQNDLME",
+      "expected_value": "ZK55X7SGIGMLGORVNJHHPTYZMZOGSQNVROBHX7N27X6ZEQRHAZ2UPKOXQU",
       "files_to_check": [".dev.vars.example", "README.md"],
       "description": "Admin wallet consistency"
     },

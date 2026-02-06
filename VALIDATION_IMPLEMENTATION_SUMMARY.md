@@ -45,7 +45,7 @@ Successfully implemented a comprehensive, modular, and automated repository cons
 ### ✅ Admin Wallet Address
 - Validates TestNet admin wallet consistency
 - Checks 10 files across the repository
-- Expected: `BDBJFOSYG4N3LHLJN3CHLOLYDGW63SK6YJHECGDYMF75DXL4X3XCQNDLME`
+- Expected: `ZK55X7SGIGMLGORVNJHHPTYZMZOGSQNVROBHX7N27X6ZEQRHAZ2UPKOXQU`
 
 ### ✅ Token IDs
 - **$BUD Token**: 753910204

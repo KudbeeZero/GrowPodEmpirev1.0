@@ -9,7 +9,7 @@ This update configures the GrowPod Empire smart contract with a new admin wallet
 **⚠️ IMPORTANT: For TestNet use only. Never use these credentials on MainNet.**
 
 - **Mnemonic**: `wheat spread skull erosion actual patient noble abstract valve switch fire bottom ceiling coral visa connect marine accident forum kite finger energy convince above small`
-- **Address**: `BDBJFOSYG4N3LHLJN3CHLOLYDGW63SK6YJHECGDYMF75DXL4X3XCQNDLME`
+- **Address**: `ZK55X7SGIGMLGORVNJHHPTYZMZOGSQNVROBHX7N27X6ZEQRHAZ2UPKOXQU`
 - **Network**: Algorand TestNet (Chain ID: 416002)
 
 ### Files Created
@@ -69,7 +69,7 @@ This update configures the GrowPod Empire smart contract with a new admin wallet
 1. **Fund the Wallet**:
    ```
    Visit: https://bank.testnet.algorand.network/
-   Address: BDBJFOSYG4N3LHLJN3CHLOLYDGW63SK6YJHECGDYMF75DXL4X3XCQNDLME
+   Address: ZK55X7SGIGMLGORVNJHHPTYZMZOGSQNVROBHX7N27X6ZEQRHAZ2UPKOXQU
    Request: 2+ ALGO
    ```
 
@@ -117,7 +117,7 @@ ALGO_MNEMONIC="wheat spread skull erosion actual patient noble abstract valve sw
 
 ### Admin Wallet Permissions
 
-The admin wallet (`BDBJFOSYG4N3LHLJN3CHLOLYDGW63SK6YJHECGDYMF75DXL4X3XCQNDLME`) has:
+The admin wallet (`ZK55X7SGIGMLGORVNJHHPTYZMZOGSQNVROBHX7N27X6ZEQRHAZ2UPKOXQU`) has:
 
 - **Smart Contract Owner**: Can call `bootstrap` and `set_asa_ids`
 - **Token Creator**: Has manager, reserve, freeze, clawback roles for all tokens

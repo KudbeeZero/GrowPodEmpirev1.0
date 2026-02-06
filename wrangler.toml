@@ -27,7 +27,7 @@ NODE_ENV = "production"
 # wrangler secret put VARIABLE_NAME
 # Example secrets to configure:
 # - DATABASE_URL (if using external PostgreSQL instead of D1)
-# - ADMIN_WALLET_ADDRESS (TestNet: BDBJFOSYG4N3LHLJN3CHLOLYDGW63SK6YJHECGDYMF75DXL4X3XCQNDLME)
+# - ADMIN_WALLET_ADDRESS (TestNet: ZK55X7SGIGMLGORVNJHHPTYZMZOGSQNVROBHX7N27X6ZEQRHAZ2UPKOXQU)
 # - ALGO_MNEMONIC (for contract deployment - TestNet only, never commit)
 # - Any API keys or sensitive credentials
 

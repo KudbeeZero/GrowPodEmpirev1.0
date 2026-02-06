@@ -20,7 +20,7 @@ cat validation-report.json
 
 ### 1. Admin Wallet Address ✅
 - Ensures TestNet admin wallet is consistent across all files
-- Expected: `BDBJFOSYG4N3LHLJN3CHLOLYDGW63SK6YJHECGDYMF75DXL4X3XCQNDLME`
+- Expected: `ZK55X7SGIGMLGORVNJHHPTYZMZOGSQNVROBHX7N27X6ZEQRHAZ2UPKOXQU`
 
 ### 2. Token IDs ✅
 - **$BUD**: 753910204

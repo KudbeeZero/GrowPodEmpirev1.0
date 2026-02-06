@@ -7,7 +7,7 @@ This guide explains how to deploy the GrowPod Empire smart contract with the upd
 **⚠️ WARNING: This wallet is for TestNet deployment only. Never use TestNet mnemonics on MainNet.**
 
 - **Mnemonic**: `wheat spread skull erosion actual patient noble abstract valve switch fire bottom ceiling coral visa connect marine accident forum kite finger energy convince above small`
-- **Address**: `BDBJFOSYG4N3LHLJN3CHLOLYDGW63SK6YJHECGDYMF75DXL4X3XCQNDLME`
+- **Address**: `ZK55X7SGIGMLGORVNJHHPTYZMZOGSQNVROBHX7N27X6ZEQRHAZ2UPKOXQU`
 - **Network**: Algorand TestNet (Chain ID: 416002)
 
 ## Prerequisites
@@ -21,7 +21,7 @@ Before deploying, ensure you have:
 
 2. **TestNet ALGO** - Fund the admin wallet with at least 2 ALGO:
    - Visit: https://bank.testnet.algorand.network/
-   - Enter address: `BDBJFOSYG4N3LHLJN3CHLOLYDGW63SK6YJHECGDYMF75DXL4X3XCQNDLME`
+   - Enter address: `ZK55X7SGIGMLGORVNJHHPTYZMZOGSQNVROBHX7N27X6ZEQRHAZ2UPKOXQU`
    - Request TestNet ALGO
 
 3. **Environment Variables** - Set the mnemonic:
@@ -66,7 +66,7 @@ After successful deployment, the script outputs environment variables. Update th
 
 #### Update `.dev.vars` (local development):
 ```bash
-ADMIN_WALLET_ADDRESS=BDBJFOSYG4N3LHLJN3CHLOLYDGW63SK6YJHECGDYMF75DXL4X3XCQNDLME
+ADMIN_WALLET_ADDRESS=ZK55X7SGIGMLGORVNJHHPTYZMZOGSQNVROBHX7N27X6ZEQRHAZ2UPKOXQU
 ALGO_MNEMONIC="wheat spread skull erosion actual patient noble abstract valve switch fire bottom ceiling coral visa connect marine accident forum kite finger energy convince above small"
 VITE_GROWPOD_APP_ID=<new_app_id>
 VITE_BUD_ASSET_ID=<new_bud_id>
@@ -88,7 +88,7 @@ VITE_GROWPOD_APP_ADDRESS = "<new_app_address>"
 #### Update Cloudflare Secrets (production):
 ```bash
 npx wrangler secret put ADMIN_WALLET_ADDRESS
-# Enter: BDBJFOSYG4N3LHLJN3CHLOLYDGW63SK6YJHECGDYMF75DXL4X3XCQNDLME
+# Enter: ZK55X7SGIGMLGORVNJHHPTYZMZOGSQNVROBHX7N27X6ZEQRHAZ2UPKOXQU
 
 # Optional: If you need to redeploy from Cloudflare
 npx wrangler secret put ALGO_MNEMONIC
@@ -137,7 +137,7 @@ The deployment script automatically updates environment variables, but verify th
 
 ### Admin Wallet Permissions
 
-The admin wallet (`BDBJFOSYG4N3LHLJN3CHLOLYDGW63SK6YJHECGDYMF75DXL4X3XCQNDLME`) has:
+The admin wallet (`ZK55X7SGIGMLGORVNJHHPTYZMZOGSQNVROBHX7N27X6ZEQRHAZ2UPKOXQU`) has:
 
 - **Smart Contract Owner**: Can call `bootstrap` and `set_asa_ids`
 - **Token Manager**: Has manager, reserve, freeze, and clawback roles for $BUD, $TERP, and Slot tokens
@@ -160,7 +160,7 @@ ERROR: Insufficient funds. Need at least 2 ALGO for deployment.
 
 **Solution**: Fund the admin wallet with TestNet ALGO:
 - Visit: https://bank.testnet.algorand.network/
-- Request ALGO for: `BDBJFOSYG4N3LHLJN3CHLOLYDGW63SK6YJHECGDYMF75DXL4X3XCQNDLME`
+- Request ALGO for: `ZK55X7SGIGMLGORVNJHHPTYZMZOGSQNVROBHX7N27X6ZEQRHAZ2UPKOXQU`
 
 ### Network Connection Error
 

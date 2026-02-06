@@ -5,7 +5,7 @@
   "validation_rules": {
     "admin_wallet": {
       "enabled": true,
-      "expected_value": "BDBJFOSYG4N3LHLJN3CHLOLYDGW63SK6YJHECGDYMF75DXL4X3XCQNDLME",
+      "expected_value": "ZK55X7SGIGMLGORVNJHHPTYZMZOGSQNVROBHX7N27X6ZEQRHAZ2UPKOXQU",
       "files_to_check": [
         ".dev.vars.example",
         ".github/copilot-instructions.md",
@@ -17,7 +17,7 @@
         "CLOUDFLARE_DEPLOYMENT.md",
         "wrangler.toml"
       ],
-      "pattern": "BDBJFOSYG4N3LHLJN3CHLOLYDGW63SK6YJHECGDYMF75DXL4X3XCQNDLME",
+      "pattern": "ZK55X7SGIGMLGORVNJHHPTYZMZOGSQNVROBHX7N27X6ZEQRHAZ2UPKOXQU",
       "description": "TestNet admin wallet address - must be consistent across all configuration files"
     },
     "token_ids": {

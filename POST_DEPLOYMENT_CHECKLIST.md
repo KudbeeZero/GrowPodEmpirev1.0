@@ -17,7 +17,7 @@ python scripts/verify-deployment.py <APP_ID>
 
 Expected output:
 - ✅ Contract found on TestNet
-- ✅ Creator matches expected admin wallet: `BDBJFOSYG4N3LHLJN3CHLOLYDGW63SK6YJHECGDYMF75DXL4X3XCQNDLME`
+- ✅ Creator matches expected admin wallet: `ZK55X7SGIGMLGORVNJHHPTYZMZOGSQNVROBHX7N27X6ZEQRHAZ2UPKOXQU`
 - ✅ Owner matches expected admin wallet
 - ✅ All ASAs created (BUD, TERP, Slot)
 - ✅ ASA creators match admin wallet
@@ -26,7 +26,7 @@ Expected output:
 
 #### Update `.dev.vars` (local development)
 ```bash
-ADMIN_WALLET_ADDRESS=BDBJFOSYG4N3LHLJN3CHLOLYDGW63SK6YJHECGDYMF75DXL4X3XCQNDLME
+ADMIN_WALLET_ADDRESS=ZK55X7SGIGMLGORVNJHHPTYZMZOGSQNVROBHX7N27X6ZEQRHAZ2UPKOXQU
 ALGO_MNEMONIC="wheat spread skull erosion actual patient noble abstract valve switch fire bottom ceiling coral visa connect marine accident forum kite finger energy convince above small"
 VITE_GROWPOD_APP_ID=<new_app_id>
 VITE_BUD_ASSET_ID=<new_bud_id>
@@ -52,7 +52,7 @@ VITE_GROWPOD_APP_ADDRESS = "<new_app_address>"
 #### Update Cloudflare Secrets (production)
 ```bash
 npx wrangler secret put ADMIN_WALLET_ADDRESS
-# Enter: BDBJFOSYG4N3LHLJN3CHLOLYDGW63SK6YJHECGDYMF75DXL4X3XCQNDLME
+# Enter: ZK55X7SGIGMLGORVNJHHPTYZMZOGSQNVROBHX7N27X6ZEQRHAZ2UPKOXQU
 ```
 
 - [ ] Cloudflare `ADMIN_WALLET_ADDRESS` secret configured
