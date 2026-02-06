@@ -381,7 +381,7 @@ class ConsistencyValidator {
       const costs = ['cleanup_cost', 'breeding_cost', 'slot_claim_cost'];
       costs.forEach(costKey => {
         if (tokenConfig[costKey]) {
-          console.log(`    ${colors.blue}${costKey.replace('_', ' ')}${colors.reset}: ${tokenConfig[costKey]}`);
+          console.log(`    ${colors.blue}${costKey.replace(/_/g, ' ')}${colors.reset}: ${tokenConfig[costKey]}`);
         }
       });
     });
