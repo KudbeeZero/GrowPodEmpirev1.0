@@ -196,7 +196,7 @@ ai-agent/
 
 - **Command Validation**: Checks for dangerous patterns
 - **Whitelist Enforcement**: Only approved commands execute
-- **Sandbox Environment**: Commands run in controlled context
+- **Controlled Execution Context**: Commands run with validated inputs and whitelisted patterns
 - **Input Sanitization**: Prevents injection attacks
 - **Length Limits**: Prevents buffer overflow attempts
 - **Confirmation Requirements**: User approval for high-risk ops
