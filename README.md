@@ -10,6 +10,38 @@ A blockchain-based idle/farming game built on **Algorand TestNet**. Players mana
 - **[CLAUDE.md](./CLAUDE.md)** - Detailed development guide
 - **[CLOUDFLARE_DEPLOYMENT.md](./CLOUDFLARE_DEPLOYMENT.md)** - Deployment guide
 - **[CANNABIS_HISTORY_FEATURE.md](./CANNABIS_HISTORY_FEATURE.md)** - History of Cannabis feature documentation
+- **[ai-agent/README.md](./ai-agent/README.md)** - AI Command Agent documentation
+- **[ai-agent/EXAMPLES.md](./ai-agent/EXAMPLES.md)** - AI Command Agent usage examples
+
+## ✨ AI Command Agent
+
+This project includes an intelligent command simulation and execution system for safe terminal operations.
+
+### Quick Start
+
+```bash
+# Interactive mode
+npm run agent
+
+# List available commands
+npm run agent:list
+
+# Execute a specific command
+npm run agent npm run build
+
+# Run tests
+npm run agent:test
+```
+
+### Features
+
+- ✅ Command whitelisting for security
+- 🔍 Simulation mode with previews and diffs
+- ⚠️ Risk assessment and user confirmation
+- 📝 Detailed execution logs
+- 🔧 Dynamic configuration
+
+See [ai-agent/README.md](./ai-agent/README.md) for complete documentation.
 
 ## Tech Stack
 
