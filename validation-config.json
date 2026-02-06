@@ -15,7 +15,6 @@
         "POST_DEPLOYMENT_CHECKLIST.md",
         "DEPLOYMENT_CHECKLIST.md",
         "CLOUDFLARE_DEPLOYMENT.md",
-        "server/routes.ts",
         "wrangler.toml"
       ],
       "pattern": "BDBJFOSYG4N3LHLJN3CHLOLYDGW63SK6YJHECGDYMF75DXL4X3XCQNDLME",
