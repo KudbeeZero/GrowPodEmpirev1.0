@@ -1,56 +1,14 @@
 /**
- * Modular Validation Library
- * 
- * Provides reusable validation functions for repository consistency checking.
+ * Deprecated validation helpers.
+ *
+ * This module previously exposed reusable validation functions, but the
+ * current codebase implements its own logic elsewhere and does not import
+ * these utilities. To avoid maintaining duplicate, unused logic, the
+ * implementations and exports have been removed.
+ *
+ * The file is intentionally left as a no-op ES module so that any
+ * hypothetical imports continue to resolve without errors.
  */
 
-import fs from 'fs';
-import path from 'path';
-
-/**
- * Read a file safely
- * @param {string} filePath - Path to file
- * @returns {string|null} File content or null
- */
-export function readFileSafe(filePath) {
-  try {
-    if (!fs.existsSync(filePath)) {
-      return null;
-    }
-    return fs.readFileSync(filePath, 'utf-8');
-  } catch (error) {
-    console.error(`Error reading ${filePath}: ${error.message}`);
-    return null;
-  }
-}
-
-/**
- * Find pattern matches in file content
- * @param {string} content - File content
- * @param {string|RegExp} pattern - Pattern to search for
- * @returns {Array} Array of matches with line numbers
- */
-export function findPatternMatches(content, pattern) {
-  const matches = [];
-  const lines = content.split('\n');
-  const regex = pattern instanceof RegExp ? pattern : new RegExp(pattern, 'g');
-
-  lines.forEach((line, index) => {
-    const lineMatches = [...line.matchAll(regex)];
-    lineMatches.forEach(match => {
-      matches.push({
-        line: index + 1,
-        content: line.trim(),
-        match: match[0],
-        groups: match.groups || {}
-      });
-    });
-  });
-
-  return matches;
-}
-
-export default {
-  readFileSafe,
-  findPatternMatches
-};
+// No exports: this module is intentionally empty.
+export {};
