@@ -28,7 +28,7 @@ This system consists of three main components:
 npm install
 
 # Run validation
-node scripts/validate-consistency.js
+npm run validate
 
 # View reports
 cat validation-report.md
