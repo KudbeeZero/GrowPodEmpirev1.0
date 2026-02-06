@@ -1,0 +1,104 @@
+{
+  "version": "1.0.0",
+  "description": "Whitelisted commands for AI agent execution",
+  "lastUpdated": "2026-02-06",
+  "commands": [
+    {
+      "id": "npm-install",
+      "pattern": "^npm\\s+install(\\s+[\\w@/-]+)?$",
+      "description": "Install npm packages",
+      "category": "package-management",
+      "riskLevel": "medium",
+      "requiresConfirmation": true,
+      "supportsDryRun": false
+    },
+    {
+      "id": "npm-build",
+      "pattern": "^npm\\s+run\\s+build$",
+      "description": "Build the project",
+      "category": "build",
+      "riskLevel": "low",
+      "requiresConfirmation": true,
+      "supportsDryRun": false
+    },
+    {
+      "id": "npm-dev",
+      "pattern": "^npm\\s+run\\s+dev$",
+      "description": "Start development server",
+      "category": "development",
+      "riskLevel": "low",
+      "requiresConfirmation": true,
+      "supportsDryRun": false
+    },
+    {
+      "id": "npm-check",
+      "pattern": "^npm\\s+run\\s+check$",
+      "description": "Run TypeScript type checking",
+      "category": "validation",
+      "riskLevel": "low",
+      "requiresConfirmation": false,
+      "supportsDryRun": false
+    },
+    {
+      "id": "npm-test",
+      "pattern": "^npm\\s+(run\\s+)?test$",
+      "description": "Run tests",
+      "category": "validation",
+      "riskLevel": "low",
+      "requiresConfirmation": false,
+      "supportsDryRun": false
+    },
+    {
+      "id": "update-env-file",
+      "pattern": "^update\\s+\\.env(\\.\\w+)?\\s+\\w+=.+$",
+      "description": "Update environment variable in .env file",
+      "category": "configuration",
+      "riskLevel": "high",
+      "requiresConfirmation": true,
+      "supportsDryRun": true
+    },
+    {
+      "id": "git-status",
+      "pattern": "^git\\s+status$",
+      "description": "Check git status",
+      "category": "git",
+      "riskLevel": "low",
+      "requiresConfirmation": false,
+      "supportsDryRun": false
+    },
+    {
+      "id": "git-diff",
+      "pattern": "^git\\s+diff(\\s+[\\w./]+)?$",
+      "description": "Show git diff",
+      "category": "git",
+      "riskLevel": "low",
+      "requiresConfirmation": false,
+      "supportsDryRun": false
+    },
+    {
+      "id": "deploy-testnet",
+      "pattern": "^\\./scripts/deploy-testnet\\.sh$",
+      "description": "Deploy smart contract to TestNet",
+      "category": "deployment",
+      "riskLevel": "high",
+      "requiresConfirmation": true,
+      "supportsDryRun": false
+    },
+    {
+      "id": "db-push",
+      "pattern": "^npm\\s+run\\s+db:push$",
+      "description": "Push database schema changes",
+      "category": "database",
+      "riskLevel": "high",
+      "requiresConfirmation": true,
+      "supportsDryRun": false
+    }
+  ],
+  "settings": {
+    "defaultRiskLevel": "high",
+    "requireConfirmationForHighRisk": true,
+    "allowDynamicCommandAddition": true,
+    "maxCommandLength": 1000,
+    "enableSimulationMode": true
+  }
+}

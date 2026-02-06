@@ -12,7 +12,10 @@
     "worker:dev": "wrangler dev",
     "worker:deploy": "wrangler deploy",
     "worker:tail": "wrangler tail",
-    "worker:whoami": "wrangler whoami"
+    "worker:whoami": "wrangler whoami",
+    "agent": "tsx ai-agent/index.ts",
+    "agent:list": "tsx ai-agent/index.ts list",
+    "agent:test": "tsx ai-agent/commands/test.ts"
   },
   "dependencies": {
     "@blockshake/defly-connect": "^1.2.1",
