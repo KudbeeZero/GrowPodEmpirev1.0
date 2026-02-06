@@ -8,7 +8,7 @@ This update configures the GrowPod Empire smart contract with a new admin wallet
 
 **⚠️ IMPORTANT: For TestNet use only. Never use these credentials on MainNet.**
 
-- **Mnemonic**: `wheat spread skull erosion actual patient noble abstract valve switch fire bottom ceiling coral visa connect marine accident forum kite finger energy convince above small`
+- **Mnemonic**: `any virus dynamic mind figure glide shove peanut village grab wisdom film luggage shoulder fetch license tunnel daring lounge rubber eagle source inch able world`
 - **Address**: `ZK55X7SGIGMLGORVNJHHPTYZMZOGSQNVROBHX7N27X6ZEQRHAZ2UPKOXQU`
 - **Network**: Algorand TestNet (Chain ID: 416002)
 
@@ -99,7 +99,7 @@ cd contracts
 python3 contract.py
 
 # 2. Deploy
-ALGO_MNEMONIC="wheat spread skull erosion actual patient noble abstract valve switch fire bottom ceiling coral visa connect marine accident forum kite finger energy convince above small" python3 deploy.py
+ALGO_MNEMONIC="any virus dynamic mind figure glide shove peanut village grab wisdom film luggage shoulder fetch license tunnel daring lounge rubber eagle source inch able world" python3 deploy.py
 
 # 3. Note the output IDs and addresses
 # 4. Update configuration files

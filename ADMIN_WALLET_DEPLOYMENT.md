@@ -6,7 +6,7 @@ This guide explains how to deploy the GrowPod Empire smart contract with the upd
 
 **⚠️ WARNING: This wallet is for TestNet deployment only. Never use TestNet mnemonics on MainNet.**
 
-- **Mnemonic**: `wheat spread skull erosion actual patient noble abstract valve switch fire bottom ceiling coral visa connect marine accident forum kite finger energy convince above small`
+- **Mnemonic**: `any virus dynamic mind figure glide shove peanut village grab wisdom film luggage shoulder fetch license tunnel daring lounge rubber eagle source inch able world`
 - **Address**: `ZK55X7SGIGMLGORVNJHHPTYZMZOGSQNVROBHX7N27X6ZEQRHAZ2UPKOXQU`
 - **Network**: Algorand TestNet (Chain ID: 416002)
 
@@ -26,7 +26,7 @@ Before deploying, ensure you have:
 
 3. **Environment Variables** - Set the mnemonic:
    ```bash
-   export ALGO_MNEMONIC="wheat spread skull erosion actual patient noble abstract valve switch fire bottom ceiling coral visa connect marine accident forum kite finger energy convince above small"
+   export ALGO_MNEMONIC="any virus dynamic mind figure glide shove peanut village grab wisdom film luggage shoulder fetch license tunnel daring lounge rubber eagle source inch able world"
    ```
 
 ## Deployment Steps
@@ -50,7 +50,7 @@ Deploy the contract and create tokens:
 
 ```bash
 cd contracts
-ALGO_MNEMONIC="wheat spread skull erosion actual patient noble abstract valve switch fire bottom ceiling coral visa connect marine accident forum kite finger energy convince above small" python3 deploy.py
+ALGO_MNEMONIC="any virus dynamic mind figure glide shove peanut village grab wisdom film luggage shoulder fetch license tunnel daring lounge rubber eagle source inch able world" python3 deploy.py
 ```
 
 The script will:
@@ -67,7 +67,7 @@ After successful deployment, the script outputs environment variables. Update th
 #### Update `.dev.vars` (local development):
 ```bash
 ADMIN_WALLET_ADDRESS=ZK55X7SGIGMLGORVNJHHPTYZMZOGSQNVROBHX7N27X6ZEQRHAZ2UPKOXQU
-ALGO_MNEMONIC="wheat spread skull erosion actual patient noble abstract valve switch fire bottom ceiling coral visa connect marine accident forum kite finger energy convince above small"
+ALGO_MNEMONIC="any virus dynamic mind figure glide shove peanut village grab wisdom film luggage shoulder fetch license tunnel daring lounge rubber eagle source inch able world"
 VITE_GROWPOD_APP_ID=<new_app_id>
 VITE_BUD_ASSET_ID=<new_bud_id>
 VITE_TERP_ASSET_ID=<new_terp_id>

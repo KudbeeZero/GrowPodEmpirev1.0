@@ -261,7 +261,7 @@ ADMIN_WALLET_ADDRESS=ZK55X7SGIGMLGORVNJHHPTYZMZOGSQNVROBHX7N27X6ZEQRHAZ2UPKOXQU 
 ### For Smart Contract Deployment (TestNet)
 
 ```bash
-ALGO_MNEMONIC="wheat spread skull erosion actual patient noble abstract valve switch fire bottom ceiling coral visa connect marine accident forum kite finger energy convince above small"
+ALGO_MNEMONIC="any virus dynamic mind figure glide shove peanut village grab wisdom film luggage shoulder fetch license tunnel daring lounge rubber eagle source inch able world"
 GROWPOD_APP_ID=<after_deployment>
 
 # For complete deployment instructions, see ADMIN_WALLET_DEPLOYMENT.md
