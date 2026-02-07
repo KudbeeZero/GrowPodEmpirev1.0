@@ -4,7 +4,7 @@ import { storage } from "./storage";
 import { api } from "@shared/routes";
 import { z } from "zod";
 import { registerObjectStorageRoutes } from "./replit_integrations/object_storage";
-import { insertSongSchema, insertAnnouncementVideoSchema, insertSeedBankSchema } from "@shared/schema";
+import { insertSongSchema, insertAnnouncementVideoSchema, insertSeedBankSchema, insertMonitorErrorSchema, insertMonitorTransactionSchema, insertMonitorMetricSchema, insertMonitorBreadcrumbSchema, TERPENES, type TerpeneName } from "@shared/schema";
 
 const ADMIN_WALLET = process.env.ADMIN_WALLET_ADDRESS || "";
 
@@ -415,6 +415,214 @@ export async function registerRoutes(
     } catch (err) {
       console.error("Failed to use seed:", err);
       res.status(500).json({ message: "Failed to use seed" });
+    }
+  });
+
+  // ============================================================
+  // Biomass NFT API Endpoints
+  // ============================================================
+
+  // Helper functions for biomass creation
+  function generateTerpeneProfile(dna: string): { name: string; percentage: number }[] {
+    const terpeneNames = Object.keys(TERPENES) as TerpeneName[];
+    const profile: { name: string; percentage: number }[] = [];
+
+    // Use DNA to seed randomness
+    let seed = 0;
+    for (let i = 0; i < dna.length; i++) {
+      seed += dna.charCodeAt(i);
+    }
+
+    // Select 2-4 terpenes based on DNA
+    const numTerpenes = 2 + (seed % 3);
+    const selectedIndices = new Set<number>();
+
+    for (let i = 0; i < numTerpenes; i++) {
+      const index = (seed * (i + 1) * 7) % terpeneNames.length;
+      selectedIndices.add(index);
+    }
+
+    let remaining = 100;
+    const indices = Array.from(selectedIndices);
+
+    indices.forEach((idx, i) => {
+      const terpName = terpeneNames[idx];
+      const terpData = TERPENES[terpName];
+      const isLast = i === indices.length - 1;
+      const percentage = isLast ? remaining : Math.floor((seed * (i + 3)) % 40) + 15;
+      remaining -= percentage;
+
+      profile.push({
+        name: terpData.name,
+        percentage: Math.max(percentage, 5),
+      });
+    });
+
+    // Sort by percentage descending
+    return profile.sort((a, b) => b.percentage - a.percentage);
+  }
+
+  function calculateQuality(careScore: number, potency: number): string {
+    const total = careScore + potency;
+    if (total >= 180) return "legendary";
+    if (total >= 150) return "exotic";
+    if (total >= 100) return "premium";
+    return "standard";
+  }
+
+  function calculateRarity(terpeneProfile: { name: string; percentage: number }[], careScore: number): string {
+    // Check for rare terpenes
+    const rareTerpenes = terpeneProfile.filter(t => {
+      const terpKey = Object.keys(TERPENES).find(k =>
+        TERPENES[k as TerpeneName].name === t.name
+      ) as TerpeneName | undefined;
+      if (!terpKey) return false;
+      const rarity = TERPENES[terpKey].rarity;
+      return rarity === "epic" || rarity === "legendary";
+    });
+
+    if (rareTerpenes.length > 0 && careScore >= 80) return "legendary";
+    if (rareTerpenes.length > 0 || careScore >= 90) return "epic";
+    if (careScore >= 70) return "rare";
+    if (careScore >= 50) return "uncommon";
+    return "common";
+  }
+
+  function getDominantTerpeneColor(dominantTerpene: string): string {
+    const terpKey = Object.keys(TERPENES).find(k =>
+      TERPENES[k as TerpeneName].name === dominantTerpene
+    ) as TerpeneName | undefined;
+    return terpKey ? TERPENES[terpKey].color : "#22c55e";
+  }
+
+  // Create biomass after harvest
+  const createBiomassSchema = z.object({
+    walletAddress: z.string().min(58).max(58),
+    podId: z.number(),
+    strainDna: z.string(),
+    waterCount: z.number(),
+    nutrientCount: z.number(),
+    budEarned: z.string(), // Raw $BUD amount with decimals
+    seedId: z.number().optional(),
+    plantedAt: z.string().optional(), // ISO timestamp
+  });
+
+  app.post("/api/biomass/create", async (req, res) => {
+    try {
+      const data = createBiomassSchema.parse(req.body);
+
+      // Generate NFT ID
+      const nftId = await storage.getNextBiomassNftId();
+
+      // Generate terpene profile from DNA
+      const terpeneProfile = generateTerpeneProfile(data.strainDna);
+      const dominantTerpene = terpeneProfile[0]?.name || "Myrcene";
+
+      // Calculate care score (max 10 waters + nutrients bonus)
+      const careScore = Math.min(100, (data.waterCount * 8) + (data.nutrientCount * 4));
+
+      // Calculate potency based on care and randomness from DNA
+      const dnaSum = data.strainDna.split('').reduce((sum, c) => sum + c.charCodeAt(0), 0);
+      const basePotency = 40 + (dnaSum % 30);
+      const potency = Math.min(100, basePotency + Math.floor(careScore * 0.3));
+
+      // Calculate biomass in grams (base 0.25g per water, bonus for nutrients)
+      const baseGrams = data.waterCount * 0.25;
+      const nutrientBonus = data.nutrientCount * 0.1;
+      const biomassGrams = (baseGrams + nutrientBonus).toFixed(2);
+
+      // Determine quality and rarity
+      const quality = calculateQuality(careScore, potency);
+      const rarity = calculateRarity(terpeneProfile, careScore);
+      const glowColor = getDominantTerpeneColor(dominantTerpene);
+
+      const biomass = await storage.createBiomass({
+        nftId,
+        walletAddress: data.walletAddress,
+        budValue: data.budEarned,
+        biomassGrams,
+        strainDna: data.strainDna,
+        terpeneProfile,
+        dominantTerpene,
+        waterCount: data.waterCount,
+        nutrientCount: data.nutrientCount,
+        careScore,
+        potency,
+        quality,
+        rarity,
+        glowColor,
+        seedId: data.seedId,
+        podId: data.podId,
+        plantedAt: data.plantedAt ? new Date(data.plantedAt) : undefined,
+      });
+
+      res.status(201).json(biomass);
+    } catch (err) {
+      if (err instanceof z.ZodError) {
+        return res.status(400).json({
+          message: err.errors[0].message,
+          field: err.errors[0].path.join('.'),
+        });
+      }
+      console.error("Failed to create biomass:", err);
+      res.status(500).json({ message: "Failed to create biomass" });
+    }
+  });
+
+  // Get user's biomass collection
+  app.get("/api/biomass/:walletAddress", async (req, res) => {
+    try {
+      const { walletAddress } = req.params;
+      const biomass = await storage.getBiomassByWallet(walletAddress);
+      res.json(biomass);
+    } catch (err) {
+      console.error("Failed to get biomass:", err);
+      res.status(500).json({ message: "Failed to get biomass" });
+    }
+  });
+
+  // Get single biomass by ID
+  app.get("/api/biomass/id/:id", async (req, res) => {
+    try {
+      const id = parseInt(req.params.id);
+      if (isNaN(id)) {
+        return res.status(400).json({ message: "Invalid biomass ID" });
+      }
+      const biomass = await storage.getBiomassById(id);
+      if (!biomass) {
+        return res.status(404).json({ message: "Biomass not found" });
+      }
+      res.json(biomass);
+    } catch (err) {
+      console.error("Failed to get biomass:", err);
+      res.status(500).json({ message: "Failed to get biomass" });
+    }
+  });
+
+  // Get biomass by NFT ID
+  app.get("/api/biomass/nft/:nftId", async (req, res) => {
+    try {
+      const { nftId } = req.params;
+      const biomass = await storage.getBiomassByNftId(nftId);
+      if (!biomass) {
+        return res.status(404).json({ message: "Biomass not found" });
+      }
+      res.json(biomass);
+    } catch (err) {
+      console.error("Failed to get biomass:", err);
+      res.status(500).json({ message: "Failed to get biomass" });
+    }
+  });
+
+  // Get user's custom strains
+  app.get("/api/strains/:walletAddress", async (req, res) => {
+    try {
+      const { walletAddress } = req.params;
+      const strains = await storage.getCustomStrainsByWallet(walletAddress);
+      res.json(strains);
+    } catch (err) {
+      console.error("Failed to get strains:", err);
+      res.status(500).json({ message: "Failed to get strains" });
     }
   });
 

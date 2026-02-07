@@ -115,6 +115,131 @@ export interface PlayerState {
 }
 
 // ============================================================
+// Biomass NFT System - Harvested Plant Records
+// ============================================================
+
+// Terpene definitions for the game
+export const TERPENES = {
+  myrcene: { name: "Myrcene", color: "#22c55e", rarity: "common", effect: "Relaxing" },
+  limonene: { name: "Limonene", color: "#eab308", rarity: "common", effect: "Uplifting" },
+  pinene: { name: "Pinene", color: "#14b8a6", rarity: "common", effect: "Focus" },
+  caryophyllene: { name: "Caryophyllene", color: "#f97316", rarity: "uncommon", effect: "Calming" },
+  linalool: { name: "Linalool", color: "#a855f7", rarity: "uncommon", effect: "Soothing" },
+  humulene: { name: "Humulene", color: "#84cc16", rarity: "uncommon", effect: "Appetite Control" },
+  terpinolene: { name: "Terpinolene", color: "#ec4899", rarity: "rare", effect: "Creative" },
+  ocimene: { name: "Ocimene", color: "#06b6d4", rarity: "rare", effect: "Energizing" },
+  bisabolol: { name: "Bisabolol", color: "#f472b6", rarity: "epic", effect: "Healing" },
+  geraniol: { name: "Geraniol", color: "#fb7185", rarity: "epic", effect: "Euphoric" },
+  valencene: { name: "Valencene", color: "#fbbf24", rarity: "legendary", effect: "Transcendent" },
+} as const;
+
+export type TerpeneName = keyof typeof TERPENES;
+
+// Biomass NFT - Created on each harvest
+export const harvestedBiomass = pgTable("harvested_biomass", {
+  id: serial("id").primaryKey(),
+  nftId: text("nft_id").unique().notNull(), // Unique identifier like "BIO-00001"
+  walletAddress: text("wallet_address").notNull(),
+
+  // Core value
+  budValue: text("bud_value").notNull(), // $BUD value at harvest (with 6 decimals)
+  biomassGrams: text("biomass_grams").notNull(), // Weight in grams (e.g., "2.5")
+
+  // Grow data captured at harvest
+  strainDna: text("strain_dna").notNull(), // DNA hash from the grow
+  terpeneProfile: jsonb("terpene_profile").$type<{ name: string; percentage: number }[]>().default([]),
+  dominantTerpene: text("dominant_terpene"), // Primary terpene
+
+  // Care quality metrics
+  waterCount: integer("water_count").default(0).notNull(),
+  nutrientCount: integer("nutrient_count").default(0).notNull(),
+  careScore: integer("care_score").default(0).notNull(), // 0-100 based on care quality
+
+  // Calculated attributes
+  potency: integer("potency").default(0).notNull(), // 0-100
+  quality: text("quality").notNull().default("standard"), // standard, premium, exotic, legendary
+  rarity: text("rarity").notNull().default("common"), // common, uncommon, rare, epic, legendary
+
+  // Visual/Display
+  glowColor: text("glow_color").default("#22c55e"), // Based on dominant terpene
+
+  // Origin tracking
+  seedId: integer("seed_id"), // If grown from premium seed
+  podId: integer("pod_id").notNull(), // Which pod it came from
+
+  // Timestamps
+  plantedAt: timestamp("planted_at"),
+  harvestedAt: timestamp("harvested_at").defaultNow(),
+
+  // For future combining feature
+  isConsumed: boolean("is_consumed").default(false).notNull(), // True if used in breeding
+  parentBiomassIds: jsonb("parent_biomass_ids").$type<number[]>(), // If this was created from combining
+});
+
+// Custom strains created by combining biomass
+export const customStrains = pgTable("custom_strains", {
+  id: serial("id").primaryKey(),
+  strainId: text("strain_id").unique().notNull(), // Unique like "STRAIN-00001"
+  walletAddress: text("wallet_address").notNull(),
+  name: text("name").notNull(), // User-given name
+
+  // Genetics
+  dnaHash: text("dna_hash").notNull(), // Combined DNA
+  terpeneProfile: jsonb("terpene_profile").$type<{ name: string; percentage: number }[]>().default([]),
+  dominantTerpene: text("dominant_terpene"),
+
+  // Stats inherited from parents
+  avgPotency: integer("avg_potency").default(0).notNull(),
+  avgQuality: text("avg_quality").default("standard"),
+  rarity: text("rarity").notNull().default("rare"), // Minimum rare since it's custom
+
+  // Parent tracking
+  parentBiomassId1: integer("parent_biomass_id_1").notNull(),
+  parentBiomassId2: integer("parent_biomass_id_2").notNull(),
+
+  // Visual
+  glowColor: text("glow_color").default("#a855f7"),
+
+  createdAt: timestamp("created_at").defaultNow(),
+});
+
+// Insert schemas
+export const insertHarvestedBiomassSchema = createInsertSchema(harvestedBiomass).omit({
+  id: true,
+  harvestedAt: true,
+  isConsumed: true,
+});
+export const insertCustomStrainSchema = createInsertSchema(customStrains).omit({
+  id: true,
+  createdAt: true
+});
+
+// Types
+export type HarvestedBiomass = typeof harvestedBiomass.$inferSelect;
+export type InsertHarvestedBiomass = z.infer<typeof insertHarvestedBiomassSchema>;
+export type CustomStrain = typeof customStrains.$inferSelect;
+export type InsertCustomStrain = z.infer<typeof insertCustomStrainSchema>;
+
+// Helper type for biomass card display
+export interface BiomassCardData {
+  id: number;
+  nftId: string;
+  budValue: string;
+  biomassGrams: string;
+  strainDna: string;
+  terpeneProfile: { name: string; percentage: number }[];
+  dominantTerpene: string | null;
+  waterCount: number;
+  nutrientCount: number;
+  careScore: number;
+  potency: number;
+  quality: string;
+  rarity: string;
+  glowColor: string;
+  harvestedAt: Date | null;
+}
+
+// ============================================================
 // GrowPod Monitor - Custom Error & Performance Tracking System
 // ============================================================
 

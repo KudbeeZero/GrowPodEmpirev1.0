@@ -1,4 +1,4 @@
-import { users, playerStats, songs, announcementVideos, seedBank, userSeeds, monitorErrors, monitorTransactions, monitorMetrics, monitorBreadcrumbs, type User, type InsertUser, type PlayerStats, type Song, type InsertSong, type AnnouncementVideo, type InsertAnnouncementVideo, type SeedBankItem, type InsertSeedBankItem, type UserSeed, type InsertUserSeed, type MonitorError, type InsertMonitorError, type MonitorTransaction, type InsertMonitorTransaction, type MonitorMetric, type InsertMonitorMetric, type MonitorBreadcrumb, type InsertMonitorBreadcrumb } from "@shared/schema";
+import { users, playerStats, songs, announcementVideos, seedBank, userSeeds, harvestedBiomass, customStrains, monitorErrors, monitorTransactions, monitorMetrics, monitorBreadcrumbs, monitorHealthChecks, monitorDailyStats, TERPENES, type User, type InsertUser, type PlayerStats, type Song, type InsertSong, type AnnouncementVideo, type InsertAnnouncementVideo, type SeedBankItem, type InsertSeedBankItem, type UserSeed, type InsertUserSeed, type HarvestedBiomass, type InsertHarvestedBiomass, type CustomStrain, type InsertCustomStrain, type MonitorError, type InsertMonitorError, type MonitorTransaction, type InsertMonitorTransaction, type MonitorMetric, type InsertMonitorMetric, type MonitorBreadcrumb, type InsertMonitorBreadcrumb, type MonitorHealthCheck, type MonitorDailyStats } from "@shared/schema";
 import { db } from "./db";
 import { eq, desc, sql, and, gte } from "drizzle-orm";
 
@@ -41,6 +41,15 @@ export interface IStorage {
   getUserSeeds(walletAddress: string): Promise<(UserSeed & { seed: SeedBankItem })[]>;
   getUserSeedCount(walletAddress: string, seedId: number): Promise<number>;
   useUserSeed(walletAddress: string, seedId: number): Promise<boolean>;
+  // Biomass methods
+  createBiomass(biomass: InsertHarvestedBiomass): Promise<HarvestedBiomass>;
+  getBiomassByWallet(walletAddress: string): Promise<HarvestedBiomass[]>;
+  getBiomassById(id: number): Promise<HarvestedBiomass | undefined>;
+  getBiomassByNftId(nftId: string): Promise<HarvestedBiomass | undefined>;
+  getNextBiomassNftId(): Promise<string>;
+  consumeBiomass(id: number): Promise<HarvestedBiomass | undefined>;
+  createCustomStrain(strain: InsertCustomStrain): Promise<CustomStrain>;
+  getCustomStrainsByWallet(walletAddress: string): Promise<CustomStrain[]>;
   // Monitor methods
   recordMonitorError(error: InsertMonitorError): Promise<MonitorError>;
   recordMonitorTransaction(tx: InsertMonitorTransaction): Promise<MonitorTransaction>;
@@ -327,6 +336,73 @@ export class DatabaseStorage implements IStorage {
         .where(eq(userSeeds.id, existing.id));
     }
     return true;
+  }
+
+  // ============================================================
+  // Biomass Methods
+  // ============================================================
+
+  async createBiomass(biomass: InsertHarvestedBiomass): Promise<HarvestedBiomass> {
+    const [created] = await db.insert(harvestedBiomass)
+      .values(biomass as any)
+      .returning();
+    return created;
+  }
+
+  async getBiomassByWallet(walletAddress: string): Promise<HarvestedBiomass[]> {
+    const results = await db.select()
+      .from(harvestedBiomass)
+      .where(and(
+        eq(harvestedBiomass.walletAddress, walletAddress),
+        eq(harvestedBiomass.isConsumed, false)
+      ))
+      .orderBy(desc(harvestedBiomass.harvestedAt));
+    return results;
+  }
+
+  async getBiomassById(id: number): Promise<HarvestedBiomass | undefined> {
+    const [biomass] = await db.select()
+      .from(harvestedBiomass)
+      .where(eq(harvestedBiomass.id, id));
+    return biomass;
+  }
+
+  async getBiomassByNftId(nftId: string): Promise<HarvestedBiomass | undefined> {
+    const [biomass] = await db.select()
+      .from(harvestedBiomass)
+      .where(eq(harvestedBiomass.nftId, nftId));
+    return biomass;
+  }
+
+  async getNextBiomassNftId(): Promise<string> {
+    const [result] = await db.select({
+      maxId: sql<number>`COALESCE(MAX(${harvestedBiomass.id}), 0) + 1`
+    }).from(harvestedBiomass);
+    const nextNum = result.maxId || 1;
+    return `BIO-${String(nextNum).padStart(5, '0')}`;
+  }
+
+  async consumeBiomass(id: number): Promise<HarvestedBiomass | undefined> {
+    const [updated] = await db.update(harvestedBiomass)
+      .set({ isConsumed: true })
+      .where(eq(harvestedBiomass.id, id))
+      .returning();
+    return updated;
+  }
+
+  async createCustomStrain(strain: InsertCustomStrain): Promise<CustomStrain> {
+    const [created] = await db.insert(customStrains)
+      .values(strain as any)
+      .returning();
+    return created;
+  }
+
+  async getCustomStrainsByWallet(walletAddress: string): Promise<CustomStrain[]> {
+    const results = await db.select()
+      .from(customStrains)
+      .where(eq(customStrains.walletAddress, walletAddress))
+      .orderBy(desc(customStrains.createdAt));
+    return results;
   }
 
   // ============================================================
