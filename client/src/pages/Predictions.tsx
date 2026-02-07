@@ -78,12 +78,12 @@ function formatTimeRemaining(expirationTime: string): string {
 
 function formatSmoke(amount: string): string {
   const num = BigInt(amount || "0");
-  const decimals = 1000000n;
-  
+  const decimals = BigInt(1000000);
+
   // Use BigInt division to get whole part
   const whole = num / decimals;
   const remainder = num % decimals;
-  
+
   // Convert to number only after division for display
   const wholeNum = Number(whole);
   const fractional = Number(remainder) / Number(decimals);

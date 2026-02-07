@@ -24,17 +24,15 @@ const ALGOD_TOKEN = '';
 export const algodClient = new algosdk.Algodv2(ALGOD_TOKEN, ALGOD_SERVER, '');
 
 /**
- * Create the WalletManager instance
- * Supports Pera, Lute, and AlgoSigner wallets
+ * Create the WalletManager instance with all 5 wallets
  */
 export const walletManager = new WalletManager({
   wallets: [
-    // Pera Wallet - Most popular Algorand wallet (Mobile & Web)
     WalletId.PERA,
-    // Lute - Web-based wallet (great for TestNet)
-    WalletId.LUTE,
-    // Defly - Mobile wallet with DeFi features
     WalletId.DEFLY,
+    WalletId.EXODUS,
+    WalletId.KIBISIS,
+    WalletId.LUTE,
   ],
   defaultNetwork: NetworkId.TESTNET,
 });
@@ -69,6 +67,20 @@ export const WALLET_METADATA: Record<string, {
     description: 'Mobile wallet with built-in DeFi features and swaps.',
     downloadUrl: 'https://defly.app/',
     type: 'mobile',
+  },
+  [WalletId.EXODUS]: {
+    name: 'Exodus',
+    icon: '/wallet-icons/exodus.svg',
+    description: 'Multi-chain browser extension wallet.',
+    downloadUrl: 'https://www.exodus.com/',
+    type: 'extension',
+  },
+  [WalletId.KIBISIS]: {
+    name: 'Kibisis',
+    icon: '/wallet-icons/kibisis.svg',
+    description: 'Privacy-focused browser extension wallet.',
+    downloadUrl: 'https://kibis.is/',
+    type: 'extension',
   },
 };
 
