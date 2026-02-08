@@ -6,6 +6,10 @@
 # To use this local config, run Wrangler with the -c flag, for example:
 #   wrangler dev -c wrangler.local.toml
 #   wrangler deploy -c wrangler.local.toml
+#
+# IMPORTANT: This example file only contains sensitive fields.
+# For a complete local config, copy wrangler.toml to wrangler.local.toml and edit it,
+# or use the --account-id flag: wrangler deploy --account-id YOUR_ACCOUNT_ID
 
 account_id = "YOUR_CLOUDFLARE_ACCOUNT_ID"
 

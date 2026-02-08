@@ -132,8 +132,15 @@ assert
 txn GroupIndex
 int 1
 -
-gtxns AssetSender
+gtxns Sender
 txn Sender
+==
+assert
+txn GroupIndex
+int 1
+-
+gtxns RekeyTo
+global ZeroAddress
 ==
 assert
 txn GroupIndex
@@ -146,7 +153,7 @@ assert
 txn GroupIndex
 int 1
 -
-gtxns RekeyTo
+gtxns AssetSender
 global ZeroAddress
 ==
 assert
@@ -206,6 +213,34 @@ gtxns AssetReceiver
 global CurrentApplicationAddress
 ==
 assert
+txn GroupIndex
+int 1
+-
+gtxns Sender
+txn Sender
+==
+assert
+txn GroupIndex
+int 1
+-
+gtxns RekeyTo
+global ZeroAddress
+==
+assert
+txn GroupIndex
+int 1
+-
+gtxns AssetCloseTo
+global ZeroAddress
+==
+assert
+txn GroupIndex
+int 1
+-
+gtxns AssetSender
+global ZeroAddress
+==
+assert
 itxn_begin
 int axfer
 itxn_field TypeEnum
@@ -263,6 +298,34 @@ global CurrentApplicationAddress
 ==
 assert
 txn GroupIndex
+int 3
+-
+gtxns Sender
+txn Sender
+==
+assert
+txn GroupIndex
+int 3
+-
+gtxns RekeyTo
+global ZeroAddress
+==
+assert
+txn GroupIndex
+int 3
+-
+gtxns AssetCloseTo
+global ZeroAddress
+==
+assert
+txn GroupIndex
+int 3
+-
+gtxns AssetSender
+global ZeroAddress
+==
+assert
+txn GroupIndex
 int 2
 -
 gtxns TypeEnum
@@ -277,6 +340,41 @@ int 1
 ==
 assert
 txn GroupIndex
+int 2
+-
+gtxns AssetReceiver
+global CurrentApplicationAddress
+==
+assert
+txn GroupIndex
+int 2
+-
+gtxns Sender
+txn Sender
+==
+assert
+txn GroupIndex
+int 2
+-
+gtxns RekeyTo
+global ZeroAddress
+==
+assert
+txn GroupIndex
+int 2
+-
+gtxns AssetCloseTo
+global ZeroAddress
+==
+assert
+txn GroupIndex
+int 2
+-
+gtxns AssetSender
+global ZeroAddress
+==
+assert
+txn GroupIndex
 int 1
 -
 gtxns TypeEnum
@@ -288,6 +386,41 @@ int 1
 -
 gtxns AssetAmount
 int 1
+==
+assert
+txn GroupIndex
+int 1
+-
+gtxns AssetReceiver
+global CurrentApplicationAddress
+==
+assert
+txn GroupIndex
+int 1
+-
+gtxns Sender
+txn Sender
+==
+assert
+txn GroupIndex
+int 1
+-
+gtxns RekeyTo
+global ZeroAddress
+==
+assert
+txn GroupIndex
+int 1
+-
+gtxns AssetCloseTo
+global ZeroAddress
+==
+assert
+txn GroupIndex
+int 1
+-
+gtxns AssetSender
+global ZeroAddress
 ==
 assert
 byte "seed_counter"

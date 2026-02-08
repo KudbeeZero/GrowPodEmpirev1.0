@@ -9,7 +9,13 @@ compatibility_flags = ["nodejs_compat"]
 # ============================================
 # Account ID (same as main worker)
 # ============================================
-# Set via environment variable: export CLOUDFLARE_ACCOUNT_ID=your_account_id
+# For local deploys, pass your account explicitly:
+#   wrangler deploy -c wrangler.security.toml --account-id YOUR_ACCOUNT_ID
+# Alternatively, create an untracked local config (e.g. wrangler.security.local.toml)
+# with `account_id` set, and use `-c` to point Wrangler at it.
+# In GitHub Actions, `cloudflare/wrangler-action` reads CLOUDFLARE_ACCOUNT_ID
+# and supplies `accountId` to Wrangler.
+#
 # account_id = ""  # DO NOT commit your account ID to version control
 
 # ============================================
@@ -21,11 +27,14 @@ crons = ["*/5 * * * *"]  # Every 5 minutes
 # ============================================
 # D1 Database (same as main app)
 # ============================================
-# Set via environment variable or wrangler.local.toml
+# Note: src/security-monitor.ts requires env.DB binding.
+# For local development, create wrangler.security.local.toml with the database_id set.
+# For production deploys, ensure CI/CD provides the D1 binding.
+#
 # [[d1_databases]]
 # binding = "DB"
 # database_name = "growpod-empire-db"
-# database_id = ""  # DO NOT commit your database ID to version control
+# database_id = ""  # Add your D1 database ID here or in wrangler.security.local.toml
 
 # ============================================
 # KV Namespace for metrics storage

@@ -649,6 +649,7 @@ def approval_program():
         Assert(Gtxn[Txn.group_index() - Int(3)].xfer_asset() == App.globalGet(GlobalBudAsset)),
         Assert(Gtxn[Txn.group_index() - Int(3)].asset_amount() >= BREED_COST),
         Assert(Gtxn[Txn.group_index() - Int(3)].asset_receiver() == Global.current_application_address()),
+        Assert(Gtxn[Txn.group_index() - Int(3)].sender() == Txn.sender()),
         Assert(Gtxn[Txn.group_index() - Int(3)].rekey_to() == Global.zero_address()),
         Assert(Gtxn[Txn.group_index() - Int(3)].asset_close_to() == Global.zero_address()),
         Assert(Gtxn[Txn.group_index() - Int(3)].asset_sender() == Global.zero_address()),
@@ -656,10 +657,20 @@ def approval_program():
         # Verify seed 1 transfer (index - 2)
         Assert(Gtxn[Txn.group_index() - Int(2)].type_enum() == TxnType.AssetTransfer),
         Assert(Gtxn[Txn.group_index() - Int(2)].asset_amount() == Int(1)),
+        Assert(Gtxn[Txn.group_index() - Int(2)].asset_receiver() == Global.current_application_address()),
+        Assert(Gtxn[Txn.group_index() - Int(2)].sender() == Txn.sender()),
+        Assert(Gtxn[Txn.group_index() - Int(2)].rekey_to() == Global.zero_address()),
+        Assert(Gtxn[Txn.group_index() - Int(2)].asset_close_to() == Global.zero_address()),
+        Assert(Gtxn[Txn.group_index() - Int(2)].asset_sender() == Global.zero_address()),
 
         # Verify seed 2 transfer (index - 1)
         Assert(Gtxn[Txn.group_index() - Int(1)].type_enum() == TxnType.AssetTransfer),
         Assert(Gtxn[Txn.group_index() - Int(1)].asset_amount() == Int(1)),
+        Assert(Gtxn[Txn.group_index() - Int(1)].asset_receiver() == Global.current_application_address()),
+        Assert(Gtxn[Txn.group_index() - Int(1)].sender() == Txn.sender()),
+        Assert(Gtxn[Txn.group_index() - Int(1)].rekey_to() == Global.zero_address()),
+        Assert(Gtxn[Txn.group_index() - Int(1)].asset_close_to() == Global.zero_address()),
+        Assert(Gtxn[Txn.group_index() - Int(1)].asset_sender() == Global.zero_address()),
 
         # Increment seed counter
         App.globalPut(GlobalSeedCounter, App.globalGet(GlobalSeedCounter) + Int(1)),
@@ -742,6 +753,7 @@ def approval_program():
         Assert(Gtxn[Txn.group_index() - Int(1)].xfer_asset() == App.globalGet(GlobalSlotAsset)),
         Assert(Gtxn[Txn.group_index() - Int(1)].asset_amount() == Int(1)),
         Assert(Gtxn[Txn.group_index() - Int(1)].asset_receiver() == Global.current_application_address()),
+        Assert(Gtxn[Txn.group_index() - Int(1)].sender() == Txn.sender()),
         Assert(Gtxn[Txn.group_index() - Int(1)].rekey_to() == Global.zero_address()),
         Assert(Gtxn[Txn.group_index() - Int(1)].asset_close_to() == Global.zero_address()),
         Assert(Gtxn[Txn.group_index() - Int(1)].asset_sender() == Global.zero_address()),
