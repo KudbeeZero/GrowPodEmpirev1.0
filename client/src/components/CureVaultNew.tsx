@@ -103,7 +103,7 @@ export default function CureVaultPage() {
             </div>
             <div className="cure-tier-duration">
               <Timer className="inline h-3.5 w-3.5 mr-1 -mt-0.5" />
-              {tier.durationMinutes} minute{tier.durationMinutes !== 1 ? 's' : ''} lock period
+              {tier.durationMinutes} minutes lock period
             </div>
             <p className="cure-tier-description">
               {tier.id === 'quick'
