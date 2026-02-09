@@ -153,7 +153,7 @@ export class DatabaseStorage implements IStorage {
   async getGlobalStats(): Promise<{ totalHarvests: number; totalBudMinted: string; totalPlayers: number; rareTerpenesFound: number }> {
     const [stats] = await this.db.select({
       totalHarvests: sql<number>`COALESCE(SUM(${playerStats.totalHarvests}), 0)`,
-      totalBudMinted: sql<string>`COALESCE(SUM(CAST(${playerStats.totalBudEarned} AS NUMERIC)), 0)::TEXT`,
+      totalBudMinted: sql<string>`CAST(COALESCE(SUM(CAST(${playerStats.totalBudEarned} AS NUMERIC)), 0) AS TEXT)`,
       totalPlayers: sql<number>`COUNT(*)`,
       rareTerpenesFound: sql<number>`COALESCE(SUM(${playerStats.rareTerpenesFound}), 0)`,
     }).from(playerStats);
