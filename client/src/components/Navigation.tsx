@@ -26,6 +26,7 @@ import {
   Flower2,
   Lock,
   Landmark,
+  Package,
 } from "lucide-react";
 import { useState } from "react";
 import { Button } from "./ui/button";
@@ -68,7 +69,7 @@ export function Navigation() {
     { href: "/vault", label: "Seed Vault", icon: Warehouse, description: "Manage your seed collection" },
     { href: "/lab", label: "Combiner Lab", icon: FlaskConical, description: "Breed and create new strains" },
     { href: "/store", label: "Supply Store", icon: Store, description: "Buy supplies and upgrades" },
-    { href: "/staking", label: "Staking", icon: Sprout, description: "Stake tokens for rewards" },
+    { href: "/inventory", label: "Inventory", icon: Package, description: "View your seed collection" },
   ];
 
   const communityItems = [
