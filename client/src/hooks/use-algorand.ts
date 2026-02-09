@@ -264,8 +264,21 @@ export function useInventory() {
 }
 
 export function useSeeds(): (UserSeed & { seed: SeedBankItem })[] {
-  // Seeds will be loaded from blockchain/backend when implemented
-  return [];
+  const { account } = useAlgorandContext();
+
+  const { data: seeds } = useQuery({
+    queryKey: ['/api/user-seeds', account],
+    enabled: !!account,
+    queryFn: async (): Promise<(UserSeed & { seed: SeedBankItem })[]> => {
+      if (!account) return [];
+      const response = await fetch(`/api/user-seeds/${account}`);
+      if (!response.ok) return [];
+      return response.json();
+    },
+    staleTime: 30000,
+  });
+
+  return seeds || [];
 }
 
 export function formatTokenAmount(amount: string | number, decimals: number = 6): string {
