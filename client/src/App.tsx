@@ -120,7 +120,9 @@ function Router() {
               </ErrorBoundary>
             )}
           </Route>
-          <Route path="/seeds" component={SeedSelection} />
+          <Route path="/seeds">
+            {() => <SeedSelection />}
+          </Route>
           <Route path="/pods" component={PodDisplay} />
           <Route path="/cure-vault" component={CureVaultNew} />
           <Route path="/central-bank" component={CentralBank} />

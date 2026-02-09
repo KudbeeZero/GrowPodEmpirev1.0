@@ -32,7 +32,6 @@ function getPeraWallet(): PeraWalletConnect {
   if (!_peraWallet) {
     _peraWallet = new PeraWalletConnect({
       chainId: CHAIN_ID,
-      projectId: REOWN_PROJECT_ID,
     });
   }
   return _peraWallet;
