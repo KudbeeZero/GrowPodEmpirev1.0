@@ -4,7 +4,7 @@ import { rm, readFile } from "fs/promises";
 
 // server deps to bundle to reduce openat(2) syscalls
 // which helps cold start times
-const allowlist = [
+const nodejsAllowlist = [
   "@google/generative-ai",
   "axios",
   "connect-pg-simple",
@@ -32,6 +32,16 @@ const allowlist = [
   "zod-validation-error",
 ];
 
+// For Cloudflare Workers, we need a minimal set
+// Most Node.js packages won't work, so we bundle very selectively
+const workerAllowlist = [
+  "drizzle-orm",
+  "drizzle-zod",
+  "zod",
+  "zod-validation-error",
+  "date-fns",
+];
+
 async function buildAll() {
   await rm("dist", { recursive: true, force: true });
 
@@ -44,18 +54,16 @@ async function buildAll() {
     ...Object.keys(pkg.dependencies || {}),
     ...Object.keys(pkg.devDependencies || {}),
   ];
-  const externals = allDeps.filter((dep) => !allowlist.includes(dep));
-
+  
   // Check if we're building for Cloudflare Workers
   const isWorkerBuild = process.env.BUILD_TARGET === "worker";
   const entryPoint = isWorkerBuild ? "server/worker.ts" : "server/index.ts";
   
   console.log(`Building server for ${isWorkerBuild ? "Cloudflare Workers" : "Node.js"}...`);
 
-  // For worker builds, we need to externalize pg and other Node.js-specific packages
-  const workerExternals = isWorkerBuild 
-    ? ['pg', 'pg-pool', 'connect-pg-simple', 'node-postgres', ...externals]
-    : externals;
+  // Use different allowlists based on the build target
+  const allowlist = isWorkerBuild ? workerAllowlist : nodejsAllowlist;
+  const externals = allDeps.filter((dep) => !allowlist.includes(dep));
 
   await esbuild({
     entryPoints: [entryPoint],
@@ -67,7 +75,7 @@ async function buildAll() {
       "process.env.NODE_ENV": '"production"',
     },
     minify: true,
-    external: workerExternals,
+    external: externals,
     logLevel: "info",
   });
 }
