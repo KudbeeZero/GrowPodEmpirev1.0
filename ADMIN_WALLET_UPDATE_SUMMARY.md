@@ -8,7 +8,7 @@ This update configures the GrowPod Empire smart contract with a new admin wallet
 
 **⚠️ IMPORTANT: For TestNet use only. Never use these credentials on MainNet.**
 
-- **Mnemonic**: `final adapt purpose intact naive action garbage curious feature tourist sense strong present snack control orbit pudding federal budget plug volcano olympic soda absorb monitor`
+- **Mnemonic**: `<TESTNET_ADMIN_MNEMONIC – DO NOT COMMIT REAL VALUE>` (store only in `.dev.vars` or environment variables)
 - **Address**: `HW6U3RKLOYEW2X2L4DERSJHBPG6G6UTKDWBSS2MKPZJOSAWKLP72NTIMNQ`
 - **Network**: Algorand TestNet (Chain ID: 416002)
 
