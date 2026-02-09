@@ -12,7 +12,14 @@ export async function registerRoutes(
   httpServer: Server,
   app: Express
 ): Promise<Server> {
-  
+
+  // Populate default seeds on startup (idempotent - only runs if table is empty)
+  try {
+    await storage.populateDefaultSeeds();
+  } catch (err) {
+    console.error("Failed to populate default seeds:", err);
+  }
+
   registerObjectStorageRoutes(app);
   
   app.post(api.users.login.path, async (req, res) => {

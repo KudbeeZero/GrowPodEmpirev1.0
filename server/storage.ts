@@ -1,6 +1,7 @@
 import { users, playerStats, songs, announcementVideos, seedBank, userSeeds, type User, type InsertUser, type PlayerStats, type Song, type InsertSong, type AnnouncementVideo, type InsertAnnouncementVideo, type SeedBankItem, type InsertSeedBankItem, type UserSeed, type InsertUserSeed } from "@shared/schema";
 import { db } from "./db";
 import { eq, desc, sql, and } from "drizzle-orm";
+import { getDefaultSeeds } from "./seed-data";
 
 export interface LeaderboardEntry {
   rank: number;
@@ -32,6 +33,7 @@ export interface IStorage {
   markAnnouncementWatched(walletAddress: string, announcementId: number): Promise<User | undefined>;
   hasUserWatchedAnnouncement(walletAddress: string, announcementId: number): Promise<boolean>;
   // Seed Bank
+  populateDefaultSeeds(): Promise<void>;
   getAllSeeds(): Promise<SeedBankItem[]>;
   getSeedById(id: number): Promise<SeedBankItem | undefined>;
   createSeed(seed: InsertSeedBankItem): Promise<SeedBankItem>;
@@ -218,6 +220,17 @@ export class DatabaseStorage implements IStorage {
   }
 
   // Seed Bank methods
+  async populateDefaultSeeds(): Promise<void> {
+    const existing = await db.select({ id: seedBank.id }).from(seedBank).limit(1);
+    if (existing.length > 0) return; // Already populated
+
+    const seeds = getDefaultSeeds();
+    for (const seed of seeds) {
+      await db.insert(seedBank).values(seed as any);
+    }
+    console.log(`Populated seed bank with ${seeds.length} default strains`);
+  }
+
   async getAllSeeds(): Promise<SeedBankItem[]> {
     const results = await db.select().from(seedBank).where(eq(seedBank.isActive, true)).orderBy(desc(seedBank.createdAt));
     return results;

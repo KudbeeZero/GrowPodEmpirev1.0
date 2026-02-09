@@ -72,6 +72,12 @@ export default function Dashboard() {
     enabled: !!account,
   });
 
+  // Fetch available seeds from shop (to show in seed selection dialog)
+  const { data: shopSeeds = [] } = useQuery<SeedBankItem[]>({
+    queryKey: ["/api/seed-bank"],
+    staleTime: 60000,
+  });
+
   // Mutation to use a seed from inventory
   const useSeedMutation = useMutation({
     mutationFn: async (seedId: number) => {
@@ -168,8 +174,11 @@ export default function Dashboard() {
       
       toast({
         title: "Setup Complete!",
-        description: "You can now mint your first GrowPod!",
+        description: "Visit the Seed Bank to choose your first strain, or plant a Mystery Seed now!",
       });
+
+      // Open seed selection dialog to prompt the user to plant
+      setSeedSelectOpen(true);
     } catch (error) {
       const errorMessage = error instanceof Error ? error.message : 'Transaction failed';
       toast({
@@ -1079,22 +1088,22 @@ export default function Dashboard() {
                     data-testid={`button-plant-seed-${userSeed.seedId}`}
                   >
                     <div className="flex items-center gap-3 w-full">
-                      <div 
+                      <div
                         className="w-12 h-12 rounded-full flex items-center justify-center shrink-0"
                         style={{ backgroundColor: `${userSeed.seed.glowColor || "#a855f7"}20` }}
                       >
                         <Leaf className="h-6 w-6" style={{ color: userSeed.seed.glowColor || "#a855f7" }} />
                       </div>
                       <div className="text-left flex-1 min-w-0">
-                        <p 
+                        <p
                           className="font-medium truncate"
                           style={{ color: userSeed.seed.glowColor || undefined }}
                         >
                           {userSeed.seed.name}
                         </p>
                         <p className="text-xs text-muted-foreground">
-                          {userSeed.seed.growthBonus && userSeed.seed.growthBonus > 0 
-                            ? `+${userSeed.seed.growthBonus}% yield bonus` 
+                          {userSeed.seed.growthBonus && userSeed.seed.growthBonus > 0
+                            ? `+${userSeed.seed.growthBonus}% yield bonus`
                             : userSeed.seed.rarity}
                         </p>
                       </div>
@@ -1104,6 +1113,42 @@ export default function Dashboard() {
                     </div>
                   </Button>
                 ))}
+              </>
+            ) : shopSeeds.length > 0 ? (
+              <>
+                <div className="flex items-center gap-2 pt-2">
+                  <div className="h-px flex-1 bg-border" />
+                  <span className="text-xs text-muted-foreground">Available Strains</span>
+                  <div className="h-px flex-1 bg-border" />
+                </div>
+                <div className="bg-gradient-to-br from-purple-500/10 to-pink-500/10 border border-purple-500/20 rounded-lg p-4">
+                  <p className="text-sm text-foreground mb-2 font-medium">
+                    {shopSeeds.length} premium strains available in the Seed Bank!
+                  </p>
+                  <div className="flex flex-wrap gap-1.5 mb-3">
+                    {shopSeeds.slice(0, 4).map((seed) => (
+                      <Badge
+                        key={seed.id}
+                        variant="outline"
+                        className="text-xs"
+                        style={{ borderColor: `${seed.glowColor || "#a855f7"}60`, color: seed.glowColor || "#a855f7" }}
+                      >
+                        {seed.name}
+                      </Badge>
+                    ))}
+                    {shopSeeds.length > 4 && (
+                      <Badge variant="outline" className="text-xs border-white/20">
+                        +{shopSeeds.length - 4} more
+                      </Badge>
+                    )}
+                  </div>
+                  <Link href="/seed-bank">
+                    <Button className="w-full bg-gradient-to-r from-purple-600 to-pink-600 hover:brightness-110">
+                      <Sparkles className="mr-2 h-4 w-4" />
+                      Browse the Seed Bank
+                    </Button>
+                  </Link>
+                </div>
               </>
             ) : (
               <div className="text-center py-6 text-muted-foreground">
