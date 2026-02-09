@@ -72,7 +72,7 @@ CREATE TABLE IF NOT EXISTS user_seeds (
   wallet_address TEXT NOT NULL,
   seed_id INTEGER NOT NULL,
   quantity INTEGER DEFAULT 1 NOT NULL,
-  acquired_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+  purchased_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
   FOREIGN KEY (seed_id) REFERENCES seed_bank(id)
 );
 
