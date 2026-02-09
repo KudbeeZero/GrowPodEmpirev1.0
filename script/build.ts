@@ -52,6 +52,11 @@ async function buildAll() {
   
   console.log(`Building server for ${isWorkerBuild ? "Cloudflare Workers" : "Node.js"}...`);
 
+  // For worker builds, we need to externalize pg and other Node.js-specific packages
+  const workerExternals = isWorkerBuild 
+    ? ['pg', 'pg-pool', 'connect-pg-simple', 'node-postgres', ...externals]
+    : externals;
+
   await esbuild({
     entryPoints: [entryPoint],
     platform: "node",
@@ -62,7 +67,7 @@ async function buildAll() {
       "process.env.NODE_ENV": '"production"',
     },
     minify: true,
-    external: externals,
+    external: workerExternals,
     logLevel: "info",
   });
 }

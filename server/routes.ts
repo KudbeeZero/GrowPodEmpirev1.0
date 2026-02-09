@@ -1,17 +1,23 @@
 import type { Express } from "express";
 import type { Server } from "http";
-import { storage } from "./storage";
+import { DatabaseStorage, type IStorage } from "./storage";
 import { api } from "@shared/routes";
 import { z } from "zod";
 import { registerObjectStorageRoutes } from "./replit_integrations/object_storage";
 import { insertSongSchema, insertAnnouncementVideoSchema, insertSeedBankSchema } from "@shared/schema";
+import type { DrizzleD1Database } from "drizzle-orm/d1";
+import type { NodePgDatabase } from "drizzle-orm/node-postgres";
 
 const ADMIN_WALLET = process.env.ADMIN_WALLET_ADDRESS || "";
 
 export async function registerRoutes(
-  httpServer: Server,
-  app: Express
-): Promise<Server> {
+  httpServer: Server | null,
+  app: Express,
+  dbInstance?: DrizzleD1Database<any> | NodePgDatabase<any>
+): Promise<Server | null> {
+  
+  // Create storage instance with the provided database connection
+  const storage: IStorage = new DatabaseStorage(dbInstance);
   
   registerObjectStorageRoutes(app);
   
