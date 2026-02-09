@@ -46,12 +46,12 @@ function getStageName(stage: number): string {
 
 export default function PodDisplay() {
   const { account } = useAlgorand();
-  const { pods, budBalance } = useGameState(account);
+  const { pods, budBalance, podSlots: unlockedSlots } = useGameState(account);
   const { toast } = useToast();
 
-  // Build pod slot data from game state, fill empty slots up to maxPods
+  // Build pod slot data from game state, fill empty slots up to unlocked pod slots
   const podSlots: PodSlotData[] = [];
-  for (let i = 0; i < TESTNET_CONFIG.maxPods; i++) {
+  for (let i = 0; i < unlockedSlots; i++) {
     const pod = pods[i];
     if (pod) {
       podSlots.push({
@@ -84,7 +84,7 @@ export default function PodDisplay() {
         <div>
           <h1 className="text-3xl font-display font-bold">Grow Pods</h1>
           <p className="text-muted-foreground">
-            {TESTNET_CONFIG.maxPods} slots available — {TESTNET_CONFIG.growthCycleMinutes} min growth cycles
+            {unlockedSlots} of {TESTNET_CONFIG.maxPods} slots unlocked — {TESTNET_CONFIG.growthCycleMinutes} min growth cycles
           </p>
         </div>
       </div>

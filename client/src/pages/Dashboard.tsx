@@ -39,7 +39,7 @@ const cannabisFacts = [
 
 export default function Dashboard() {
   const { account, isConnected, connectWallet } = useAlgorand();
-  const { budBalance, terpBalance, algoBalance, pods, activePods, canMintMorePods, maxPods, harvestCount } = useGameState(account);
+  const { budBalance, terpBalance, algoBalance, pods, activePods, canMintMorePods, maxPods, podSlots, harvestCount } = useGameState(account);
   const { mintPod, waterPlant, addNutrients, harvestPlant, cleanupPod, optInToApp, optInToAsset, checkAppOptedIn, checkAssetOptedIn } = useTransactions();
   const { toast } = useToast();
   const { permission, isSupported, requestPermission } = useNotifications();
@@ -215,7 +215,7 @@ export default function Dashboard() {
     if (!canMintMorePods) {
       toast({
         title: "Pod Limit Reached",
-        description: `You can only have ${maxPods} active pods at a time. Harvest or cleanup existing pods first.`,
+        description: `You can only have ${podSlots} active pods at a time. Harvest or cleanup existing pods, or unlock more slots.`,
         variant: "destructive",
       });
       return;
@@ -742,7 +742,7 @@ export default function Dashboard() {
                   <Plus className="mr-2 h-4 w-4" /> Plant Now
                 </Button>
                 <p className="text-xs text-muted-foreground mt-2">
-                  Pods: {activePods}/{maxPods} {!canMintMorePods && <span className="text-amber-500">(Max reached)</span>}
+                  Pods: {activePods}/{podSlots} {!canMintMorePods && <span className="text-amber-500">(Max reached)</span>}
                 </p>
               </CardContent>
             </Card>
@@ -803,7 +803,7 @@ export default function Dashboard() {
                 <div className="space-y-1 text-sm">
                   <div className="flex justify-between gap-2">
                     <span className="text-muted-foreground">Active Pods:</span>
-                    <span className="font-mono">{activePods}/{maxPods}</span>
+                    <span className="font-mono">{activePods}/{podSlots}</span>
                   </div>
                   <div className="flex justify-between gap-2">
                     <span className="text-muted-foreground">Ready to Harvest:</span>
@@ -858,7 +858,7 @@ export default function Dashboard() {
                   </div>
                   <div className="flex items-center justify-between text-xs">
                     <span className="text-muted-foreground">Current Slots:</span>
-                    <span className="font-mono text-yellow-500">{maxPods}/5</span>
+                    <span className="font-mono text-yellow-500">{podSlots}/{maxPods}</span>
                   </div>
                 </div>
                 
