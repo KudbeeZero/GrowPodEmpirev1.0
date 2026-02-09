@@ -46,7 +46,7 @@ export interface IStorage {
 }
 
 export class DatabaseStorage implements IStorage {
-  private db: DrizzleD1Database<any> | NodePgDatabase<any>;
+  private db: any; // DrizzleD1Database or NodePgDatabase - both have compatible APIs
 
   constructor(dbInstance?: DrizzleD1Database<any> | NodePgDatabase<any>) {
     this.db = dbInstance || db;
