@@ -27,7 +27,7 @@ Expected output:
 #### Update `.dev.vars` (local development)
 ```bash
 ADMIN_WALLET_ADDRESS=HW6U3RKLOYEW2X2L4DERSJHBPG6G6UTKDWBSS2MKPZJOSAWKLP72NTIMNQ
-ALGO_MNEMONIC="final adapt purpose intact naive action garbage curious feature tourist sense strong present snack control orbit pudding federal budget plug volcano olympic soda absorb monitor"
+ALGO_MNEMONIC="<admin_wallet_mnemonic_from_secure_storage>"
 VITE_GROWPOD_APP_ID=<new_app_id>
 VITE_BUD_ASSET_ID=<new_bud_id>
 VITE_TERP_ASSET_ID=<new_terp_id>
