@@ -4,6 +4,9 @@ main = "dist/index.js"
 compatibility_date = "2026-01-30"
 compatibility_flags = ["nodejs_compat"]
 
+# Skip wrangler's built-in esbuild bundling since we pre-bundle via script/build.ts
+no_bundle = true
+
 # Cloudflare Account ID
 account_id = "b591c2e07ca352d33076f4d2f8414b89"
 
