@@ -226,7 +226,7 @@ Script to update multiple files:
 #!/bin/bash
 # update-token-ids.sh
 
-OLD_BUD_ID="753910204"
+OLD_BUD_ID="755243947"
 NEW_BUD_ID="999999999"
 
 FILES=(

@@ -30,7 +30,7 @@ Use this checklist to complete your Cloudflare Workers deployment setup.
 - [ ] (Optional) Configure admin wallet for TestNet:
   ```bash
   npx wrangler secret put ADMIN_WALLET_ADDRESS
-  # Enter: ZK55X7SGIGMLGORVNJHHPTYZMZOGSQNVROBHX7N27X6ZEQRHAZ2UPKOXQU
+  # Enter: HW6U3RKLOYEW2X2L4DERSJHBPG6G6UTKDWBSS2MKPZJOSAWKLP72NTIMNQ
   ```
 
 ### 5. Local Development Setup

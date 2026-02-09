@@ -20,13 +20,13 @@ cat validation-report.json
 
 ### 1. Admin Wallet Address ✅
 - Ensures TestNet admin wallet is consistent across all files
-- Expected: `ZK55X7SGIGMLGORVNJHHPTYZMZOGSQNVROBHX7N27X6ZEQRHAZ2UPKOXQU`
+- Expected: `HW6U3RKLOYEW2X2L4DERSJHBPG6G6UTKDWBSS2MKPZJOSAWKLP72NTIMNQ`
 
 ### 2. Token IDs ✅
-- **$BUD**: 753910204
-- **$TERP**: 753910205
-- **$SLOT**: 753910206
-- **App ID**: 753910199
+- **$BUD**: 755243947
+- **$TERP**: 755243948
+- **$SLOT**: 755243949
+- **App ID**: 755243944
 
 ### 3. Algorand Configuration ✅
 - Chain ID: 416002

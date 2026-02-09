@@ -17,7 +17,7 @@ python scripts/verify-deployment.py <APP_ID>
 
 Expected output:
 - ✅ Contract found on TestNet
-- ✅ Creator matches expected admin wallet: `ZK55X7SGIGMLGORVNJHHPTYZMZOGSQNVROBHX7N27X6ZEQRHAZ2UPKOXQU`
+- ✅ Creator matches expected admin wallet: `HW6U3RKLOYEW2X2L4DERSJHBPG6G6UTKDWBSS2MKPZJOSAWKLP72NTIMNQ`
 - ✅ Owner matches expected admin wallet
 - ✅ All ASAs created (BUD, TERP, Slot)
 - ✅ ASA creators match admin wallet
@@ -26,8 +26,8 @@ Expected output:
 
 #### Update `.dev.vars` (local development)
 ```bash
-ADMIN_WALLET_ADDRESS=ZK55X7SGIGMLGORVNJHHPTYZMZOGSQNVROBHX7N27X6ZEQRHAZ2UPKOXQU
-ALGO_MNEMONIC="any virus dynamic mind figure glide shove peanut village grab wisdom film luggage shoulder fetch license tunnel daring lounge rubber eagle source inch able world"
+ADMIN_WALLET_ADDRESS=HW6U3RKLOYEW2X2L4DERSJHBPG6G6UTKDWBSS2MKPZJOSAWKLP72NTIMNQ
+ALGO_MNEMONIC="final adapt purpose intact naive action garbage curious feature tourist sense strong present snack control orbit pudding federal budget plug volcano olympic soda absorb monitor"
 VITE_GROWPOD_APP_ID=<new_app_id>
 VITE_BUD_ASSET_ID=<new_bud_id>
 VITE_TERP_ASSET_ID=<new_terp_id>
@@ -52,7 +52,7 @@ VITE_GROWPOD_APP_ADDRESS = "<new_app_address>"
 #### Update Cloudflare Secrets (production)
 ```bash
 npx wrangler secret put ADMIN_WALLET_ADDRESS
-# Enter: ZK55X7SGIGMLGORVNJHHPTYZMZOGSQNVROBHX7N27X6ZEQRHAZ2UPKOXQU
+# Enter: HW6U3RKLOYEW2X2L4DERSJHBPG6G6UTKDWBSS2MKPZJOSAWKLP72NTIMNQ
 ```
 
 - [ ] Cloudflare `ADMIN_WALLET_ADDRESS` secret configured
@@ -84,10 +84,10 @@ File: `client/src/context/AlgorandContext.tsx`
 Verify the `CONTRACT_CONFIG` uses environment variables:
 ```typescript
 export const CONTRACT_CONFIG = {
-  appId: Number(import.meta.env.VITE_GROWPOD_APP_ID) || 753910199,
-  budAssetId: Number(import.meta.env.VITE_BUD_ASSET_ID) || 753910204,
-  terpAssetId: Number(import.meta.env.VITE_TERP_ASSET_ID) || 753910205,
-  slotAssetId: Number(import.meta.env.VITE_SLOT_ASSET_ID) || 753910206,
+  appId: Number(import.meta.env.VITE_GROWPOD_APP_ID) || 755243944,
+  budAssetId: Number(import.meta.env.VITE_BUD_ASSET_ID) || 755243947,
+  terpAssetId: Number(import.meta.env.VITE_TERP_ASSET_ID) || 755243948,
+  slotAssetId: Number(import.meta.env.VITE_SLOT_ASSET_ID) || 755243949,
   appAddress: import.meta.env.VITE_GROWPOD_APP_ADDRESS || '...',
 };
 ```

@@ -6,8 +6,8 @@ This guide explains how to deploy the GrowPod Empire smart contract with the upd
 
 **⚠️ WARNING: This wallet is for TestNet deployment only. Never use TestNet mnemonics on MainNet.**
 
-- **Mnemonic**: `any virus dynamic mind figure glide shove peanut village grab wisdom film luggage shoulder fetch license tunnel daring lounge rubber eagle source inch able world`
-- **Address**: `ZK55X7SGIGMLGORVNJHHPTYZMZOGSQNVROBHX7N27X6ZEQRHAZ2UPKOXQU`
+- **Mnemonic**: `final adapt purpose intact naive action garbage curious feature tourist sense strong present snack control orbit pudding federal budget plug volcano olympic soda absorb monitor`
+- **Address**: `HW6U3RKLOYEW2X2L4DERSJHBPG6G6UTKDWBSS2MKPZJOSAWKLP72NTIMNQ`
 - **Network**: Algorand TestNet (Chain ID: 416002)
 
 ## Prerequisites
@@ -21,12 +21,12 @@ Before deploying, ensure you have:
 
 2. **TestNet ALGO** - Fund the admin wallet with at least 2 ALGO:
    - Visit: https://bank.testnet.algorand.network/
-   - Enter address: `ZK55X7SGIGMLGORVNJHHPTYZMZOGSQNVROBHX7N27X6ZEQRHAZ2UPKOXQU`
+   - Enter address: `HW6U3RKLOYEW2X2L4DERSJHBPG6G6UTKDWBSS2MKPZJOSAWKLP72NTIMNQ`
    - Request TestNet ALGO
 
 3. **Environment Variables** - Set the mnemonic:
    ```bash
-   export ALGO_MNEMONIC="any virus dynamic mind figure glide shove peanut village grab wisdom film luggage shoulder fetch license tunnel daring lounge rubber eagle source inch able world"
+   export ALGO_MNEMONIC="final adapt purpose intact naive action garbage curious feature tourist sense strong present snack control orbit pudding federal budget plug volcano olympic soda absorb monitor"
    ```
 
 ## Deployment Steps
@@ -50,7 +50,7 @@ Deploy the contract and create tokens:
 
 ```bash
 cd contracts
-ALGO_MNEMONIC="any virus dynamic mind figure glide shove peanut village grab wisdom film luggage shoulder fetch license tunnel daring lounge rubber eagle source inch able world" python3 deploy.py
+ALGO_MNEMONIC="final adapt purpose intact naive action garbage curious feature tourist sense strong present snack control orbit pudding federal budget plug volcano olympic soda absorb monitor" python3 deploy.py
 ```
 
 The script will:
@@ -66,8 +66,8 @@ After successful deployment, the script outputs environment variables. Update th
 
 #### Update `.dev.vars` (local development):
 ```bash
-ADMIN_WALLET_ADDRESS=ZK55X7SGIGMLGORVNJHHPTYZMZOGSQNVROBHX7N27X6ZEQRHAZ2UPKOXQU
-ALGO_MNEMONIC="any virus dynamic mind figure glide shove peanut village grab wisdom film luggage shoulder fetch license tunnel daring lounge rubber eagle source inch able world"
+ADMIN_WALLET_ADDRESS=HW6U3RKLOYEW2X2L4DERSJHBPG6G6UTKDWBSS2MKPZJOSAWKLP72NTIMNQ
+ALGO_MNEMONIC="final adapt purpose intact naive action garbage curious feature tourist sense strong present snack control orbit pudding federal budget plug volcano olympic soda absorb monitor"
 VITE_GROWPOD_APP_ID=<new_app_id>
 VITE_BUD_ASSET_ID=<new_bud_id>
 VITE_TERP_ASSET_ID=<new_terp_id>
@@ -88,7 +88,7 @@ VITE_GROWPOD_APP_ADDRESS = "<new_app_address>"
 #### Update Cloudflare Secrets (production):
 ```bash
 npx wrangler secret put ADMIN_WALLET_ADDRESS
-# Enter: ZK55X7SGIGMLGORVNJHHPTYZMZOGSQNVROBHX7N27X6ZEQRHAZ2UPKOXQU
+# Enter: HW6U3RKLOYEW2X2L4DERSJHBPG6G6UTKDWBSS2MKPZJOSAWKLP72NTIMNQ
 
 # Optional: If you need to redeploy from Cloudflare
 npx wrangler secret put ALGO_MNEMONIC
@@ -137,7 +137,7 @@ The deployment script automatically updates environment variables, but verify th
 
 ### Admin Wallet Permissions
 
-The admin wallet (`ZK55X7SGIGMLGORVNJHHPTYZMZOGSQNVROBHX7N27X6ZEQRHAZ2UPKOXQU`) has:
+The admin wallet (`HW6U3RKLOYEW2X2L4DERSJHBPG6G6UTKDWBSS2MKPZJOSAWKLP72NTIMNQ`) has:
 
 - **Smart Contract Owner**: Can call `bootstrap` and `set_asa_ids`
 - **Token Manager**: Has manager, reserve, freeze, and clawback roles for $BUD, $TERP, and Slot tokens
@@ -160,7 +160,7 @@ ERROR: Insufficient funds. Need at least 2 ALGO for deployment.
 
 **Solution**: Fund the admin wallet with TestNet ALGO:
 - Visit: https://bank.testnet.algorand.network/
-- Request ALGO for: `ZK55X7SGIGMLGORVNJHHPTYZMZOGSQNVROBHX7N27X6ZEQRHAZ2UPKOXQU`
+- Request ALGO for: `HW6U3RKLOYEW2X2L4DERSJHBPG6G6UTKDWBSS2MKPZJOSAWKLP72NTIMNQ`
 
 ### Network Connection Error
 

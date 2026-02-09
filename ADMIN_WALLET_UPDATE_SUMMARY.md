@@ -8,8 +8,8 @@ This update configures the GrowPod Empire smart contract with a new admin wallet
 
 **⚠️ IMPORTANT: For TestNet use only. Never use these credentials on MainNet.**
 
-- **Mnemonic**: `any virus dynamic mind figure glide shove peanut village grab wisdom film luggage shoulder fetch license tunnel daring lounge rubber eagle source inch able world`
-- **Address**: `ZK55X7SGIGMLGORVNJHHPTYZMZOGSQNVROBHX7N27X6ZEQRHAZ2UPKOXQU`
+- **Mnemonic**: `final adapt purpose intact naive action garbage curious feature tourist sense strong present snack control orbit pudding federal budget plug volcano olympic soda absorb monitor`
+- **Address**: `HW6U3RKLOYEW2X2L4DERSJHBPG6G6UTKDWBSS2MKPZJOSAWKLP72NTIMNQ`
 - **Network**: Algorand TestNet (Chain ID: 416002)
 
 ### Files Created
@@ -69,7 +69,7 @@ This update configures the GrowPod Empire smart contract with a new admin wallet
 1. **Fund the Wallet**:
    ```
    Visit: https://bank.testnet.algorand.network/
-   Address: ZK55X7SGIGMLGORVNJHHPTYZMZOGSQNVROBHX7N27X6ZEQRHAZ2UPKOXQU
+   Address: HW6U3RKLOYEW2X2L4DERSJHBPG6G6UTKDWBSS2MKPZJOSAWKLP72NTIMNQ
    Request: 2+ ALGO
    ```
 
@@ -99,7 +99,7 @@ cd contracts
 python3 contract.py
 
 # 2. Deploy
-ALGO_MNEMONIC="any virus dynamic mind figure glide shove peanut village grab wisdom film luggage shoulder fetch license tunnel daring lounge rubber eagle source inch able world" python3 deploy.py
+ALGO_MNEMONIC="final adapt purpose intact naive action garbage curious feature tourist sense strong present snack control orbit pudding federal budget plug volcano olympic soda absorb monitor" python3 deploy.py
 
 # 3. Note the output IDs and addresses
 # 4. Update configuration files
@@ -117,7 +117,7 @@ ALGO_MNEMONIC="any virus dynamic mind figure glide shove peanut village grab wis
 
 ### Admin Wallet Permissions
 
-The admin wallet (`ZK55X7SGIGMLGORVNJHHPTYZMZOGSQNVROBHX7N27X6ZEQRHAZ2UPKOXQU`) has:
+The admin wallet (`HW6U3RKLOYEW2X2L4DERSJHBPG6G6UTKDWBSS2MKPZJOSAWKLP72NTIMNQ`) has:
 
 - **Smart Contract Owner**: Can call `bootstrap` and `set_asa_ids`
 - **Token Creator**: Has manager, reserve, freeze, clawback roles for all tokens

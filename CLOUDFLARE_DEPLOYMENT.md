@@ -95,7 +95,7 @@ npx wrangler secret put DATABASE_URL
 
 # TestNet admin wallet address
 npx wrangler secret put ADMIN_WALLET_ADDRESS
-# Enter: ZK55X7SGIGMLGORVNJHHPTYZMZOGSQNVROBHX7N27X6ZEQRHAZ2UPKOXQU
+# Enter: HW6U3RKLOYEW2X2L4DERSJHBPG6G6UTKDWBSS2MKPZJOSAWKLP72NTIMNQ
 
 # TestNet deployment mnemonic (if needed)
 npx wrangler secret put ALGO_MNEMONIC

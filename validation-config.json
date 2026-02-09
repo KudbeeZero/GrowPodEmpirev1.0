@@ -5,7 +5,7 @@
   "validation_rules": {
     "admin_wallet": {
       "enabled": true,
-      "expected_value": "ZK55X7SGIGMLGORVNJHHPTYZMZOGSQNVROBHX7N27X6ZEQRHAZ2UPKOXQU",
+      "expected_value": "HW6U3RKLOYEW2X2L4DERSJHBPG6G6UTKDWBSS2MKPZJOSAWKLP72NTIMNQ",
       "files_to_check": [
         ".dev.vars.example",
         ".github/copilot-instructions.md",
@@ -17,15 +17,15 @@
         "CLOUDFLARE_DEPLOYMENT.md",
         "wrangler.toml"
       ],
-      "pattern": "ZK55X7SGIGMLGORVNJHHPTYZMZOGSQNVROBHX7N27X6ZEQRHAZ2UPKOXQU",
+      "pattern": "HW6U3RKLOYEW2X2L4DERSJHBPG6G6UTKDWBSS2MKPZJOSAWKLP72NTIMNQ",
       "description": "TestNet admin wallet address - must be consistent across all configuration files"
     },
     "token_ids": {
       "enabled": true,
       "tokens": {
         "BUD": {
-          "asset_id": "753910204",
-          "app_id": "753910199",
+          "asset_id": "755243947",
+          "app_id": "755243944",
           "files_to_check": [
             "client/src/context/AlgorandContext.tsx",
             ".dev.vars.example",
@@ -35,7 +35,7 @@
           "description": "$BUD token - harvest commodity token"
         },
         "TERP": {
-          "asset_id": "753910205",
+          "asset_id": "755243948",
           "files_to_check": [
             "client/src/context/AlgorandContext.tsx",
             ".dev.vars.example",
@@ -45,7 +45,7 @@
           "description": "$TERP token - terpene rights/governance token"
         },
         "SLOT": {
-          "asset_id": "753910206",
+          "asset_id": "755243949",
           "files_to_check": [
             "client/src/context/AlgorandContext.tsx",
             ".dev.vars.example",

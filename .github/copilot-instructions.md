@@ -186,11 +186,11 @@ Contract addresses and IDs are configured in `client/src/context/AlgorandContext
 
 ```typescript
 export const CONTRACT_CONFIG = {
-  appId: 753910199,           // Main application ID
-  budAssetId: 753910204,      // $BUD token ASA ID
-  terpAssetId: 753910205,     // $TERP token ASA ID
-  slotAssetId: 753910206,     // $SLOT token ASA ID
-  appAddress: "...",          // Contract address
+  appId: 755243944,           // Main application ID
+  budAssetId: 755243947,      // $BUD token ASA ID
+  terpAssetId: 755243948,     // $TERP token ASA ID
+  slotAssetId: 755243949,     // $SLOT token ASA ID
+  appAddress: "CWGAVWZRVKKFHRYZHEPQPELVJMFNW2QMIWNEB2H3ZXCKOXRIPKWCW2IBRI",          // Contract address
 };
 ```
 
@@ -250,12 +250,12 @@ DATABASE_URL=postgresql://...
 ### Optional (Blockchain Features)
 
 ```bash
-VITE_GROWPOD_APP_ID=753910199
-VITE_BUD_ASSET_ID=753910204
-VITE_TERP_ASSET_ID=753910205
-VITE_SLOT_ASSET_ID=753910206
-VITE_GROWPOD_APP_ADDRESS=...
-ADMIN_WALLET_ADDRESS=ZK55X7SGIGMLGORVNJHHPTYZMZOGSQNVROBHX7N27X6ZEQRHAZ2UPKOXQU  # TestNet only
+VITE_GROWPOD_APP_ID=755243944
+VITE_BUD_ASSET_ID=755243947
+VITE_TERP_ASSET_ID=755243948
+VITE_SLOT_ASSET_ID=755243949
+VITE_GROWPOD_APP_ADDRESS=CWGAVWZRVKKFHRYZHEPQPELVJMFNW2QMIWNEB2H3ZXCKOXRIPKWCW2IBRI
+ADMIN_WALLET_ADDRESS=HW6U3RKLOYEW2X2L4DERSJHBPG6G6UTKDWBSS2MKPZJOSAWKLP72NTIMNQ  # TestNet only
 ```
 
 ### For Smart Contract Deployment (TestNet)

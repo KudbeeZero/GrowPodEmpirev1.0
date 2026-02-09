@@ -47,7 +47,7 @@ Validates consistency of the admin wallet address across the repository.
 {
   "admin_wallet": {
     "enabled": true,
-    "expected_value": "ZK55X7SGIGMLGORVNJHHPTYZMZOGSQNVROBHX7N27X6ZEQRHAZ2UPKOXQU",
+    "expected_value": "HW6U3RKLOYEW2X2L4DERSJHBPG6G6UTKDWBSS2MKPZJOSAWKLP72NTIMNQ",
     "files_to_check": [
       ".dev.vars.example",
       "README.md",
@@ -94,8 +94,8 @@ Validates token and application IDs across the codebase.
     "enabled": true,
     "tokens": {
       "BUD": {
-        "asset_id": "753910204",
-        "app_id": "753910199",
+        "asset_id": "755243947",
+        "app_id": "755243944",
         "files_to_check": [
           "client/src/context/AlgorandContext.tsx",
           ".dev.vars.example"
@@ -103,7 +103,7 @@ Validates token and application IDs across the codebase.
         "description": "$BUD token - harvest commodity token"
       },
       "TERP": {
-        "asset_id": "753910205",
+        "asset_id": "755243948",
         "files_to_check": [
           "client/src/context/AlgorandContext.tsx"
         ],
@@ -388,7 +388,7 @@ Validates token economy values in documentation.
   "validation_rules": {
     "admin_wallet": {
       "enabled": true,
-      "expected_value": "ZK55X7SGIGMLGORVNJHHPTYZMZOGSQNVROBHX7N27X6ZEQRHAZ2UPKOXQU",
+      "expected_value": "HW6U3RKLOYEW2X2L4DERSJHBPG6G6UTKDWBSS2MKPZJOSAWKLP72NTIMNQ",
       "files_to_check": [".dev.vars.example", "README.md"],
       "description": "Admin wallet consistency"
     },
@@ -396,7 +396,7 @@ Validates token economy values in documentation.
       "enabled": true,
       "tokens": {
         "BUD": {
-          "asset_id": "753910204",
+          "asset_id": "755243947",
           "files_to_check": ["client/src/context/AlgorandContext.tsx"]
         }
       }

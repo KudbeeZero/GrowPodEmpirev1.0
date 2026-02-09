@@ -45,13 +45,13 @@ Successfully implemented a comprehensive, modular, and automated repository cons
 ### ✅ Admin Wallet Address
 - Validates TestNet admin wallet consistency
 - Checks 10 files across the repository
-- Expected: `ZK55X7SGIGMLGORVNJHHPTYZMZOGSQNVROBHX7N27X6ZEQRHAZ2UPKOXQU`
+- Expected: `HW6U3RKLOYEW2X2L4DERSJHBPG6G6UTKDWBSS2MKPZJOSAWKLP72NTIMNQ`
 
 ### ✅ Token IDs
-- **$BUD Token**: 753910204
-- **$TERP Token**: 753910205
-- **$SLOT Token**: 753910206
-- **App ID**: 753910199
+- **$BUD Token**: 755243947
+- **$TERP Token**: 755243948
+- **$SLOT Token**: 755243949
+- **App ID**: 755243944
 - Validates consistency across code and documentation
 
 ### ✅ Algorand Configuration

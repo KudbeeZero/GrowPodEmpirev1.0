@@ -115,7 +115,7 @@ See `ADMIN_WALLET_DEPLOYMENT.md` for complete setup instructions.
 ### Local Development (.dev.vars)
 ```bash
 # Admin wallet (TestNet only)
-ADMIN_WALLET_ADDRESS=ZK55X7SGIGMLGORVNJHHPTYZMZOGSQNVROBHX7N27X6ZEQRHAZ2UPKOXQU
+ADMIN_WALLET_ADDRESS=HW6U3RKLOYEW2X2L4DERSJHBPG6G6UTKDWBSS2MKPZJOSAWKLP72NTIMNQ
 ALGO_MNEMONIC="your 25-word mnemonic here"
 
 # Contract configuration (set after deployment)

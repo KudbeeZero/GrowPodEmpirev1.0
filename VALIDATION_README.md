@@ -40,8 +40,8 @@ cat validation-report.json
 | Category | Details |
 |----------|---------|
 | **Admin Wallet** | TestNet admin wallet consistency across 10 files |
-| **Token IDs** | $BUD (753910204), $TERP (753910205), $SLOT (753910206) |
-| **App ID** | Smart contract application ID (753910199) |
+| **Token IDs** | $BUD (755243947), $TERP (755243948), $SLOT (755243949) |
+| **App ID** | Smart contract application ID (755243944) |
 | **Algorand Config** | Chain ID (416002), Network (TestNet), Algod server |
 | **Cloudflare** | Account ID, Database ID, Database name |
 | **Env Variables** | Documentation of 7 required environment variables |
