@@ -1,4 +1,5 @@
 import { type GrowPod, formatCooldown, NUTRIENT_COOLDOWN, WATER_COOLDOWN } from "@/hooks/use-algorand";
+import { TESTNET_CONFIG } from "@/data/testnetConfig";
 import { cn } from "@/lib/utils";
 import { 
   Droplets, 
@@ -14,17 +15,17 @@ import { Button } from "./ui/button";
 import { Progress } from "./ui/progress";
 import { Badge } from "./ui/badge";
 import { motion, AnimatePresence } from "framer-motion";
-import { useEffect, useState } from "react";
+import { memo, useEffect, useState } from "react";
 
-// Stage images - new consistent pod visuals
-import emptyPodImage from "@assets/7E2DCD79-6E12-4293-B9B5-5201C0EFC9EB_1768755213394.png";
+// Stage images - semantically named pod visuals
+import emptyPodImage from "@assets/pod-empty.png";
 import seedlingAnimation from "@assets/seedling_animation.mp4";
-import seedlingPodImage from "@assets/8FB8A93B-2A96-4974-88BB-83E5EA7E9FA2_1768743434278.png";
-import youngPodImage from "@assets/BCD9AEF2-730A-4176-8342-F462B3B83E92_1768743434278.png";
-import vegetativePodImage from "@assets/F322B8F1-F1D1-4058-ABDF-78160DFA37D8_1768755213394.png";
-import floweringPodImage from "@assets/7C542371-F326-4E95-AED7-A466A176000D_1768755213394.png";
-import harvestReadyPodImage from "@assets/5D819CC1-3731-4404-B2D9-B373C29A7C51_1768755213394.png";
-import cleanupPodImage from "@assets/56C0CC72-650C-4187-92E6-0820A9E1C9B2_1768755213394.png";
+import seedlingPodImage from "@assets/pod-seedling.png";
+import youngPodImage from "@assets/pod-young.png";
+import vegetativePodImage from "@assets/pod-vegetative.png";
+import floweringPodImage from "@assets/pod-flowering.png";
+import harvestReadyPodImage from "@assets/pod-harvest.png";
+import cleanupPodImage from "@assets/pod-cleanup.png";
 
 // Map stage numbers to images
 const stageImages: Record<number, string> = {
@@ -67,7 +68,7 @@ interface PodCardProps {
   isLoading?: boolean;
 }
 
-export function PodCard({ pod, onWater, onNutrients, onHarvest, onCleanup, isLoading = false }: PodCardProps) {
+export const PodCard = memo(function PodCard({ pod, onWater, onNutrients, onHarvest, onCleanup, isLoading = false }: PodCardProps) {
   const [cooldownDisplay, setCooldownDisplay] = useState('');
   const [nutrientCooldownDisplay, setNutrientCooldownDisplay] = useState('');
   
@@ -95,7 +96,7 @@ export function PodCard({ pod, onWater, onNutrients, onHarvest, onCleanup, isLoa
     };
     
     updateCooldown();
-    const interval = setInterval(updateCooldown, 60000);
+    const interval = setInterval(updateCooldown, 1000);
     return () => clearInterval(interval);
   }, [pod.lastWatered, pod.waterCooldownRemaining]);
 
@@ -114,7 +115,7 @@ export function PodCard({ pod, onWater, onNutrients, onHarvest, onCleanup, isLoa
     };
     
     updateNutrientCooldown();
-    const interval = setInterval(updateNutrientCooldown, 60000);
+    const interval = setInterval(updateNutrientCooldown, 1000);
     return () => clearInterval(interval);
   }, [pod.lastNutrients, pod.nutrientCooldownRemaining]);
 
@@ -277,7 +278,7 @@ export function PodCard({ pod, onWater, onNutrients, onHarvest, onCleanup, isLoa
             disabled={isLoading}
             data-testid={`button-cleanup-${pod.id}`}
           >
-            <Trash2 className="mr-2 h-4 w-4" /> Clean Pod (500 $BUD)
+            <Trash2 className="mr-2 h-4 w-4" /> Clean Pod ({TESTNET_CONFIG.economics.cleanupCost} $BUD)
           </Button>
         ) : isDead ? (
           <Button variant="destructive" className="w-full opacity-50" disabled>
@@ -320,4 +321,4 @@ export function PodCard({ pod, onWater, onNutrients, onHarvest, onCleanup, isLoa
       </div>
     </motion.div>
   );
-}
+});

@@ -1,6 +1,7 @@
 /**
  * TestNet Configuration for GrowPod Empire
- * All timers are in MINUTES for fast TestNet iteration.
+ * Single source of truth for all game constants.
+ * Cooldown values match the smart contract (contract.py).
  */
 
 export const TESTNET_CONFIG = {
@@ -14,8 +15,8 @@ export const TESTNET_CONFIG = {
   // Growth Timing (in seconds for internal use)
   growthCycleSeconds: 5 * 60,          // 5 minutes per growth stage
   growthCycleMinutes: 5,               // 5 minutes display
-  waterCooldownSeconds: 60,            // 1 minute between waters on testnet
-  nutrientCooldownSeconds: 60,         // 1 minute between nutrients
+  waterCooldownSeconds: 600,           // 10 minutes between waters (matches contract)
+  nutrientCooldownSeconds: 600,        // 10 minutes between nutrients (matches contract)
 
   // Cure Vault Tiers (in seconds)
   cureVault: {
@@ -26,16 +27,19 @@ export const TESTNET_CONFIG = {
     ],
   },
 
-  // Economics
+  // Economics (in display units, NOT raw on-chain units)
   economics: {
     baseYield: 5000,          // Base $BUD per harvest
-    cleanupCost: 2000,        // $BUD to clean diseased pod
+    cleanupCost: 500,         // $BUD to clean pod (matches contract)
     breedCost: 1000,          // $BUD to breed
-    slotUnlockCost: 2500,     // $BUD to unlock slot
+    slotUnlockCost: 2500,     // $BUD to claim slot token
     centralBankFeePercent: 10, // 10% total fee
     centralBankBurnPercent: 5, // 5% burn
     centralBankTreasuryPercent: 5, // 5% treasury
   },
+
+  // Token decimals (used to convert display <-> on-chain amounts)
+  tokenDecimals: 6,
 
   // Pods
   maxPods: 5,
@@ -57,7 +61,19 @@ export const TESTNET_CONFIG = {
   // Waters needed to advance
   watersPerStage: 2,   // 10 total waters / 5 stages
   totalWatersNeeded: 10,
+
+  // Query refetch intervals (ms)
+  balanceRefetchInterval: 30_000,   // 30s for token balances
+  stateRefetchInterval: 15_000,     // 15s for local state
+
+  // Cooldown display update interval (ms)
+  cooldownUpdateInterval: 1_000,    // 1s for countdown timers
 } as const;
+
+/** Convert display token amount to on-chain raw amount */
+export function toRawAmount(displayAmount: number): bigint {
+  return BigInt(displayAmount * Math.pow(10, TESTNET_CONFIG.tokenDecimals));
+}
 
 export type CureVaultTier = typeof TESTNET_CONFIG.cureVault.tiers[number];
 

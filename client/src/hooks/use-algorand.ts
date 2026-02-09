@@ -2,6 +2,7 @@ import { useMemo, useCallback } from 'react';
 import algosdk from 'algosdk';
 import { useQuery, useQueryClient } from '@tanstack/react-query';
 import { useAlgorandContext, CONTRACT_CONFIG, algodClient } from '@/context/AlgorandContext';
+import { TESTNET_CONFIG, toRawAmount } from '@/data/testnetConfig';
 import type { UserSeed, SeedBankItem } from '@shared/schema';
 
 export { CONTRACT_CONFIG } from '@/context/AlgorandContext';
@@ -10,11 +11,15 @@ export { CONTRACT_CONFIG } from '@/context/AlgorandContext';
 export type PodStage = 0 | 1 | 2 | 3 | 4 | 5 | 6;
 export type PodStatus = 'empty' | 'seedling' | 'vegetative' | 'flowering' | 'mature' | 'harvest_ready' | 'dead' | 'needs_cleanup';
 
-// Constants for cooldowns (TestNet values - 10 minutes each)
-export const WATER_COOLDOWN = 600; // 10 minutes in seconds (TestNet)
-export const WATER_COOLDOWN_TESTNET = 600; // 10 minutes in seconds (TestNet)
-export const NUTRIENT_COOLDOWN = 600; // 10 minutes in seconds (TestNet)
-export const MAX_PODS = 5; // Maximum number of pods a player can have
+// Re-export cooldowns from centralized config for backward compat
+export const WATER_COOLDOWN = TESTNET_CONFIG.waterCooldownSeconds;
+export const NUTRIENT_COOLDOWN = TESTNET_CONFIG.nutrientCooldownSeconds;
+export const MAX_PODS = TESTNET_CONFIG.maxPods;
+
+/** Get the correct smart contract method name for a given pod and action */
+function getPodMethodName(podId: number, action: string): string {
+  return podId === 2 ? `${action}_2` : action;
+}
 
 export interface GrowPod {
   id: number;
@@ -93,9 +98,9 @@ export function useTokenBalances(account: string | null): TokenBalances {
         return { budBalance: '0', terpBalance: '0', slotBalance: '0', algoBalance: '0' };
       }
     },
-    refetchInterval: 10000,
+    refetchInterval: TESTNET_CONFIG.balanceRefetchInterval,
   });
-  
+
   return balances || { budBalance: '0', terpBalance: '0', slotBalance: '0', algoBalance: '0' };
 }
 
@@ -136,7 +141,7 @@ export function useGameState(account: string | null) {
         return null;
       }
     },
-    refetchInterval: 5000,
+    refetchInterval: TESTNET_CONFIG.stateRefetchInterval,
   });
 
   const pods: GrowPod[] = useMemo(() => {
@@ -147,7 +152,7 @@ export function useGameState(account: string | null) {
     
     const currentTime = Math.floor(Date.now() / 1000);
     const result: GrowPod[] = [];
-    
+
     // Helper to safely get number values with defaults
     const getNum = (key: string): number => {
       const val = localState[key];
@@ -157,71 +162,47 @@ export function useGameState(account: string | null) {
       const val = localState[key];
       return typeof val === 'string' ? val : '';
     };
-    
-    // Check for pod 1 (primary pod - from original local state keys)
-    const stage1 = getNum('stage');
-    const lastWatered1 = getNum('last_watered');
-    const lastNutrients1 = getNum('last_nutrients');
-    const timeSinceWater1 = lastWatered1 > 0 ? currentTime - lastWatered1 : WATER_COOLDOWN;
-    const timeSinceNutrients1 = lastNutrients1 > 0 ? currentTime - lastNutrients1 : NUTRIENT_COOLDOWN;
-    const canWater1 = lastWatered1 === 0 || timeSinceWater1 >= WATER_COOLDOWN;
-    const canNutrients1 = lastNutrients1 === 0 || timeSinceNutrients1 >= NUTRIENT_COOLDOWN;
-    const waterCooldown1 = canWater1 ? 0 : Math.max(0, WATER_COOLDOWN - timeSinceWater1);
-    const nutrientCooldown1 = canNutrients1 ? 0 : Math.max(0, NUTRIENT_COOLDOWN - timeSinceNutrients1);
-    
-    // Always include pod 1 if stage >= 0 (representing a slot)
-    result.push({
-      id: 1,
-      name: "GrowPod #001",
-      stage: stage1 as PodStage,
-      waterCount: getNum('water_count'),
-      nutrientCount: getNum('nutrient_count'),
-      lastWatered: lastWatered1 * 1000,
-      lastNutrients: lastNutrients1 * 1000,
-      health: stage1 === 6 ? 0 : 100,
-      status: stageToStatus(stage1),
-      dna: getStr('dna'),
-      terpeneProfile: getStr('terpene_profile'),
-      pests: false,
-      canWater: canWater1 && stage1 >= 1 && stage1 <= 4,
-      canAddNutrients: canNutrients1 && stage1 >= 1 && stage1 <= 4,
-      waterCooldownRemaining: waterCooldown1,
-      nutrientCooldownRemaining: nutrientCooldown1,
-    });
-    
-    // Check for pod 2 (secondary pod - with "_2" suffix in local state keys)
-    const stage2 = getNum('stage_2');
-    const lastWatered2 = getNum('last_watered_2');
-    const lastNutrients2 = getNum('last_nutrients_2');
-    const timeSinceWater2 = lastWatered2 > 0 ? currentTime - lastWatered2 : WATER_COOLDOWN;
-    const timeSinceNutrients2 = lastNutrients2 > 0 ? currentTime - lastNutrients2 : NUTRIENT_COOLDOWN;
-    const canWater2 = lastWatered2 === 0 || timeSinceWater2 >= WATER_COOLDOWN;
-    const canNutrients2 = lastNutrients2 === 0 || timeSinceNutrients2 >= NUTRIENT_COOLDOWN;
-    const waterCooldown2 = canWater2 ? 0 : Math.max(0, WATER_COOLDOWN - timeSinceWater2);
-    const nutrientCooldown2 = canNutrients2 ? 0 : Math.max(0, NUTRIENT_COOLDOWN - timeSinceNutrients2);
-    
-    // Only add pod 2 if it exists (stage > 0)
-    if (stage2 > 0) {
-      result.push({
-        id: 2,
-        name: "GrowPod #002",
-        stage: stage2 as PodStage,
-        waterCount: getNum('water_count_2'),
-        nutrientCount: getNum('nutrient_count_2'),
-        lastWatered: lastWatered2 * 1000,
-        lastNutrients: lastNutrients2 * 1000,
-        health: stage2 === 6 ? 0 : 100,
-        status: stageToStatus(stage2),
-        dna: getStr('dna_2'),
-        terpeneProfile: getStr('terpene_profile_2'),
+
+    // Build a pod from local state keys, using an optional suffix for pod 2+
+    const buildPod = (podId: number, suffix: string): GrowPod | null => {
+      const stage = getNum(`stage${suffix}`);
+      // Pod 1 always included; subsequent pods only if stage > 0
+      if (podId > 1 && stage === 0) return null;
+
+      const lastWatered = getNum(`last_watered${suffix}`);
+      const lastNutrients = getNum(`last_nutrients${suffix}`);
+      const timeSinceWater = lastWatered > 0 ? currentTime - lastWatered : WATER_COOLDOWN;
+      const timeSinceNutrients = lastNutrients > 0 ? currentTime - lastNutrients : NUTRIENT_COOLDOWN;
+      const canWater = lastWatered === 0 || timeSinceWater >= WATER_COOLDOWN;
+      const canNutrients = lastNutrients === 0 || timeSinceNutrients >= NUTRIENT_COOLDOWN;
+      const isGrowing = stage >= 1 && stage <= 4;
+
+      return {
+        id: podId,
+        name: `GrowPod #${String(podId).padStart(3, '0')}`,
+        stage: stage as PodStage,
+        waterCount: getNum(`water_count${suffix}`),
+        nutrientCount: getNum(`nutrient_count${suffix}`),
+        lastWatered: lastWatered * 1000,
+        lastNutrients: lastNutrients * 1000,
+        health: stage === 6 ? 0 : 100,
+        status: stageToStatus(stage),
+        dna: getStr(`dna${suffix}`),
+        terpeneProfile: getStr(`terpene_profile${suffix}`),
         pests: false,
-        canWater: canWater2 && stage2 >= 1 && stage2 <= 4,
-        canAddNutrients: canNutrients2 && stage2 >= 1 && stage2 <= 4,
-        waterCooldownRemaining: waterCooldown2,
-        nutrientCooldownRemaining: nutrientCooldown2,
-      });
-    }
-    
+        canWater: canWater && isGrowing,
+        canAddNutrients: canNutrients && isGrowing,
+        waterCooldownRemaining: canWater ? 0 : Math.max(0, WATER_COOLDOWN - timeSinceWater),
+        nutrientCooldownRemaining: canNutrients ? 0 : Math.max(0, NUTRIENT_COOLDOWN - timeSinceNutrients),
+      };
+    };
+
+    // Pod 1 uses base keys (no suffix), pod 2 uses "_2" suffix
+    const pod1 = buildPod(1, '');
+    if (pod1) result.push(pod1);
+    const pod2 = buildPod(2, '_2');
+    if (pod2) result.push(pod2);
+
     return result;
   }, [localState]);
 
@@ -238,10 +219,10 @@ export function useGameState(account: string | null) {
   const canClaimSlotToken = harvestCount >= 5;
   
   // Can unlock slot: has slot tokens and hasn't reached max
-  const canUnlockSlot = podSlots < 5;
+  const canUnlockSlot = podSlots < MAX_PODS;
 
-  return { 
-    budBalance: balances.budBalance, 
+  return {
+    budBalance: balances.budBalance,
     terpBalance: balances.terpBalance,
     slotBalance: balances.slotBalance,
     algoBalance: balances.algoBalance,
@@ -249,7 +230,7 @@ export function useGameState(account: string | null) {
     localState,
     activePods,
     canMintMorePods,
-    maxPods: 5,
+    maxPods: MAX_PODS,
     podSlots,
     harvestCount,
     harvestsForNextSlot,
@@ -400,14 +381,11 @@ export function useTransactions() {
     try {
       const suggestedParams = await getParamsWithRetry();
       
-      // Use different app arg based on pod ID
-      const appArg = podId === 2 ? 'mint_pod_2' : 'mint_pod';
-      
       const txn = algosdk.makeApplicationNoOpTxnFromObject({
         sender: account,
         suggestedParams,
         appIndex: CONTRACT_CONFIG.appId,
-        appArgs: [encodeArg(appArg)],
+        appArgs: [encodeArg(getPodMethodName(podId, 'mint_pod'))],
       });
       
       const signedTxns = await signTransactions([txn]);
@@ -428,11 +406,8 @@ export function useTransactions() {
     try {
       const suggestedParams = await getParamsWithRetry();
       
-      // Use different app arg based on pod ID
-      const appArg = podId === 2 ? 'water_2' : 'water';
-      
       // Build app args array - include cooldown if provided
-      const appArgs: Uint8Array[] = [encodeArg(appArg)];
+      const appArgs: Uint8Array[] = [encodeArg(getPodMethodName(podId, 'water'))];
       if (cooldownSeconds !== undefined) {
         // Encode cooldown as 8-byte big-endian uint64
         const cooldownBytes = new Uint8Array(8);
@@ -465,14 +440,11 @@ export function useTransactions() {
     try {
       const suggestedParams = await getParamsWithRetry();
       
-      // Use different app arg based on pod ID
-      const appArg = podId === 2 ? 'nutrients_2' : 'nutrients';
-      
       const txn = algosdk.makeApplicationNoOpTxnFromObject({
         sender: account,
         suggestedParams,
         appIndex: CONTRACT_CONFIG.appId,
-        appArgs: [encodeArg(appArg)],
+        appArgs: [encodeArg(getPodMethodName(podId, 'nutrients'))],
       });
       
       const signedTxns = await signTransactions([txn]);
@@ -492,14 +464,11 @@ export function useTransactions() {
     try {
       const suggestedParams = await getParamsWithRetry();
       
-      // Use different app arg based on pod ID
-      const appArg = podId === 2 ? 'harvest_2' : 'harvest';
-      
       const txn = algosdk.makeApplicationNoOpTxnFromObject({
         sender: account,
         suggestedParams,
         appIndex: CONTRACT_CONFIG.appId,
-        appArgs: [encodeArg(appArg)],
+        appArgs: [encodeArg(getPodMethodName(podId, 'harvest'))],
         foreignAssets: CONTRACT_CONFIG.budAssetId ? [CONTRACT_CONFIG.budAssetId] : undefined,
       });
       
@@ -520,25 +489,21 @@ export function useTransactions() {
     try {
       const suggestedParams = await getParamsWithRetry();
 
-      // Use different app arg based on pod ID
-      const appArg = podId === 2 ? 'cleanup_2' : 'cleanup';
-
-      // Transaction 1: Burn 500 $BUD (send to app address)
+      // Transaction 1: Burn cleanup cost in $BUD (send to app address)
       const burnTxn = algosdk.makeAssetTransferTxnWithSuggestedParamsFromObject({
         sender: account,
         receiver: CONTRACT_CONFIG.appAddress,
-        amount: BigInt(500000000), // 500 $BUD (6 decimals)
+        amount: toRawAmount(TESTNET_CONFIG.economics.cleanupCost),
         assetIndex: CONTRACT_CONFIG.budAssetId,
         suggestedParams,
       });
 
-      // Transaction 2: Call cleanup on contract
-      // Note: Contract expects BUD burn at group_index - 1
+      // Transaction 2: Call cleanup on contract (expects BUD burn at group_index - 1)
       const appTxn = algosdk.makeApplicationNoOpTxnFromObject({
         sender: account,
         suggestedParams,
         appIndex: CONTRACT_CONFIG.appId,
-        appArgs: [encodeArg(appArg)],
+        appArgs: [encodeArg(getPodMethodName(podId, 'cleanup'))],
       });
 
       // Group the transactions
@@ -562,11 +527,11 @@ export function useTransactions() {
     try {
       const suggestedParams = await getParamsWithRetry();
       
-      // Transaction 1: Burn 1000 $BUD
+      // Transaction 1: Burn breed cost in $BUD
       const burnTxn = algosdk.makeAssetTransferTxnWithSuggestedParamsFromObject({
         sender: account,
         receiver: CONTRACT_CONFIG.appAddress,
-        amount: BigInt(1000000000), // 1000 $BUD (6 decimals)
+        amount: toRawAmount(TESTNET_CONFIG.economics.breedCost),
         assetIndex: CONTRACT_CONFIG.budAssetId,
         suggestedParams,
       });
@@ -626,11 +591,11 @@ export function useTransactions() {
     try {
       const suggestedParams = await getParamsWithRetry();
       
-      // Transaction 1: Burn 2,500 $BUD (send to app address)
+      // Transaction 1: Burn slot unlock cost in $BUD (send to app address)
       const burnTxn = algosdk.makeAssetTransferTxnWithSuggestedParamsFromObject({
         sender: account,
         receiver: CONTRACT_CONFIG.appAddress,
-        amount: BigInt(2500000000), // 2,500 $BUD (6 decimals)
+        amount: toRawAmount(TESTNET_CONFIG.economics.slotUnlockCost),
         assetIndex: CONTRACT_CONFIG.budAssetId,
         suggestedParams,
       });

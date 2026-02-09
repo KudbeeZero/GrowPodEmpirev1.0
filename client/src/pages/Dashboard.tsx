@@ -4,19 +4,18 @@ import { PodCard } from "@/components/PodCard";
 import { ShareButtons } from "@/components/ShareButtons";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { Checkbox } from "@/components/ui/checkbox";
 import { Badge } from "@/components/ui/badge";
 import { useToast } from "@/hooks/use-toast";
 import { useNotifications, usePlantNotifications } from "@/hooks/use-notifications";
 import { 
   Plus, Sprout, Leaf, FlaskConical, Flame, Zap, Sparkles, Info, Coins,
-  ExternalLink, Bell, BellOff, X, Loader2, Wallet, Trophy, BookOpen, Lightbulb
+  ExternalLink, Bell, BellOff, Loader2, Wallet, Trophy, BookOpen, Lightbulb
 } from "lucide-react";
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription } from "@/components/ui/dialog";
 import { Link } from "wouter";
 import { motion } from "framer-motion";
-import { useState, useEffect, useMemo } from "react";
+import { useState, useEffect, useMemo, useCallback } from "react";
 import { useQuery, useMutation } from "@tanstack/react-query";
 import { queryClient, apiRequest } from "@/lib/queryClient";
 import type { UserSeed, SeedBankItem } from "@shared/schema";
@@ -55,10 +54,17 @@ export default function Dashboard() {
   const [walletSelectorOpen, setWalletSelectorOpen] = useState(false);
 
   // Memoize random fact to prevent it from changing on every render
-  const randomFact = useMemo(() => 
+  const randomFact = useMemo(() =>
     cannabisFacts[Math.floor(Math.random() * cannabisFacts.length)],
-    [] // Empty dependency array means this only runs once on mount
+    []
   );
+
+  // Memoize pod stats to avoid re-filtering on every render
+  const podStats = useMemo(() => ({
+    harvestReady: pods.filter(p => p.status === 'harvest_ready').length,
+    needWater: pods.filter(p => p.canWater).length,
+    needNutrients: pods.filter(p => p.canAddNutrients).length,
+  }), [pods]);
 
   // Fetch user's seed inventory
   const { data: userSeeds = [], isLoading: loadingSeeds } = useQuery<(UserSeed & { seed: SeedBankItem })[]>({
@@ -807,15 +813,15 @@ export default function Dashboard() {
                   </div>
                   <div className="flex justify-between gap-2">
                     <span className="text-muted-foreground">Ready to Harvest:</span>
-                    <span className="font-mono text-amber-500">{pods.filter(p => p.status === 'harvest_ready').length}</span>
+                    <span className="font-mono text-amber-500">{podStats.harvestReady}</span>
                   </div>
                   <div className="flex justify-between gap-2">
                     <span className="text-muted-foreground">Need Water:</span>
-                    <span className="font-mono text-blue-400">{pods.filter(p => p.canWater).length}</span>
+                    <span className="font-mono text-blue-400">{podStats.needWater}</span>
                   </div>
                   <div className="flex justify-between gap-2">
                     <span className="text-muted-foreground">Need Nutrients:</span>
-                    <span className="font-mono text-green-400">{pods.filter(p => p.canAddNutrients).length}</span>
+                    <span className="font-mono text-green-400">{podStats.needNutrients}</span>
                   </div>
                 </div>
                 

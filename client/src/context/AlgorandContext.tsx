@@ -5,13 +5,10 @@ import algosdk from 'algosdk';
 import { useToast } from '@/hooks/use-toast';
 import { useQueryClient } from '@tanstack/react-query';
 import { api } from '@shared/routes';
-
-const ALGOD_SERVER = 'https://testnet-api.algonode.cloud';
-const ALGOD_TOKEN = '';
-const CHAIN_ID = 416002;
+import { TESTNET_CONFIG } from '@/data/testnetConfig';
 
 // Reown (WalletConnect) Project ID for TestNet
-export const REOWN_PROJECT_ID = 'e237c5b78b0ae2a29f1a98bdb575e5ce';
+export const REOWN_PROJECT_ID = TESTNET_CONFIG.reownProjectId;
 
 export const CONTRACT_CONFIG = {
   appId: Number(import.meta.env.VITE_GROWPOD_APP_ID) || 755243944,
@@ -21,7 +18,11 @@ export const CONTRACT_CONFIG = {
   appAddress: import.meta.env.VITE_GROWPOD_APP_ADDRESS || 'CWGAVWZRVKKFHRYZHEPQPELVJMFNW2QMIWNEB2H3ZXCKOXRIPKWCW2IBRI',
 };
 
-export const algodClient = new algosdk.Algodv2(ALGOD_TOKEN, ALGOD_SERVER, '');
+export const algodClient = new algosdk.Algodv2(
+  TESTNET_CONFIG.algodToken,
+  TESTNET_CONFIG.algodServer,
+  ''
+);
 
 // Lazy-initialize wallet connectors to avoid module-level failures
 // if polyfills (Buffer, global, process) haven't loaded yet
@@ -31,7 +32,7 @@ let _deflyWallet: DeflyWalletConnect | null = null;
 function getPeraWallet(): PeraWalletConnect {
   if (!_peraWallet) {
     _peraWallet = new PeraWalletConnect({
-      chainId: CHAIN_ID,
+      chainId: TESTNET_CONFIG.chainId,
     });
   }
   return _peraWallet;
@@ -39,7 +40,7 @@ function getPeraWallet(): PeraWalletConnect {
 
 function getDeflyWallet(): DeflyWalletConnect {
   if (!_deflyWallet) {
-    _deflyWallet = new DeflyWalletConnect({ chainId: CHAIN_ID });
+    _deflyWallet = new DeflyWalletConnect({ chainId: TESTNET_CONFIG.chainId });
   }
   return _deflyWallet;
 }

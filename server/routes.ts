@@ -62,35 +62,24 @@ export async function registerRoutes(
     });
   });
 
-  app.get("/api/leaderboard/harvests", async (_req, res) => {
-    try {
-      const leaderboard = await storage.getHarvestLeaderboard(20);
-      res.json(leaderboard);
-    } catch (err) {
-      console.error("Failed to get harvest leaderboard:", err);
-      res.status(500).json({ message: "Failed to get leaderboard" });
-    }
-  });
+  // Leaderboard endpoints - unified handler
+  const leaderboardFetchers = {
+    harvests: () => storage.getHarvestLeaderboard(20),
+    bud: () => storage.getBudLeaderboard(20),
+    terp: () => storage.getTerpLeaderboard(20),
+  } as const;
 
-  app.get("/api/leaderboard/bud", async (_req, res) => {
-    try {
-      const leaderboard = await storage.getBudLeaderboard(20);
-      res.json(leaderboard);
-    } catch (err) {
-      console.error("Failed to get BUD leaderboard:", err);
-      res.status(500).json({ message: "Failed to get leaderboard" });
-    }
-  });
-
-  app.get("/api/leaderboard/terp", async (_req, res) => {
-    try {
-      const leaderboard = await storage.getTerpLeaderboard(20);
-      res.json(leaderboard);
-    } catch (err) {
-      console.error("Failed to get TERP leaderboard:", err);
-      res.status(500).json({ message: "Failed to get leaderboard" });
-    }
-  });
+  for (const [type, fetcher] of Object.entries(leaderboardFetchers)) {
+    app.get(`/api/leaderboard/${type}`, async (_req, res) => {
+      try {
+        const leaderboard = await fetcher();
+        res.json(leaderboard);
+      } catch (err) {
+        console.error(`Failed to get ${type} leaderboard:`, err);
+        res.status(500).json({ message: "Failed to get leaderboard" });
+      }
+    });
+  }
 
   app.get("/api/stats/global", async (_req, res) => {
     try {
