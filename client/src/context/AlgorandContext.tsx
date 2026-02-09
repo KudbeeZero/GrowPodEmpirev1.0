@@ -10,6 +10,9 @@ const ALGOD_SERVER = 'https://testnet-api.algonode.cloud';
 const ALGOD_TOKEN = '';
 const CHAIN_ID = 416002;
 
+// Network configuration for Algorand TestNet
+export const NETWORK = 'TestNet';
+
 export const CONTRACT_CONFIG = {
   appId: Number(import.meta.env.VITE_GROWPOD_APP_ID) || 753910199,
   budAssetId: Number(import.meta.env.VITE_BUD_ASSET_ID) || 753910204,
