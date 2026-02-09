@@ -54,11 +54,11 @@ CREATE TABLE IF NOT EXISTS seed_bank (
   terpene_profile TEXT NOT NULL,  -- JSON stored as TEXT
   effects TEXT NOT NULL,  -- JSON stored as TEXT
   flavor_notes TEXT NOT NULL,  -- JSON stored as TEXT
-  thc_range TEXT NOT NULL,
-  cbd_range TEXT NOT NULL,
+  thc_range TEXT,
+  cbd_range TEXT,
   growth_bonus INTEGER DEFAULT 0 NOT NULL,
-  bud_price TEXT NOT NULL,
-  glow_color TEXT NOT NULL,
+  bud_price TEXT,
+  glow_color TEXT,
   total_supply INTEGER,
   minted_count INTEGER DEFAULT 0 NOT NULL,
   max_per_user INTEGER DEFAULT 1 NOT NULL,
