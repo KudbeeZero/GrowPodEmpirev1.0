@@ -43,7 +43,7 @@ python scripts/verify-deployment.py <APP_ID>
 
 **Example:**
 ```bash
-python scripts/verify-deployment.py 753910199
+python scripts/verify-deployment.py 755243944
 ```
 
 **What it checks:**

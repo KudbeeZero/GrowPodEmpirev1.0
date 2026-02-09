@@ -130,17 +130,17 @@ run() {
 - `wrangler.toml` (comments)
 - `server/routes.ts`
 
-**Expected:** `ZK55X7SGIGMLGORVNJHHPTYZMZOGSQNVROBHX7N27X6ZEQRHAZ2UPKOXQU`
+**Expected:** `HW6U3RKLOYEW2X2L4DERSJHBPG6G6UTKDWBSS2MKPZJOSAWKLP72NTIMNQ`
 
 ### 2. Token IDs
 
 **Purpose:** Validates consistency of Algorand token IDs across code and documentation.
 
 **Tokens:**
-- **$BUD** (753910204) - Harvest commodity token
-- **$TERP** (753910205) - Terpene rights/governance token
-- **$SLOT** (753910206) - Progression token
-- **App ID** (753910199) - Smart contract application ID
+- **$BUD** (755243947) - Harvest commodity token
+- **$TERP** (755243948) - Terpene rights/governance token
+- **$SLOT** (755243949) - Progression token
+- **App ID** (755243944) - Smart contract application ID
 
 **Checks:**
 - `client/src/context/AlgorandContext.tsx`

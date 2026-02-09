@@ -130,8 +130,8 @@ txid = algod_client.send_transactions(signed_txns)
 ### Environment Variables (for breed.py script)
 ```bash
 export ALGO_MNEMONIC="your 25-word mnemonic phrase"
-export GROWPOD_APP_ID="753910199"
-export GROWPOD_APP_ADDRESS="..."
+export GROWPOD_APP_ID="755243944"
+export GROWPOD_APP_ADDRESS="CWGAVWZRVKKFHRYZHEPQPELVJMFNW2QMIWNEB2H3ZXCKOXRIPKWCW2IBRI"
 export SEED1_ASSET_ID="123456"  # First seed NFT asset ID
 export SEED2_ASSET_ID="789012"  # Second seed NFT asset ID
 
