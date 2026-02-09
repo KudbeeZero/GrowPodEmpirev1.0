@@ -1,5 +1,5 @@
 import { useState, useEffect, type ReactNode, lazy, Suspense } from "react";
-import { Switch, Route } from "wouter";
+import { Switch, Route, Redirect } from "wouter";
 import { queryClient, apiRequest } from "./lib/queryClient";
 import { QueryClientProvider, useQuery, useMutation } from "@tanstack/react-query";
 import { Toaster } from "@/components/ui/toaster";
@@ -12,7 +12,7 @@ import Dashboard from "@/pages/Dashboard";
 import SeedVault from "@/pages/SeedVault";
 import CombinerLab from "@/pages/CombinerLab";
 import Store from "@/pages/Store";
-import CureVault from "@/pages/CureVault";
+
 import Tutorial from "@/pages/Tutorial";
 import Leaderboards from "@/pages/Leaderboards";
 import Stats from "@/pages/Stats";
@@ -99,7 +99,10 @@ function Router() {
           <Route path="/vault" component={SeedVault} />
           <Route path="/lab" component={CombinerLab} />
           <Route path="/store" component={Store} />
-          <Route path="/staking" component={CureVault} />
+          <Route path="/staking">
+            {() => <Redirect to="/cure-vault" />}
+          </Route>
+          <Route path="/inventory" component={SeedBank} />
           <Route path="/tutorial" component={Tutorial} />
           <Route path="/leaderboards" component={Leaderboards} />
           <Route path="/stats" component={Stats} />
