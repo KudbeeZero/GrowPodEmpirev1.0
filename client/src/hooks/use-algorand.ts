@@ -275,7 +275,7 @@ export function useSeeds(): (UserSeed & { seed: SeedBankItem })[] {
       if (!response.ok) return [];
       return response.json();
     },
-    refetchInterval: 30000,
+    staleTime: 30000,
   });
 
   return seeds || [];
