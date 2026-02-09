@@ -1,12 +1,13 @@
 import { type GrowPod, formatCooldown, NUTRIENT_COOLDOWN, WATER_COOLDOWN } from "@/hooks/use-algorand";
 import { cn } from "@/lib/utils";
-import { 
-  Droplets, 
-  Skull, 
-  Flower, 
-  AlertTriangle, 
+import {
+  Droplets,
+  Skull,
+  Flower,
+  AlertTriangle,
   Trash2,
   Sprout,
+  Sparkles,
   Clock,
   FlaskRound
 } from "lucide-react";
@@ -64,10 +65,11 @@ interface PodCardProps {
   onNutrients: (id: number) => void;
   onHarvest: (id: number) => void;
   onCleanup?: (id: number) => void;
+  onCheckTerp?: (id: number) => void;
   isLoading?: boolean;
 }
 
-export function PodCard({ pod, onWater, onNutrients, onHarvest, onCleanup, isLoading = false }: PodCardProps) {
+export function PodCard({ pod, onWater, onNutrients, onHarvest, onCleanup, onCheckTerp, isLoading = false }: PodCardProps) {
   const [cooldownDisplay, setCooldownDisplay] = useState('');
   const [nutrientCooldownDisplay, setNutrientCooldownDisplay] = useState('');
   
@@ -270,15 +272,25 @@ export function PodCard({ pod, onWater, onNutrients, onHarvest, onCleanup, isLoa
             <Flower className="mr-2 h-4 w-4" /> Harvest
           </Button>
         ) : needsCleanup ? (
-          <Button 
-            variant="destructive" 
-            className="w-full"
-            onClick={() => onCleanup?.(pod.id)}
-            disabled={isLoading}
-            data-testid={`button-cleanup-${pod.id}`}
-          >
-            <Trash2 className="mr-2 h-4 w-4" /> Clean Pod (500 $BUD)
-          </Button>
+          <div className="flex flex-col gap-2">
+            <Button
+              className="w-full bg-purple-600 hover:bg-purple-700 text-white"
+              onClick={() => onCheckTerp?.(pod.id)}
+              disabled={isLoading}
+              data-testid={`button-check-terp-${pod.id}`}
+            >
+              <Sparkles className="mr-2 h-4 w-4" /> Check Rare Terpene
+            </Button>
+            <Button
+              variant="destructive"
+              className="w-full"
+              onClick={() => onCleanup?.(pod.id)}
+              disabled={isLoading}
+              data-testid={`button-cleanup-${pod.id}`}
+            >
+              <Trash2 className="mr-2 h-4 w-4" /> Clean Pod (500 $BUD)
+            </Button>
+          </div>
         ) : isDead ? (
           <Button variant="destructive" className="w-full opacity-50" disabled>
             <Skull className="mr-2 h-4 w-4" /> Dead Plant

@@ -227,7 +227,7 @@ export function useGameState(account: string | null) {
 
   // Get harvest count and pod slots from local state
   const harvestCount = localState ? (typeof localState['harvest_count'] === 'number' ? localState['harvest_count'] : 0) : 0;
-  const podSlots = localState ? (typeof localState['pod_slots'] === 'number' ? localState['pod_slots'] : 1) : 1;
+  const podSlots = localState ? (typeof localState['pod_slots'] === 'number' ? localState['pod_slots'] : 2) : 2;
   
   // Calculate active pods count - count any pod with stage > 0 (including needs_cleanup)
   const activePods = pods.filter(p => p.stage > 0).length;
@@ -555,6 +555,34 @@ export function useTransactions() {
     }
   }, [account, signTransactions]);
 
+  // Check for rare terpene profile - calls "check_terp" or "check_terp_2" on the smart contract
+  // Can only be called when pod is at stage 6 (needs_cleanup)
+  const checkTerp = useCallback(async (podId: number = 1): Promise<string | null> => {
+    if (!account || !CONTRACT_CONFIG.appId || !CONTRACT_CONFIG.terpAssetId) return null;
+
+    try {
+      const suggestedParams = await getParamsWithRetry();
+
+      const appArg = podId === 2 ? 'check_terp_2' : 'check_terp';
+
+      const txn = algosdk.makeApplicationNoOpTxnFromObject({
+        sender: account,
+        suggestedParams,
+        appIndex: CONTRACT_CONFIG.appId,
+        appArgs: [encodeArg(appArg)],
+        foreignAssets: [CONTRACT_CONFIG.terpAssetId],
+      });
+
+      const signedTxns = await signTransactions([txn]);
+      const txId = await submitTransaction(signedTxns);
+      refreshState();
+      return txId;
+    } catch (error) {
+      console.error('Check terp failed:', error);
+      throw error;
+    }
+  }, [account, signTransactions]);
+
   // Breed plants - requires burning 1000 $BUD
   const breedPlants = useCallback(async (): Promise<string | null> => {
     if (!account || !CONTRACT_CONFIG.appId || !CONTRACT_CONFIG.budAssetId) return null;
@@ -704,6 +732,7 @@ export function useTransactions() {
     addNutrients,
     harvestPlant,
     cleanupPod,
+    checkTerp,
     breedPlants,
     checkAppOptedIn,
     checkAssetOptedIn,

@@ -39,8 +39,8 @@ const cannabisFacts = [
 
 export default function Dashboard() {
   const { account, isConnected, connectWallet } = useAlgorand();
-  const { budBalance, terpBalance, algoBalance, pods, activePods, canMintMorePods, maxPods, harvestCount } = useGameState(account);
-  const { mintPod, waterPlant, addNutrients, harvestPlant, cleanupPod, optInToApp, optInToAsset, checkAppOptedIn, checkAssetOptedIn } = useTransactions();
+  const { budBalance, terpBalance, algoBalance, pods, activePods, canMintMorePods, maxPods, podSlots, harvestCount, canClaimSlotToken, harvestsForNextSlot, canUnlockSlot, slotBalance } = useGameState(account);
+  const { mintPod, waterPlant, addNutrients, harvestPlant, cleanupPod, checkTerp, optInToApp, optInToAsset, checkAppOptedIn, checkAssetOptedIn, claimSlotToken, unlockSlot } = useTransactions();
   const { toast } = useToast();
   const { permission, isSupported, requestPermission } = useNotifications();
   const { scheduledCount } = usePlantNotifications(pods, isConnected);
@@ -224,7 +224,7 @@ export default function Dashboard() {
     if (!canMintMorePods) {
       toast({
         title: "Pod Limit Reached",
-        description: `You can only have ${maxPods} active pods at a time. Harvest or cleanup existing pods first.`,
+        description: `You can only have ${podSlots} active pods at a time. Harvest or cleanup existing pods first.`,
         variant: "destructive",
       });
       return;
@@ -448,6 +448,87 @@ export default function Dashboard() {
       const errorMessage = error instanceof Error ? error.message : 'Transaction failed';
       toast({
         title: "Cleanup Failed",
+        description: errorMessage,
+        variant: "destructive",
+      });
+    } finally {
+      setIsActionLoading(false);
+    }
+  };
+
+  const handleCheckTerp = async (id: number) => {
+    if (!isConnected || !isContractConfigured) return;
+
+    setIsActionLoading(true);
+    toast({
+      title: "Checking Terpene Profile...",
+      description: `Analyzing Pod #${id} for rare terpenes.`,
+    });
+
+    try {
+      const txId = await checkTerp(id);
+      toast({
+        title: "Terpene Check Complete!",
+        description: `Check your $TERP balance for any rare terpene rewards! TX: ${txId?.slice(0, 8)}...`,
+      });
+    } catch (error) {
+      const errorMessage = error instanceof Error ? error.message : 'Transaction failed';
+      toast({
+        title: "Terpene Check Failed",
+        description: errorMessage,
+        variant: "destructive",
+      });
+    } finally {
+      setIsActionLoading(false);
+    }
+  };
+
+  const handleClaimSlotToken = async () => {
+    if (!isConnected || !isContractConfigured) return;
+
+    setIsActionLoading(true);
+    toast({
+      title: "Claiming Slot Token...",
+      description: "This will burn 2,500 $BUD. Sign the transaction.",
+    });
+
+    try {
+      const txId = await claimSlotToken();
+      toast({
+        title: "Slot Token Claimed!",
+        description: `You received 1 SLOT token. Use it to unlock a new pod slot! TX: ${txId?.slice(0, 8)}...`,
+      });
+    } catch (error) {
+      const errorMessage = error instanceof Error ? error.message : 'Transaction failed';
+      toast({
+        title: "Claim Failed",
+        description: errorMessage,
+        variant: "destructive",
+      });
+    } finally {
+      setIsActionLoading(false);
+    }
+  };
+
+  const handleUnlockSlot = async () => {
+    if (!isConnected || !isContractConfigured) return;
+
+    setIsActionLoading(true);
+    toast({
+      title: "Unlocking Pod Slot...",
+      description: "This will burn 1 SLOT token. Sign the transaction.",
+    });
+
+    try {
+      const txId = await unlockSlot();
+      toast({
+        title: "New Slot Unlocked!",
+        description: `You now have ${podSlots + 1} pod slots! TX: ${txId?.slice(0, 8)}...`,
+      });
+    } catch (error) {
+      const errorMessage = error instanceof Error ? error.message : 'Transaction failed';
+      toast({
+        title: "Unlock Failed",
         description: errorMessage,
         variant: "destructive",
       });
@@ -751,7 +832,7 @@ export default function Dashboard() {
                   <Plus className="mr-2 h-4 w-4" /> Plant Now
                 </Button>
                 <p className="text-xs text-muted-foreground mt-2">
-                  Pods: {activePods}/{maxPods} {!canMintMorePods && <span className="text-amber-500">(Max reached)</span>}
+                  Pods: {activePods}/{podSlots} {!canMintMorePods && <span className="text-amber-500">(Max reached)</span>}
                 </p>
               </CardContent>
             </Card>
@@ -812,7 +893,7 @@ export default function Dashboard() {
                 <div className="space-y-1 text-sm">
                   <div className="flex justify-between gap-2">
                     <span className="text-muted-foreground">Active Pods:</span>
-                    <span className="font-mono">{activePods}/{maxPods}</span>
+                    <span className="font-mono">{activePods}/{podSlots}</span>
                   </div>
                   <div className="flex justify-between gap-2">
                     <span className="text-muted-foreground">Ready to Harvest:</span>
@@ -867,8 +948,37 @@ export default function Dashboard() {
                   </div>
                   <div className="flex items-center justify-between text-xs">
                     <span className="text-muted-foreground">Current Slots:</span>
-                    <span className="font-mono text-yellow-500">{maxPods}/5</span>
+                    <span className="font-mono text-yellow-500">{podSlots}/5</span>
                   </div>
+                  <div className="flex items-center justify-between text-xs">
+                    <span className="text-muted-foreground">Harvests:</span>
+                    <span className="font-mono">{harvestCount} {harvestsForNextSlot > 0 ? `(${harvestsForNextSlot} to next SLOT)` : '(ready!)'}</span>
+                  </div>
+                  {canClaimSlotToken && (
+                    <Button
+                      size="sm"
+                      className="w-full mt-2 bg-yellow-600 hover:bg-yellow-700 text-white"
+                      onClick={handleClaimSlotToken}
+                      disabled={isActionLoading}
+                      data-testid="button-claim-slot"
+                    >
+                      <Coins className="mr-2 h-3.5 w-3.5" />
+                      Claim SLOT Token (2,500 $BUD)
+                    </Button>
+                  )}
+                  {canUnlockSlot && Number(slotBalance) > 0 && (
+                    <Button
+                      size="sm"
+                      variant="outline"
+                      className="w-full mt-1 border-yellow-500/50 text-yellow-500 hover:bg-yellow-500/10"
+                      onClick={handleUnlockSlot}
+                      disabled={isActionLoading}
+                      data-testid="button-unlock-slot"
+                    >
+                      <Zap className="mr-2 h-3.5 w-3.5" />
+                      Unlock Pod Slot ({slotBalance} SLOT available)
+                    </Button>
+                  )}
                 </div>
                 
                 {isSupported && (
@@ -951,13 +1061,14 @@ export default function Dashboard() {
           {pods.length > 0 ? (
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
               {pods.map((pod) => (
-                <PodCard 
-                  key={pod.id} 
-                  pod={pod} 
+                <PodCard
+                  key={pod.id}
+                  pod={pod}
                   onWater={handleWater}
                   onNutrients={handleNutrients}
                   onHarvest={handleHarvest}
                   onCleanup={handleCleanup}
+                  onCheckTerp={handleCheckTerp}
                   isLoading={isActionLoading}
                 />
               ))}
