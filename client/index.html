@@ -5,9 +5,15 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1" />
     <!-- Security: Content Security Policy -->
     <meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self' 'unsafe-inline' 'unsafe-eval'; style-src 'self' 'unsafe-inline' https://fonts.googleapis.com; font-src 'self' https://fonts.gstatic.com; img-src 'self' data: https: blob:; connect-src 'self' https://testnet-api.algonode.cloud https://testnet-api.4160.nodely.io https://*.walletconnect.com https://*.walletconnect.org wss://*.walletconnect.com wss://*.walletconnect.org; frame-src 'self' https://*.walletconnect.com;">
-    <!-- Security: Prevent clickjacking (Note: X-Frame-Options via meta tag is not reliable in all browsers; set via HTTP headers in production) -->
+    <!--
+      NOTE: The following meta tags (X-Frame-Options, X-XSS-Protection) do NOT work via meta tags
+      and are ONLY effective as HTTP response headers. They are included here for documentation
+      purposes only. The actual security is provided by HTTP headers set in src/worker.ts.
+      For production, these MUST be set as HTTP headers in the Cloudflare Worker.
+    -->
+    <!-- Security: Prevent clickjacking (HTTP header required - see src/worker.ts) -->
     <meta http-equiv="X-Frame-Options" content="DENY">
-    <!-- Security: XSS protection (Note: X-XSS-Protection is deprecated; modern browsers use CSP instead) -->
+    <!-- Security: XSS protection (HTTP header required - see src/worker.ts; also deprecated in modern browsers) -->
     <meta http-equiv="X-XSS-Protection" content="1; mode=block">
     <!-- Security: Prevent MIME sniffing -->
     <meta http-equiv="X-Content-Type-Options" content="nosniff">
