@@ -937,13 +937,13 @@ export default function Dashboard() {
             <h2 className="text-2xl font-display font-semibold flex items-center gap-2">
               <Sprout className="text-primary" /> Active Grow Pods
             </h2>
-            <Link href="/vault">
-              <Button 
+            <Link href="/seed-bank">
+              <Button
                 className="bg-primary hover:bg-primary/90 text-primary-foreground shadow-lg shadow-primary/20 group"
-                data-testid="button-seed-vault"
+                data-testid="button-seed-bank"
               >
-                <Plus className="mr-2 h-4 w-4 group-hover:rotate-90 transition-transform" /> 
-                Plant New Seed
+                <Plus className="mr-2 h-4 w-4 group-hover:rotate-90 transition-transform" />
+                Get Seeds
               </Button>
             </Link>
           </div>

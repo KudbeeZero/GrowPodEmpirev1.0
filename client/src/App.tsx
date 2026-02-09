@@ -9,10 +9,7 @@ import { useAlgorand } from "@/hooks/use-algorand";
 import { Navigation } from "@/components/Navigation";
 import { AnnouncementModal } from "@/components/AnnouncementModal";
 import Dashboard from "@/pages/Dashboard";
-import SeedVault from "@/pages/SeedVault";
 import CombinerLab from "@/pages/CombinerLab";
-import Store from "@/pages/Store";
-import CureVault from "@/pages/CureVault";
 import Tutorial from "@/pages/Tutorial";
 import Leaderboards from "@/pages/Leaderboards";
 import Stats from "@/pages/Stats";
@@ -20,10 +17,6 @@ import Achievements from "@/pages/Achievements";
 import Jukebox from "@/pages/Jukebox";
 import SeedBank from "@/pages/SeedBank";
 import Admin from "@/pages/Admin";
-import SeedSelection from "@/components/SeedSelection";
-import PodDisplay from "@/components/PodDisplay";
-import CureVaultNew from "@/components/CureVaultNew";
-import CentralBank from "@/components/CentralBank";
 import { MiniPlayer } from "@/components/MiniPlayer";
 import NotFound from "@/pages/not-found";
 import type { AnnouncementVideo } from "@shared/schema";
@@ -96,10 +89,8 @@ function Router() {
         <Navigation />
         <Switch>
           <Route path="/" component={Dashboard} />
-          <Route path="/vault" component={SeedVault} />
+          <Route path="/seed-bank" component={SeedBank} />
           <Route path="/lab" component={CombinerLab} />
-          <Route path="/store" component={Store} />
-          <Route path="/staking" component={CureVault} />
           <Route path="/tutorial" component={Tutorial} />
           <Route path="/leaderboards" component={Leaderboards} />
           <Route path="/stats" component={Stats} />
@@ -120,14 +111,7 @@ function Router() {
               </ErrorBoundary>
             )}
           </Route>
-          <Route path="/seeds">
-            {() => <SeedSelection />}
-          </Route>
-          <Route path="/pods" component={PodDisplay} />
-          <Route path="/cure-vault" component={CureVaultNew} />
-          <Route path="/central-bank" component={CentralBank} />
           <Route path="/jukebox" component={Jukebox} />
-          <Route path="/seed-bank" component={SeedBank} />
           <Route path="/admin" component={Admin} />
           <Route component={NotFound} />
         </Switch>
