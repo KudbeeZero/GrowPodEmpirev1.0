@@ -27,6 +27,26 @@ export function log(message: string, source = "express") {
   console.log(`${formattedTime} [${source}] ${message}`);
 }
 
+// CORS middleware for API routes
+app.use((req, res, next) => {
+  const origin = req.headers.origin as string | undefined;
+  if (origin) {
+    res.setHeader('Access-Control-Allow-Origin', origin);
+    res.setHeader('Access-Control-Allow-Credentials', 'true');
+    res.setHeader('Access-Control-Allow-Methods', 'GET, POST, PUT, DELETE, OPTIONS, PATCH');
+    res.setHeader('Access-Control-Allow-Headers', 'Content-Type, Authorization');
+  }
+
+  // Handle preflight requests
+  if (req.method === 'OPTIONS') {
+    res.writeHead(204);
+    res.end();
+    return;
+  }
+
+  next();
+});
+
 // Request logging middleware
 app.use((req, res, next) => {
   const start = Date.now();
@@ -54,13 +74,24 @@ app.use((req, res, next) => {
   next();
 });
 
-// Initialize routes (async)
+// Defer route initialization until first request (after env is available)
 let routesInitialized = false;
-const initPromise = (async () => {
-  // registerRoutes expects an http server but we can pass null for Workers
-  await registerRoutes(null as any, app);
-  routesInitialized = true;
-})();
+let initPromise: Promise<void> | null = null;
+
+function initRoutes() {
+  if (!initPromise) {
+    initPromise = (async () => {
+      try {
+        await registerRoutes(null as any, app);
+        routesInitialized = true;
+      } catch (err) {
+        console.error('Failed to initialize routes:', err);
+        // Routes failed but worker can still serve static assets
+      }
+    })();
+  }
+  return initPromise;
+}
 
 // Error handler
 app.use((err: any, _req: Request, res: Response, _next: NextFunction) => {
@@ -88,7 +119,7 @@ function createNodeRequest(request: globalThis.Request, url: URL) {
   });
 
   // Create a readable stream from the request body
-  const bodyStream = request.body 
+  const bodyStream = request.body
     ? Readable.from(request.body as any)
     : new Readable({ read() { this.push(null); } });
 
@@ -115,7 +146,7 @@ function createNodeResponse(resolve: (response: globalThis.Response) => void): E
     statusCode,
     statusMessage,
     headersSent: false,
-    
+
     writeHead(code: number, message?: string | any, hdrs?: any) {
       statusCode = code;
       if (typeof message === 'string') {
@@ -128,41 +159,41 @@ function createNodeResponse(resolve: (response: globalThis.Response) => void): E
       headersSent = true;
       return this;
     },
-    
+
     setHeader(name: string, value: string | string[]) {
       headers[name.toLowerCase()] = value;
     },
-    
+
     getHeader(name: string) {
       return headers[name.toLowerCase()];
     },
-    
+
     getHeaders() {
       return { ...headers };
     },
-    
+
     hasHeader(name: string) {
       return name.toLowerCase() in headers;
     },
-    
+
     removeHeader(name: string) {
       delete headers[name.toLowerCase()];
     },
-    
+
     write(chunk: any, encoding?: any, callback?: any) {
       if (typeof encoding === 'function') {
         callback = encoding;
         encoding = undefined;
       }
-      
+
       if (chunk) {
         chunks.push(Buffer.isBuffer(chunk) ? chunk : Buffer.from(chunk, encoding));
       }
-      
+
       if (callback) callback();
       return true;
     },
-    
+
     end(chunk?: any, encoding?: any, callback?: any) {
       if (typeof chunk === 'function') {
         callback = chunk;
@@ -171,11 +202,11 @@ function createNodeResponse(resolve: (response: globalThis.Response) => void): E
         callback = encoding;
         encoding = undefined;
       }
-      
+
       if (chunk) {
         chunks.push(Buffer.isBuffer(chunk) ? chunk : Buffer.from(chunk, encoding));
       }
-      
+
       // Build response headers
       const responseHeaders = new Headers();
       Object.entries(headers).forEach(([name, value]) => {
@@ -185,17 +216,17 @@ function createNodeResponse(resolve: (response: globalThis.Response) => void): E
           responseHeaders.set(name, value);
         }
       });
-      
+
       // Combine chunks
       const body = chunks.length > 0 ? Buffer.concat(chunks) : null;
-      
+
       // Create and resolve Web Response
       const webResponse = new globalThis.Response(body, {
         status: statusCode,
         statusText: statusMessage,
         headers: responseHeaders,
       });
-      
+
       response.emit('finish');
       if (callback) callback();
       resolve(webResponse);
@@ -205,16 +236,24 @@ function createNodeResponse(resolve: (response: globalThis.Response) => void): E
   return response;
 }
 
+// Populate process.env from Workers env bindings so libraries (db, etc.) can find secrets
+function populateProcessEnv(env: any) {
+  if (!env || typeof env !== 'object') return;
+  for (const [key, value] of Object.entries(env)) {
+    if (typeof value === 'string' && !process.env[key]) {
+      process.env[key] = value;
+    }
+  }
+}
+
 // Cloudflare Workers fetch handler
 export default {
   async fetch(request: globalThis.Request, env: any, ctx: any): Promise<globalThis.Response> {
-    // Wait for routes to be initialized
-    if (!routesInitialized) {
-      await initPromise;
-    }
+    // Make Worker env secrets available via process.env for Node.js libraries
+    populateProcessEnv(env);
 
     const url = new URL(request.url);
-    
+
     // Try to serve from ASSETS binding first for static files
     if (env.ASSETS && !url.pathname.startsWith('/api')) {
       try {
@@ -227,11 +266,27 @@ export default {
       }
     }
 
+    // Initialize routes on first API request (after env is populated)
+    if (!routesInitialized) {
+      await initRoutes();
+    }
+
+    // If routes failed to init and this is an API request, return a useful error
+    if (!routesInitialized && url.pathname.startsWith('/api')) {
+      return new globalThis.Response(
+        JSON.stringify({ message: 'API temporarily unavailable - database connection failed' }),
+        {
+          status: 503,
+          headers: { 'Content-Type': 'application/json' },
+        }
+      );
+    }
+
     // For API routes and fallback, use Express
     return new Promise((resolve) => {
       const nodeReq = createNodeRequest(request, url);
       const nodeRes = createNodeResponse(resolve);
-      
+
       // Handle the request with Express
       app(nodeReq as any, nodeRes as any, () => {
         // If no route handled it, serve index.html for SPA fallback

@@ -20,13 +20,24 @@ export const CONTRACT_CONFIG = {
 
 export const algodClient = new algosdk.Algodv2(ALGOD_TOKEN, ALGOD_SERVER, '');
 
-const peraWallet = new PeraWalletConnect({
-  chainId: CHAIN_ID,
-});
+// Lazy-initialize wallet connectors to avoid module-level failures
+// if polyfills (Buffer, global, process) haven't loaded yet
+let _peraWallet: PeraWalletConnect | null = null;
+let _deflyWallet: DeflyWalletConnect | null = null;
 
-const deflyWallet = new DeflyWalletConnect({
-  chainId: CHAIN_ID,
-});
+function getPeraWallet(): PeraWalletConnect {
+  if (!_peraWallet) {
+    _peraWallet = new PeraWalletConnect({ chainId: CHAIN_ID });
+  }
+  return _peraWallet;
+}
+
+function getDeflyWallet(): DeflyWalletConnect {
+  if (!_deflyWallet) {
+    _deflyWallet = new DeflyWalletConnect({ chainId: CHAIN_ID });
+  }
+  return _deflyWallet;
+}
 
 type WalletType = 'pera' | 'defly' | null;
 
@@ -68,79 +79,102 @@ export function AlgorandProvider({ children }: { children: ReactNode }) {
   }, [queryClient]);
 
   useEffect(() => {
-    // Try to reconnect Pera Wallet
-    peraWallet.reconnectSession().then(async (accounts) => {
-      if (accounts.length) {
-        const address = accounts[0];
-        setAccount(address);
-        setIsConnected(true);
-        setWalletType('pera');
-        await syncWithBackend(address);
-      }
-    }).catch(console.error);
+    let cancelled = false;
 
-    // Try to reconnect Defly Wallet
-    deflyWallet.reconnectSession().then(async (accounts) => {
-      if (accounts.length && !account) { // Only if Pera didn't connect
-        const address = accounts[0];
-        setAccount(address);
-        setIsConnected(true);
-        setWalletType('defly');
-        await syncWithBackend(address);
+    const reconnect = async () => {
+      // Try Pera first
+      try {
+        const peraAccounts = await getPeraWallet().reconnectSession();
+        if (!cancelled && peraAccounts.length) {
+          const address = peraAccounts[0];
+          setAccount(address);
+          setIsConnected(true);
+          setWalletType('pera');
+          await syncWithBackend(address);
+          return; // Pera connected, skip Defly
+        }
+      } catch (err) {
+        console.error('Pera reconnect failed:', err);
       }
-    }).catch(console.error);
+
+      // Try Defly if Pera didn't connect
+      try {
+        const deflyAccounts = await getDeflyWallet().reconnectSession();
+        if (!cancelled && deflyAccounts.length) {
+          const address = deflyAccounts[0];
+          setAccount(address);
+          setIsConnected(true);
+          setWalletType('defly');
+          await syncWithBackend(address);
+        }
+      } catch (err) {
+        console.error('Defly reconnect failed:', err);
+      }
+    };
+
+    reconnect();
 
     // Setup disconnect listeners
-    peraWallet.connector?.on('disconnect', () => {
-      if (walletType === 'pera') {
+    try {
+      getPeraWallet().connector?.on('disconnect', () => {
         setAccount(null);
         setIsConnected(false);
         setWalletType(null);
-      }
-    });
+      });
+    } catch (err) {
+      console.error('Failed to set up Pera disconnect listener:', err);
+    }
 
-    deflyWallet.connector?.on('disconnect', () => {
-      if (walletType === 'defly') {
+    try {
+      getDeflyWallet().connector?.on('disconnect', () => {
         setAccount(null);
         setIsConnected(false);
         setWalletType(null);
-      }
-    });
+      });
+    } catch (err) {
+      console.error('Failed to set up Defly disconnect listener:', err);
+    }
+
+    return () => {
+      cancelled = true;
+    };
   }, [queryClient, syncWithBackend]);
 
   const connectWallet = useCallback(async (type: WalletType = 'pera') => {
     if (isConnecting || !type) return;
     setIsConnecting(true);
-    
+
     try {
       let accounts: string[];
-      
+
       if (type === 'pera') {
-        accounts = await peraWallet.connect();
+        accounts = await getPeraWallet().connect();
       } else if (type === 'defly') {
-        accounts = await deflyWallet.connect();
+        accounts = await getDeflyWallet().connect();
       } else {
         throw new Error('Unsupported wallet type');
       }
-      
+
       const address = accounts[0];
       setAccount(address);
       setIsConnected(true);
       setWalletType(type);
-      
-      await syncWithBackend(address);
-      
-      toast({ 
-        title: "Wallet Connected!", 
-        description: `Connected via ${type === 'pera' ? 'Pera' : 'Defly'}: ${address.slice(0, 6)}...${address.slice(-4)}` 
+
+      // Sync with backend (non-blocking, don't let failure prevent connection)
+      syncWithBackend(address).catch(() => {});
+
+      toast({
+        title: "Wallet Connected!",
+        description: `Connected via ${type === 'pera' ? 'Pera' : 'Defly'}: ${address.slice(0, 6)}...${address.slice(-4)}`
       });
     } catch (error: unknown) {
       const errorMessage = error instanceof Error ? error.message : 'Connection failed';
       if (!errorMessage.includes('CONNECT_MODAL_CLOSED') && !errorMessage.includes('cancelled')) {
-        toast({ 
-          title: "Connection Failed", 
+        console.error('Wallet connection error:', error);
+        toast({
+          title: "Connection Failed",
           description: errorMessage,
-          variant: "destructive" 
+          variant: "destructive"
         });
       }
     } finally {
@@ -151,9 +185,9 @@ export function AlgorandProvider({ children }: { children: ReactNode }) {
   const disconnectWallet = useCallback(async () => {
     try {
       if (walletType === 'pera') {
-        await peraWallet.disconnect();
+        await getPeraWallet().disconnect();
       } else if (walletType === 'defly') {
-        await deflyWallet.disconnect();
+        await getDeflyWallet().disconnect();
       }
       setAccount(null);
       setIsConnected(false);
@@ -167,21 +201,21 @@ export function AlgorandProvider({ children }: { children: ReactNode }) {
 
   const signTransactions = useCallback(async (txns: algosdk.Transaction[]): Promise<Uint8Array[]> => {
     if (!account) throw new Error('Wallet not connected');
-    
+
     let signedTxns: Uint8Array[];
-    
+
     if (walletType === 'pera') {
-      signedTxns = await peraWallet.signTransaction([
+      signedTxns = await getPeraWallet().signTransaction([
         txns.map(txn => ({ txn }))
       ]);
     } else if (walletType === 'defly') {
-      signedTxns = await deflyWallet.signTransaction([
+      signedTxns = await getDeflyWallet().signTransaction([
         txns.map(txn => ({ txn }))
       ]);
     } else {
       throw new Error('No wallet connected');
     }
-    
+
     return signedTxns;
   }, [account, walletType]);
 
@@ -195,8 +229,8 @@ export function AlgorandProvider({ children }: { children: ReactNode }) {
       disconnectWallet,
       signTransactions,
       algodClient,
-      peraWallet,
-      deflyWallet
+      peraWallet: getPeraWallet(),
+      deflyWallet: getDeflyWallet()
     }}>
       {children}
     </AlgorandContext.Provider>
