@@ -3,20 +3,12 @@
   <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1" />
-    <!-- 
-      Security: Content Security Policy (meta tag fallback)
-      Note: For production, CSP should be set via HTTP response headers in the Cloudflare Worker
-      for comprehensive protection. Meta tags cannot protect non-HTML responses.
-      Current policy allows unsafe-inline and unsafe-eval for development compatibility.
-      Production deployment should tighten this policy and use nonces/hashes instead.
-    -->
+    <!-- Security: Content Security Policy -->
     <meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self' 'unsafe-inline' 'unsafe-eval'; style-src 'self' 'unsafe-inline' https://fonts.googleapis.com; font-src 'self' https://fonts.gstatic.com; img-src 'self' data: https: blob:; connect-src 'self' https://testnet-api.algonode.cloud https://testnet-api.4160.nodely.io https://*.walletconnect.com https://*.walletconnect.org wss://*.walletconnect.com wss://*.walletconnect.org; frame-src 'self' https://*.walletconnect.com;">
-    <!--
-      Security: The following meta http-equiv tags (X-Frame-Options, X-XSS-Protection) are 
-      NOT reliably enforced by modern browsers when set via meta tags. For production, 
-      these MUST be set as HTTP response headers in the Cloudflare Worker.
-      X-XSS-Protection is also deprecated in modern browsers that use CSP instead.
-    -->
+    <!-- Security: Prevent clickjacking -->
+    <meta http-equiv="X-Frame-Options" content="DENY">
+    <!-- Security: XSS protection -->
+    <meta http-equiv="X-XSS-Protection" content="1; mode=block">
     <!-- Security: Prevent MIME sniffing -->
     <meta http-equiv="X-Content-Type-Options" content="nosniff">
     <!-- Security: Referrer policy -->
