@@ -38,7 +38,7 @@ const cannabisFacts = [
 ];
 
 export default function Dashboard() {
-  const { account, isConnected, connectWallet } = useAlgorand();
+  const { account, isConnected, connectWallet, isConnecting } = useAlgorand();
   const { budBalance, terpBalance, algoBalance, pods, activePods, canMintMorePods, maxPods, harvestCount } = useGameState(account);
   const { mintPod, waterPlant, addNutrients, harvestPlant, cleanupPod, optInToApp, optInToAsset, checkAppOptedIn, checkAssetOptedIn } = useTransactions();
   const { toast } = useToast();
@@ -500,18 +500,28 @@ export default function Dashboard() {
                   <div className="flex flex-col sm:flex-row gap-4">
                     <Button
                       onClick={() => setWalletSelectorOpen(true)}
+                      disabled={isConnecting}
                       size="lg"
                       className="bg-gradient-to-r from-primary to-emerald-600 hover:brightness-110 shadow-lg shadow-primary/20"
                       data-testid="button-connect-wallet-hero"
                     >
-                      <Wallet className="mr-2 h-5 w-5" />
-                      Connect Wallet to Start
+                      {isConnecting ? (
+                        <>
+                          <Loader2 className="mr-2 h-5 w-5 animate-spin" />
+                          Connecting...
+                        </>
+                      ) : (
+                        <>
+                          <Wallet className="mr-2 h-5 w-5" />
+                          Connect Wallet to Start
+                        </>
+                      )}
                     </Button>
                     <WalletSelector
                       open={walletSelectorOpen}
                       onOpenChange={setWalletSelectorOpen}
                       onSelectWallet={connectWallet}
-                      isConnecting={false}
+                      isConnecting={isConnecting}
                     />
                     <Link href="/tutorial">
                       <Button 
