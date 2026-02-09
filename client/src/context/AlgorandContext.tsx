@@ -6,9 +6,10 @@ import { useToast } from '@/hooks/use-toast';
 import { useQueryClient } from '@tanstack/react-query';
 import { api } from '@shared/routes';
 
+// Algorand TestNet configuration
 const ALGOD_SERVER = 'https://testnet-api.algonode.cloud';
 const ALGOD_TOKEN = '';
-const CHAIN_ID = 416002;
+const CHAIN_ID = 416002; // TestNet Chain ID
 
 export const CONTRACT_CONFIG = {
   appId: Number(import.meta.env.VITE_GROWPOD_APP_ID) || 755243944,
