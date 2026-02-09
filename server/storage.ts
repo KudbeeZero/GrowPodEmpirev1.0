@@ -48,8 +48,8 @@ export interface IStorage {
 export class DatabaseStorage implements IStorage {
   private db: any; // DrizzleD1Database or NodePgDatabase - both have compatible APIs
 
-  constructor(dbInstance?: DrizzleD1Database<any> | NodePgDatabase<any>) {
-    this.db = dbInstance || db;
+  constructor(dbInstance: DrizzleD1Database<any> | NodePgDatabase<any>) {
+    this.db = dbInstance;
   }
 
   async getUserByWallet(walletAddress: string): Promise<User | undefined> {
