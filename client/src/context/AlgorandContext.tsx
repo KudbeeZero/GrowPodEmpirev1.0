@@ -14,11 +14,11 @@ const CHAIN_ID = 416002;
 export const REOWN_PROJECT_ID = 'e237c5b78b0ae2a29f1a98bdb575e5ce';
 
 export const CONTRACT_CONFIG = {
-  appId: Number(import.meta.env.VITE_GROWPOD_APP_ID) || 753910199,
-  budAssetId: Number(import.meta.env.VITE_BUD_ASSET_ID) || 753910204,
-  terpAssetId: Number(import.meta.env.VITE_TERP_ASSET_ID) || 753910205,
-  slotAssetId: Number(import.meta.env.VITE_SLOT_ASSET_ID) || 753910206,
-  appAddress: import.meta.env.VITE_GROWPOD_APP_ADDRESS || 'DOZMB24AAMRL4BRVMUNGO3IWV64OMU33UQ7O7D5ISTXIZUSFIXOMXO4TEI',
+  appId: Number(import.meta.env.VITE_GROWPOD_APP_ID) || 755243944,
+  budAssetId: Number(import.meta.env.VITE_BUD_ASSET_ID) || 755243947,
+  terpAssetId: Number(import.meta.env.VITE_TERP_ASSET_ID) || 755243948,
+  slotAssetId: Number(import.meta.env.VITE_SLOT_ASSET_ID) || 755243949,
+  appAddress: import.meta.env.VITE_GROWPOD_APP_ADDRESS || 'CWGAVWZRVKKFHRYZHEPQPELVJMFNW2QMIWNEB2H3ZXCKOXRIPKWCW2IBRI',
 };
 
 export const algodClient = new algosdk.Algodv2(ALGOD_TOKEN, ALGOD_SERVER, '');
