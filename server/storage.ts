@@ -1,6 +1,8 @@
 import { users, playerStats, songs, announcementVideos, seedBank, userSeeds, type User, type InsertUser, type PlayerStats, type Song, type InsertSong, type AnnouncementVideo, type InsertAnnouncementVideo, type SeedBankItem, type InsertSeedBankItem, type UserSeed, type InsertUserSeed } from "@shared/schema";
 import { db } from "./db";
 import { eq, desc, sql, and } from "drizzle-orm";
+import type { DrizzleD1Database } from "drizzle-orm/d1";
+import type { NodePgDatabase } from "drizzle-orm/node-postgres";
 
 export interface LeaderboardEntry {
   rank: number;
@@ -44,18 +46,24 @@ export interface IStorage {
 }
 
 export class DatabaseStorage implements IStorage {
+  private db: DrizzleD1Database<any> | NodePgDatabase<any>;
+
+  constructor(dbInstance?: DrizzleD1Database<any> | NodePgDatabase<any>) {
+    this.db = dbInstance || db;
+  }
+
   async getUserByWallet(walletAddress: string): Promise<User | undefined> {
-    const [user] = await db.select().from(users).where(eq(users.walletAddress, walletAddress));
+    const [user] = await this.db.select().from(users).where(eq(users.walletAddress, walletAddress));
     return user;
   }
 
   async createUser(insertUser: InsertUser): Promise<User> {
-    const [user] = await db.insert(users).values(insertUser).returning();
+    const [user] = await this.db.insert(users).values(insertUser).returning();
     return user;
   }
 
   async updateUserLogin(id: number): Promise<User> {
-    const [user] = await db.update(users)
+    const [user] = await this.db.update(users)
       .set({ lastLogin: new Date() })
       .where(eq(users.id, id))
       .returning();
@@ -63,7 +71,7 @@ export class DatabaseStorage implements IStorage {
   }
 
   async updateUserBalances(walletAddress: string, bud: string, terp: string): Promise<User> {
-    const [user] = await db.update(users)
+    const [user] = await this.db.update(users)
       .set({ budBalance: bud, terpBalance: terp })
       .where(eq(users.walletAddress, walletAddress))
       .returning();
@@ -71,10 +79,10 @@ export class DatabaseStorage implements IStorage {
   }
 
   async getOrCreatePlayerStats(walletAddress: string): Promise<PlayerStats> {
-    const [existing] = await db.select().from(playerStats).where(eq(playerStats.walletAddress, walletAddress));
+    const [existing] = await this.db.select().from(playerStats).where(eq(playerStats.walletAddress, walletAddress));
     if (existing) return existing;
     
-    const [stats] = await db.insert(playerStats).values({ walletAddress }).returning();
+    const [stats] = await this.db.insert(playerStats).values({ walletAddress }).returning();
     return stats;
   }
 
@@ -84,7 +92,7 @@ export class DatabaseStorage implements IStorage {
     const newBudTotal = (BigInt(existing.totalBudEarned) + BigInt(budEarned)).toString();
     const newTerpTotal = (BigInt(existing.totalTerpEarned) + BigInt(terpEarned)).toString();
     
-    const [updated] = await db.update(playerStats)
+    const [updated] = await this.db.update(playerStats)
       .set({
         totalHarvests: existing.totalHarvests + 1,
         totalBudEarned: newBudTotal,
@@ -99,7 +107,7 @@ export class DatabaseStorage implements IStorage {
   }
 
   async getHarvestLeaderboard(limit = 10): Promise<LeaderboardEntry[]> {
-    const results = await db.select()
+    const results = await this.db.select()
       .from(playerStats)
       .orderBy(desc(playerStats.totalHarvests))
       .limit(limit);
@@ -113,7 +121,7 @@ export class DatabaseStorage implements IStorage {
   }
 
   async getBudLeaderboard(limit = 10): Promise<LeaderboardEntry[]> {
-    const results = await db.select()
+    const results = await this.db.select()
       .from(playerStats)
       .orderBy(desc(sql`CAST(${playerStats.totalBudEarned} AS NUMERIC)`))
       .limit(limit);
@@ -128,7 +136,7 @@ export class DatabaseStorage implements IStorage {
   }
 
   async getTerpLeaderboard(limit = 10): Promise<LeaderboardEntry[]> {
-    const results = await db.select()
+    const results = await this.db.select()
       .from(playerStats)
       .orderBy(desc(sql`CAST(${playerStats.totalTerpEarned} AS NUMERIC)`))
       .limit(limit);
@@ -143,7 +151,7 @@ export class DatabaseStorage implements IStorage {
   }
 
   async getGlobalStats(): Promise<{ totalHarvests: number; totalBudMinted: string; totalPlayers: number; rareTerpenesFound: number }> {
-    const [stats] = await db.select({
+    const [stats] = await this.db.select({
       totalHarvests: sql<number>`COALESCE(SUM(${playerStats.totalHarvests}), 0)`,
       totalBudMinted: sql<string>`COALESCE(SUM(CAST(${playerStats.totalBudEarned} AS NUMERIC)), 0)::TEXT`,
       totalPlayers: sql<number>`COUNT(*)`,
@@ -159,26 +167,26 @@ export class DatabaseStorage implements IStorage {
   }
 
   async getAllSongs(): Promise<Song[]> {
-    const results = await db.select().from(songs).orderBy(desc(songs.createdAt));
+    const results = await this.db.select().from(songs).orderBy(desc(songs.createdAt));
     return results;
   }
 
   async getSongById(id: number): Promise<Song | undefined> {
-    const [song] = await db.select().from(songs).where(eq(songs.id, id));
+    const [song] = await this.db.select().from(songs).where(eq(songs.id, id));
     return song;
   }
 
   async createSong(song: InsertSong): Promise<Song> {
-    const [created] = await db.insert(songs).values(song).returning();
+    const [created] = await this.db.insert(songs).values(song).returning();
     return created;
   }
 
   async deleteSong(id: number): Promise<void> {
-    await db.delete(songs).where(eq(songs.id, id));
+    await this.db.delete(songs).where(eq(songs.id, id));
   }
 
   async incrementPlayCount(id: number): Promise<Song | undefined> {
-    const [updated] = await db.update(songs)
+    const [updated] = await this.db.update(songs)
       .set({ playCount: sql`${songs.playCount} + 1` })
       .where(eq(songs.id, id))
       .returning();
@@ -186,7 +194,7 @@ export class DatabaseStorage implements IStorage {
   }
 
   async getActiveAnnouncement(): Promise<AnnouncementVideo | undefined> {
-    const [video] = await db.select()
+    const [video] = await this.db.select()
       .from(announcementVideos)
       .where(eq(announcementVideos.isActive, true))
       .orderBy(desc(announcementVideos.createdAt))
@@ -195,16 +203,16 @@ export class DatabaseStorage implements IStorage {
   }
 
   async createAnnouncement(video: InsertAnnouncementVideo): Promise<AnnouncementVideo> {
-    const [created] = await db.insert(announcementVideos).values(video).returning();
+    const [created] = await this.db.insert(announcementVideos).values(video).returning();
     return created;
   }
 
   async deactivateAllAnnouncements(): Promise<void> {
-    await db.update(announcementVideos).set({ isActive: false });
+    await this.db.update(announcementVideos).set({ isActive: false });
   }
 
   async markAnnouncementWatched(walletAddress: string, announcementId: number): Promise<User | undefined> {
-    const [updated] = await db.update(users)
+    const [updated] = await this.db.update(users)
       .set({ lastSeenAnnouncementId: announcementId })
       .where(eq(users.walletAddress, walletAddress))
       .returning();
@@ -219,58 +227,58 @@ export class DatabaseStorage implements IStorage {
 
   // Seed Bank methods
   async getAllSeeds(): Promise<SeedBankItem[]> {
-    const results = await db.select().from(seedBank).where(eq(seedBank.isActive, true)).orderBy(desc(seedBank.createdAt));
+    const results = await this.db.select().from(seedBank).where(eq(seedBank.isActive, true)).orderBy(desc(seedBank.createdAt));
     return results;
   }
 
   async getSeedById(id: number): Promise<SeedBankItem | undefined> {
-    const [seed] = await db.select().from(seedBank).where(eq(seedBank.id, id));
+    const [seed] = await this.db.select().from(seedBank).where(eq(seedBank.id, id));
     return seed;
   }
 
   async createSeed(seed: InsertSeedBankItem): Promise<SeedBankItem> {
-    const [created] = await db.insert(seedBank).values(seed as any).returning();
+    const [created] = await this.db.insert(seedBank).values(seed as any).returning();
     return created;
   }
 
   async updateSeed(id: number, seed: Partial<InsertSeedBankItem>): Promise<SeedBankItem | undefined> {
-    const [updated] = await db.update(seedBank).set(seed as any).where(eq(seedBank.id, id)).returning();
+    const [updated] = await this.db.update(seedBank).set(seed as any).where(eq(seedBank.id, id)).returning();
     return updated;
   }
 
   async deleteSeed(id: number): Promise<void> {
-    await db.update(seedBank).set({ isActive: false }).where(eq(seedBank.id, id));
+    await this.db.update(seedBank).set({ isActive: false }).where(eq(seedBank.id, id));
   }
 
   async purchaseSeed(walletAddress: string, seedId: number): Promise<UserSeed> {
     // Increment minted count
-    await db.update(seedBank)
+    await this.db.update(seedBank)
       .set({ mintedCount: sql`${seedBank.mintedCount} + 1` })
       .where(eq(seedBank.id, seedId));
 
     // Check if user already has this seed
-    const [existing] = await db.select().from(userSeeds)
+    const [existing] = await this.db.select().from(userSeeds)
       .where(and(
         eq(userSeeds.walletAddress, walletAddress),
         eq(userSeeds.seedId, seedId)
       ));
 
     if (existing) {
-      const [updated] = await db.update(userSeeds)
+      const [updated] = await this.db.update(userSeeds)
         .set({ quantity: existing.quantity + 1 })
         .where(eq(userSeeds.id, existing.id))
         .returning();
       return updated;
     }
 
-    const [created] = await db.insert(userSeeds)
+    const [created] = await this.db.insert(userSeeds)
       .values({ walletAddress, seedId, quantity: 1 })
       .returning();
     return created;
   }
 
   async getUserSeeds(walletAddress: string): Promise<(UserSeed & { seed: SeedBankItem })[]> {
-    const results = await db.select()
+    const results = await this.db.select()
       .from(userSeeds)
       .innerJoin(seedBank, eq(userSeeds.seedId, seedBank.id))
       .where(eq(userSeeds.walletAddress, walletAddress));
@@ -282,7 +290,7 @@ export class DatabaseStorage implements IStorage {
   }
 
   async getUserSeedCount(walletAddress: string, seedId: number): Promise<number> {
-    const [existing] = await db.select().from(userSeeds)
+    const [existing] = await this.db.select().from(userSeeds)
       .where(and(
         eq(userSeeds.walletAddress, walletAddress),
         eq(userSeeds.seedId, seedId)
@@ -291,7 +299,7 @@ export class DatabaseStorage implements IStorage {
   }
 
   async useUserSeed(walletAddress: string, seedId: number): Promise<boolean> {
-    const [existing] = await db.select().from(userSeeds)
+    const [existing] = await this.db.select().from(userSeeds)
       .where(and(
         eq(userSeeds.walletAddress, walletAddress),
         eq(userSeeds.seedId, seedId)
@@ -300,9 +308,9 @@ export class DatabaseStorage implements IStorage {
     if (!existing || existing.quantity <= 0) return false;
 
     if (existing.quantity === 1) {
-      await db.delete(userSeeds).where(eq(userSeeds.id, existing.id));
+      await this.db.delete(userSeeds).where(eq(userSeeds.id, existing.id));
     } else {
-      await db.update(userSeeds)
+      await this.db.update(userSeeds)
         .set({ quantity: existing.quantity - 1 })
         .where(eq(userSeeds.id, existing.id));
     }
@@ -472,16 +480,17 @@ const DEFAULT_SEEDS = [
   },
 ];
 
-export async function initializeSeedBank(): Promise<void> {
+export async function initializeSeedBank(dbInstance?: DrizzleD1Database<any> | NodePgDatabase<any>): Promise<void> {
   try {
-    const existingSeeds = await db.select().from(seedBank).limit(1);
+    const dbToUse = dbInstance || db;
+    const existingSeeds = await dbToUse.select().from(seedBank).limit(1);
     if (existingSeeds.length > 0) {
       return; // Seeds already exist, skip initialization
     }
 
     console.log("Seed bank is empty, initializing with default seeds...");
     for (const seed of DEFAULT_SEEDS) {
-      await db.insert(seedBank).values(seed as any);
+      await dbToUse.insert(seedBank).values(seed as any);
     }
     console.log(`Initialized seed bank with ${DEFAULT_SEEDS.length} seeds.`);
   } catch (error) {

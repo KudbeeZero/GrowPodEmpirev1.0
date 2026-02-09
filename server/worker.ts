@@ -2,6 +2,8 @@ import express, { type Request, Response, NextFunction } from "express";
 import { registerRoutes } from "./routes";
 import { Readable } from "stream";
 import { EventEmitter } from "events";
+import { getD1Db } from "./d1-db";
+import { initializeSeedBank } from "./storage";
 
 // Create Express app
 const app = express();
@@ -78,11 +80,13 @@ app.use((req, res, next) => {
 let routesInitialized = false;
 let initPromise: Promise<void> | null = null;
 
-function initRoutes() {
+function initRoutes(d1Database: D1Database) {
   if (!initPromise) {
     initPromise = (async () => {
       try {
-        await registerRoutes(null as any, app);
+        const d1Db = getD1Db(d1Database);
+        await registerRoutes(null, app, d1Db);
+        await initializeSeedBank(d1Db);
         routesInitialized = true;
       } catch (err) {
         console.error('Failed to initialize routes:', err);
@@ -266,9 +270,23 @@ export default {
       }
     }
 
+    // Check if D1 database is available
+    if (!env.DB) {
+      console.error('D1 database binding (env.DB) is not available');
+      if (url.pathname.startsWith('/api')) {
+        return new globalThis.Response(
+          JSON.stringify({ message: 'Database not configured' }),
+          {
+            status: 503,
+            headers: { 'Content-Type': 'application/json' },
+          }
+        );
+      }
+    }
+
     // Initialize routes on first API request (after env is populated)
-    if (!routesInitialized) {
-      await initRoutes();
+    if (!routesInitialized && env.DB) {
+      await initRoutes(env.DB);
     }
 
     // If routes failed to init and this is an API request, return a useful error
