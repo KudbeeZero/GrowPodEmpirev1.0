@@ -2,6 +2,22 @@
 
 Your Cloudflare configuration has been updated with your specific IDs.
 
+## Important: Dual Database Architecture
+
+This project uses **two separate databases**:
+
+1. **PostgreSQL** - For local development
+   - Accessed via `server/db.ts` using `drizzle-orm/node-postgres`
+   - Configured via `DATABASE_URL` environment variable
+   - Schema management: `npm run db:push`
+
+2. **Cloudflare D1 (SQLite)** - For production deployment
+   - Accessed via `server/d1-db.ts` using `drizzle-orm/d1`
+   - Configured in `wrangler.toml` with database binding
+   - Schema management: SQL migrations in `migrations-d1/` directory
+
+The application automatically detects the runtime environment and uses the appropriate database.
+
 ## ✅ Configuration Complete
 
 The following IDs have been configured in `wrangler.toml`:
@@ -29,22 +45,19 @@ database_id = "712d926f-c396-473f-96d9-f0dfc3d1d069"
 
 Now that your IDs are configured, you can:
 
-### 1. Set Up Secrets
+### 1. Apply Database Schema
 
-Set your DATABASE_URL secret (PostgreSQL connection string):
+Apply the database schema to your D1 database:
 ```bash
-npx wrangler secret put DATABASE_URL
+npx wrangler d1 execute growpod-primary --file=./migrations-d1/0001_initial_schema.sql --remote
 ```
 
-When prompted, enter your PostgreSQL connection string, for example:
-```
-postgresql://user:password@host:5432/database
-```
+This creates all the necessary tables for the application.
 
 ### 2. Deploy
 
 ```bash
-npm run build
+BUILD_TARGET=worker npm run build
 npm run worker:deploy
 ```
 
