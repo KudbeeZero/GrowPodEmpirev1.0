@@ -20,6 +20,10 @@ import Achievements from "@/pages/Achievements";
 import Jukebox from "@/pages/Jukebox";
 import SeedBank from "@/pages/SeedBank";
 import Admin from "@/pages/Admin";
+import SeedSelection from "@/components/SeedSelection";
+import PodDisplay from "@/components/PodDisplay";
+import CureVaultNew from "@/components/CureVaultNew";
+import CentralBank from "@/components/CentralBank";
 import { MiniPlayer } from "@/components/MiniPlayer";
 import NotFound from "@/pages/not-found";
 import type { AnnouncementVideo } from "@shared/schema";
@@ -116,6 +120,10 @@ function Router() {
               </ErrorBoundary>
             )}
           </Route>
+          <Route path="/seeds" component={SeedSelection} />
+          <Route path="/pods" component={PodDisplay} />
+          <Route path="/cure-vault" component={CureVaultNew} />
+          <Route path="/central-bank" component={CentralBank} />
           <Route path="/jukebox" component={Jukebox} />
           <Route path="/seed-bank" component={SeedBank} />
           <Route path="/admin" component={Admin} />

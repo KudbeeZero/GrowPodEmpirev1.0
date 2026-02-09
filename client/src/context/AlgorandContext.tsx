@@ -10,6 +10,9 @@ const ALGOD_SERVER = 'https://testnet-api.algonode.cloud';
 const ALGOD_TOKEN = '';
 const CHAIN_ID = 416002;
 
+// Reown (WalletConnect) Project ID for TestNet
+export const REOWN_PROJECT_ID = 'e237c5b78b0ae2a29f1a98bdb575e5ce';
+
 export const CONTRACT_CONFIG = {
   appId: Number(import.meta.env.VITE_GROWPOD_APP_ID) || 753910199,
   budAssetId: Number(import.meta.env.VITE_BUD_ASSET_ID) || 753910204,
@@ -27,7 +30,10 @@ let _deflyWallet: DeflyWalletConnect | null = null;
 
 function getPeraWallet(): PeraWalletConnect {
   if (!_peraWallet) {
-    _peraWallet = new PeraWalletConnect({ chainId: CHAIN_ID });
+    _peraWallet = new PeraWalletConnect({
+      chainId: CHAIN_ID,
+      projectId: REOWN_PROJECT_ID,
+    });
   }
   return _peraWallet;
 }

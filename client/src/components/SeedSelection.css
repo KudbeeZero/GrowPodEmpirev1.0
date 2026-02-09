@@ -1,0 +1,337 @@
+/* SeedSelection Component Styles */
+
+.seed-selection {
+  min-height: 100vh;
+  padding: 2rem 1rem;
+}
+
+.seed-filters {
+  display: flex;
+  gap: 0.5rem;
+  flex-wrap: wrap;
+  margin-bottom: 1.5rem;
+}
+
+.seed-filter-btn {
+  padding: 0.5rem 1.25rem;
+  border-radius: 9999px;
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  background: rgba(255, 255, 255, 0.05);
+  color: #9ca3af;
+  font-family: 'Rajdhani', sans-serif;
+  font-weight: 600;
+  font-size: 0.875rem;
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+.seed-filter-btn:hover {
+  background: rgba(0, 255, 148, 0.1);
+  border-color: rgba(0, 255, 148, 0.3);
+  color: #00ff94;
+}
+
+.seed-filter-btn.active {
+  background: rgba(0, 255, 148, 0.15);
+  border-color: #00ff94;
+  color: #00ff94;
+  box-shadow: 0 0 12px rgba(0, 255, 148, 0.2);
+}
+
+.seed-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+  gap: 1rem;
+}
+
+.seed-card {
+  position: relative;
+  background: rgba(30, 41, 59, 0.6);
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  border-radius: 0.75rem;
+  padding: 1.25rem;
+  cursor: pointer;
+  transition: all 0.3s ease;
+  overflow: hidden;
+}
+
+.seed-card::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  height: 3px;
+  background: var(--seed-color, #9ca3af);
+  opacity: 0.6;
+  transition: opacity 0.3s ease;
+}
+
+.seed-card:hover {
+  border-color: rgba(255, 255, 255, 0.2);
+  transform: translateY(-2px);
+  box-shadow: 0 8px 25px rgba(0, 0, 0, 0.3);
+}
+
+.seed-card:hover::before {
+  opacity: 1;
+}
+
+.seed-card.selected {
+  border-color: #00ff94;
+  background: rgba(0, 255, 148, 0.08);
+  box-shadow: 0 0 20px rgba(0, 255, 148, 0.15);
+}
+
+.seed-card.selected::before {
+  background: #00ff94;
+  opacity: 1;
+}
+
+/* Rarity-specific glow for Legendary */
+.seed-card.rarity-legendary {
+  animation: legendary-glow 3s ease-in-out infinite;
+}
+
+@keyframes legendary-glow {
+  0%, 100% {
+    box-shadow: 0 0 5px rgba(245, 158, 11, 0.1);
+  }
+  50% {
+    box-shadow: 0 0 20px rgba(245, 158, 11, 0.25), 0 0 40px rgba(245, 158, 11, 0.1);
+  }
+}
+
+.seed-card-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  margin-bottom: 0.75rem;
+}
+
+.seed-name {
+  font-family: 'Orbitron', sans-serif;
+  font-size: 0.95rem;
+  font-weight: 700;
+  color: #f0fdf4;
+  margin: 0;
+}
+
+.seed-rarity-badge {
+  padding: 0.15rem 0.5rem;
+  border-radius: 9999px;
+  font-size: 0.65rem;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  border: 1px solid;
+}
+
+.seed-rarity-common {
+  color: #9ca3af;
+  border-color: rgba(156, 163, 175, 0.4);
+  background: rgba(156, 163, 175, 0.1);
+}
+
+.seed-rarity-rare {
+  color: #60a5fa;
+  border-color: rgba(59, 130, 246, 0.4);
+  background: rgba(59, 130, 246, 0.1);
+}
+
+.seed-rarity-epic {
+  color: #c084fc;
+  border-color: rgba(168, 85, 247, 0.4);
+  background: rgba(168, 85, 247, 0.1);
+}
+
+.seed-rarity-legendary {
+  color: #fbbf24;
+  border-color: rgba(245, 158, 11, 0.4);
+  background: rgba(245, 158, 11, 0.1);
+  animation: legendary-badge-pulse 2s ease-in-out infinite;
+}
+
+@keyframes legendary-badge-pulse {
+  0%, 100% { opacity: 0.8; }
+  50% { opacity: 1; text-shadow: 0 0 6px rgba(245, 158, 11, 0.5); }
+}
+
+.seed-type-badge {
+  display: inline-block;
+  padding: 0.1rem 0.4rem;
+  border-radius: 4px;
+  font-size: 0.7rem;
+  font-weight: 600;
+  margin-bottom: 0.75rem;
+  opacity: 0.9;
+}
+
+.seed-stats-bars {
+  display: flex;
+  flex-direction: column;
+  gap: 0.4rem;
+  margin-bottom: 0.75rem;
+}
+
+.seed-stat-row {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+}
+
+.seed-stat-label {
+  font-size: 0.7rem;
+  color: #9ca3af;
+  width: 70px;
+  flex-shrink: 0;
+}
+
+.seed-stat-bar {
+  flex: 1;
+  height: 6px;
+  background: rgba(255, 255, 255, 0.08);
+  border-radius: 3px;
+  overflow: hidden;
+}
+
+.seed-stat-fill {
+  height: 100%;
+  border-radius: 3px;
+  transition: width 0.6s ease;
+}
+
+.seed-stat-value {
+  font-size: 0.65rem;
+  color: #6b7280;
+  width: 20px;
+  text-align: right;
+  font-family: 'Rajdhani', sans-serif;
+  font-weight: 600;
+}
+
+.seed-terpenes {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.3rem;
+  margin-top: 0.5rem;
+}
+
+.seed-terpene-tag {
+  font-size: 0.6rem;
+  padding: 0.1rem 0.35rem;
+  border-radius: 4px;
+  background: rgba(0, 255, 148, 0.08);
+  border: 1px solid rgba(0, 255, 148, 0.15);
+  color: rgba(0, 255, 148, 0.7);
+  font-weight: 600;
+  text-transform: uppercase;
+}
+
+/* Detail Panel */
+.seed-detail-panel {
+  position: fixed;
+  bottom: 0;
+  left: 0;
+  right: 0;
+  background: rgba(15, 23, 42, 0.98);
+  border-top: 1px solid rgba(0, 255, 148, 0.3);
+  padding: 1.5rem;
+  z-index: 40;
+  backdrop-filter: blur(20px);
+  box-shadow: 0 -10px 40px rgba(0, 0, 0, 0.5);
+  animation: slide-up 0.3s ease-out;
+}
+
+@keyframes slide-up {
+  from {
+    transform: translateY(100%);
+    opacity: 0;
+  }
+  to {
+    transform: translateY(0);
+    opacity: 1;
+  }
+}
+
+.seed-detail-content {
+  max-width: 900px;
+  margin: 0 auto;
+  display: grid;
+  grid-template-columns: 1fr 1fr 1fr auto;
+  gap: 1.5rem;
+  align-items: center;
+}
+
+@media (max-width: 768px) {
+  .seed-detail-content {
+    grid-template-columns: 1fr;
+    gap: 1rem;
+  }
+
+  .seed-grid {
+    grid-template-columns: 1fr;
+  }
+}
+
+.seed-detail-info h3 {
+  font-family: 'Orbitron', sans-serif;
+  font-size: 1.1rem;
+  color: #00ff94;
+  margin: 0 0 0.25rem;
+}
+
+.seed-detail-info p {
+  font-size: 0.8rem;
+  color: #9ca3af;
+  margin: 0;
+  line-height: 1.4;
+}
+
+.seed-detail-stats {
+  display: flex;
+  gap: 1.5rem;
+}
+
+.seed-detail-stat {
+  text-align: center;
+}
+
+.seed-detail-stat-value {
+  font-family: 'Orbitron', sans-serif;
+  font-size: 1.25rem;
+  font-weight: 700;
+  color: #00ff94;
+}
+
+.seed-detail-stat-label {
+  font-size: 0.7rem;
+  color: #6b7280;
+  text-transform: uppercase;
+}
+
+.seed-plant-btn {
+  padding: 0.75rem 2rem;
+  background: linear-gradient(135deg, #00ff94, #00cc76);
+  color: #0a0a1a;
+  border: none;
+  border-radius: 0.5rem;
+  font-family: 'Orbitron', sans-serif;
+  font-weight: 700;
+  font-size: 0.9rem;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  white-space: nowrap;
+}
+
+.seed-plant-btn:hover {
+  transform: scale(1.05);
+  box-shadow: 0 0 20px rgba(0, 255, 148, 0.4);
+}
+
+.seed-plant-btn:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+  transform: none;
+  box-shadow: none;
+}

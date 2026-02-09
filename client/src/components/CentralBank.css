@@ -1,0 +1,354 @@
+/* CentralBank Component Styles */
+
+.central-bank {
+  min-height: 100vh;
+  padding: 2rem 1rem;
+}
+
+.bank-main {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 1.5rem;
+  max-width: 900px;
+  margin: 0 auto;
+}
+
+@media (max-width: 768px) {
+  .bank-main {
+    grid-template-columns: 1fr;
+  }
+}
+
+/* Sell Panel */
+.bank-sell-panel {
+  background: rgba(30, 41, 59, 0.6);
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  border-radius: 1rem;
+  padding: 1.5rem;
+}
+
+.bank-sell-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 1.5rem;
+}
+
+.bank-sell-title {
+  font-family: 'Orbitron', sans-serif;
+  font-size: 1.1rem;
+  font-weight: 700;
+  color: #f0fdf4;
+}
+
+.bank-sell-rate {
+  font-size: 0.75rem;
+  color: #9ca3af;
+  padding: 0.25rem 0.5rem;
+  background: rgba(0, 0, 0, 0.2);
+  border-radius: 4px;
+}
+
+.bank-input-group {
+  margin-bottom: 1rem;
+}
+
+.bank-input-label {
+  display: flex;
+  justify-content: space-between;
+  font-size: 0.75rem;
+  color: #9ca3af;
+  margin-bottom: 0.4rem;
+}
+
+.bank-input {
+  width: 100%;
+  background: rgba(0, 0, 0, 0.3);
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  border-radius: 0.5rem;
+  padding: 0.85rem 1rem;
+  color: #f0fdf4;
+  font-family: 'Orbitron', sans-serif;
+  font-size: 1.2rem;
+  font-weight: 700;
+  outline: none;
+  transition: border-color 0.2s ease;
+}
+
+.bank-input:focus {
+  border-color: #00ff94;
+  box-shadow: 0 0 10px rgba(0, 255, 148, 0.15);
+}
+
+.bank-input::placeholder {
+  color: #4b5563;
+  font-weight: 400;
+  font-size: 0.9rem;
+}
+
+.bank-quick-amounts {
+  display: flex;
+  gap: 0.4rem;
+  margin-bottom: 1.25rem;
+}
+
+.bank-quick-btn {
+  flex: 1;
+  padding: 0.4rem;
+  background: rgba(255, 255, 255, 0.05);
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  border-radius: 0.4rem;
+  color: #9ca3af;
+  font-size: 0.7rem;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  font-family: 'Rajdhani', sans-serif;
+}
+
+.bank-quick-btn:hover {
+  background: rgba(0, 255, 148, 0.1);
+  border-color: rgba(0, 255, 148, 0.3);
+  color: #00ff94;
+}
+
+/* Fee Breakdown */
+.bank-fee-breakdown {
+  padding: 1rem;
+  background: rgba(0, 0, 0, 0.2);
+  border-radius: 0.5rem;
+  border: 1px solid rgba(255, 255, 255, 0.05);
+  margin-bottom: 1.25rem;
+}
+
+.bank-fee-row {
+  display: flex;
+  justify-content: space-between;
+  font-size: 0.8rem;
+  margin-bottom: 0.35rem;
+}
+
+.bank-fee-label {
+  color: #9ca3af;
+}
+
+.bank-fee-value {
+  color: #f0fdf4;
+  font-weight: 600;
+}
+
+.bank-fee-burn {
+  color: #ef4444;
+}
+
+.bank-fee-treasury {
+  color: #f59e0b;
+}
+
+.bank-fee-divider {
+  height: 1px;
+  background: rgba(255, 255, 255, 0.1);
+  margin: 0.5rem 0;
+}
+
+.bank-fee-net {
+  display: flex;
+  justify-content: space-between;
+  margin-top: 0.5rem;
+}
+
+.bank-fee-net .bank-fee-label {
+  font-family: 'Orbitron', sans-serif;
+  font-weight: 700;
+  color: #f0fdf4;
+  font-size: 0.85rem;
+}
+
+.bank-fee-net .bank-fee-value {
+  font-family: 'Orbitron', sans-serif;
+  font-weight: 700;
+  color: #00ff94;
+  font-size: 1rem;
+  text-shadow: 0 0 8px rgba(0, 255, 148, 0.3);
+}
+
+.bank-sell-btn {
+  width: 100%;
+  padding: 0.85rem;
+  background: linear-gradient(135deg, #00ff94, #00cc76);
+  color: #0a0a1a;
+  border: none;
+  border-radius: 0.5rem;
+  font-family: 'Orbitron', sans-serif;
+  font-weight: 700;
+  font-size: 0.9rem;
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+.bank-sell-btn:hover:not(:disabled) {
+  box-shadow: 0 0 20px rgba(0, 255, 148, 0.3);
+  transform: translateY(-1px);
+}
+
+.bank-sell-btn:disabled {
+  opacity: 0.4;
+  cursor: not-allowed;
+}
+
+/* Info Panel */
+.bank-info-panel {
+  display: flex;
+  flex-direction: column;
+  gap: 1rem;
+}
+
+.bank-info-card {
+  background: rgba(30, 41, 59, 0.5);
+  border: 1px solid rgba(255, 255, 255, 0.06);
+  border-radius: 0.75rem;
+  padding: 1.25rem;
+}
+
+.bank-info-card-header {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  margin-bottom: 0.75rem;
+}
+
+.bank-info-card-icon {
+  color: #00ff94;
+}
+
+.bank-info-card-title {
+  font-family: 'Orbitron', sans-serif;
+  font-size: 0.8rem;
+  font-weight: 700;
+  color: #f0fdf4;
+}
+
+.bank-info-stat {
+  font-family: 'Orbitron', sans-serif;
+  font-size: 1.5rem;
+  font-weight: 800;
+  color: #00ff94;
+  text-shadow: 0 0 10px rgba(0, 255, 148, 0.3);
+}
+
+.bank-info-desc {
+  font-size: 0.75rem;
+  color: #6b7280;
+  margin-top: 0.25rem;
+}
+
+/* Confirm Modal */
+.bank-modal-overlay {
+  position: fixed;
+  inset: 0;
+  background: rgba(0, 0, 0, 0.7);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 50;
+  backdrop-filter: blur(4px);
+}
+
+.bank-modal {
+  background: rgba(15, 23, 42, 0.98);
+  border: 1px solid rgba(0, 255, 148, 0.2);
+  border-radius: 1rem;
+  padding: 2rem;
+  max-width: 420px;
+  width: 90%;
+  box-shadow: 0 20px 60px rgba(0, 0, 0, 0.5);
+}
+
+.bank-modal-title {
+  font-family: 'Orbitron', sans-serif;
+  font-size: 1.1rem;
+  font-weight: 700;
+  color: #f0fdf4;
+  margin-bottom: 1rem;
+  text-align: center;
+}
+
+.bank-modal-actions {
+  display: flex;
+  gap: 0.75rem;
+  margin-top: 1.5rem;
+}
+
+.bank-modal-cancel {
+  flex: 1;
+  padding: 0.75rem;
+  background: rgba(255, 255, 255, 0.05);
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  border-radius: 0.5rem;
+  color: #9ca3af;
+  font-family: 'Orbitron', sans-serif;
+  font-weight: 700;
+  font-size: 0.8rem;
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+.bank-modal-cancel:hover {
+  background: rgba(255, 255, 255, 0.1);
+}
+
+.bank-modal-confirm {
+  flex: 1;
+  padding: 0.75rem;
+  background: linear-gradient(135deg, #00ff94, #00cc76);
+  color: #0a0a1a;
+  border: none;
+  border-radius: 0.5rem;
+  font-family: 'Orbitron', sans-serif;
+  font-weight: 700;
+  font-size: 0.8rem;
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+.bank-modal-confirm:hover {
+  box-shadow: 0 0 15px rgba(0, 255, 148, 0.3);
+}
+
+/* Success State */
+.bank-success {
+  text-align: center;
+  padding: 2rem;
+}
+
+.bank-success-icon {
+  width: 60px;
+  height: 60px;
+  border-radius: 50%;
+  background: rgba(0, 255, 148, 0.15);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  margin: 0 auto 1rem;
+}
+
+.bank-success-title {
+  font-family: 'Orbitron', sans-serif;
+  font-size: 1.1rem;
+  font-weight: 700;
+  color: #00ff94;
+  margin-bottom: 0.5rem;
+}
+
+.bank-success-amount {
+  font-family: 'Orbitron', sans-serif;
+  font-size: 1.5rem;
+  font-weight: 800;
+  color: #f0fdf4;
+}
+
+.bank-success-desc {
+  font-size: 0.8rem;
+  color: #6b7280;
+  margin-top: 0.25rem;
+}
