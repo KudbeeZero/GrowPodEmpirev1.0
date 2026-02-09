@@ -116,10 +116,10 @@ Types exported:
 ```typescript
 // Contract configuration
 export const CONTRACT_CONFIG = {
-  appId: Number(import.meta.env.VITE_GROWPOD_APP_ID) || 753910199,
-  budAssetId: Number(import.meta.env.VITE_BUD_ASSET_ID) || 753910204,
-  terpAssetId: Number(import.meta.env.VITE_TERP_ASSET_ID) || 753910205,
-  slotAssetId: Number(import.meta.env.VITE_SLOT_ASSET_ID) || 753910206,
+  appId: Number(import.meta.env.VITE_GROWPOD_APP_ID) || 755243944,
+  budAssetId: Number(import.meta.env.VITE_BUD_ASSET_ID) || 755243947,
+  terpAssetId: Number(import.meta.env.VITE_TERP_ASSET_ID) || 755243948,
+  slotAssetId: Number(import.meta.env.VITE_SLOT_ASSET_ID) || 755243949,
   appAddress: import.meta.env.VITE_GROWPOD_APP_ADDRESS || '...',
 };
 ```
@@ -223,18 +223,18 @@ DATABASE_URL=postgresql://...
 
 ### Optional (for blockchain features)
 ```bash
-VITE_GROWPOD_APP_ID=753910199
-VITE_BUD_ASSET_ID=753910204
-VITE_TERP_ASSET_ID=753910205
-VITE_SLOT_ASSET_ID=753910206
-VITE_GROWPOD_APP_ADDRESS=...
-ADMIN_WALLET_ADDRESS=ZK55X7SGIGMLGORVNJHHPTYZMZOGSQNVROBHX7N27X6ZEQRHAZ2UPKOXQU  # TestNet admin wallet
+VITE_GROWPOD_APP_ID=755243944
+VITE_BUD_ASSET_ID=755243947
+VITE_TERP_ASSET_ID=755243948
+VITE_SLOT_ASSET_ID=755243949
+VITE_GROWPOD_APP_ADDRESS=CWGAVWZRVKKFHRYZHEPQPELVJMFNW2QMIWNEB2H3ZXCKOXRIPKWCW2IBRI
+ADMIN_WALLET_ADDRESS=HW6U3RKLOYEW2X2L4DERSJHBPG6G6UTKDWBSS2MKPZJOSAWKLP72NTIMNQ  # TestNet admin wallet
 ```
 
 ### Smart Contract Deployment (TestNet)
 ```bash
-ALGO_MNEMONIC="any virus dynamic mind figure glide shove peanut village grab wisdom film luggage shoulder fetch license tunnel daring lounge rubber eagle source inch able world"
-GROWPOD_APP_ID=<after_deployment>
+ALGO_MNEMONIC="final adapt purpose intact naive action garbage curious feature tourist sense strong present snack control orbit pudding federal budget plug volcano olympic soda absorb monitor"
+GROWPOD_APP_ID=755243944
 
 # See ADMIN_WALLET_DEPLOYMENT.md for complete deployment guide
 ```
