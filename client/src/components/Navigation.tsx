@@ -225,7 +225,7 @@ export function Navigation() {
                   <Wallet className="mr-2 h-4 w-4" />
                   {truncatedAddress}
                   <span className="ml-2 text-xs text-muted-foreground">
-                    ({walletType === 'pera' ? '🔷' : '🦋'})
+                    ({walletType === 'pera' ? '🔷' : walletType === 'defly' ? '🦋' : '🎸'})
                   </span>
                 </Button>
               </DropdownMenuTrigger>
@@ -234,7 +234,7 @@ export function Navigation() {
                   {account}
                 </DropdownMenuLabel>
                 <DropdownMenuLabel className="text-xs text-muted-foreground">
-                  Connected via {walletType === 'pera' ? 'Pera Wallet' : 'Defly Wallet'}
+                  Connected via {walletType === 'pera' ? 'Pera Wallet' : walletType === 'defly' ? 'Defly Wallet' : 'Lute Wallet'}
                 </DropdownMenuLabel>
                 <DropdownMenuSeparator />
                 <DropdownMenuItem className="lg:hidden">

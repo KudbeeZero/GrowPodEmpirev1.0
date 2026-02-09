@@ -3,9 +3,10 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription } f
 import { Button } from "@/components/ui/button";
 import { Wallet, Loader2 } from "lucide-react";
 import { cn } from "@/lib/utils";
+import type { WalletType } from "@/context/AlgorandContext";
 
 export interface WalletOption {
-  id: 'pera' | 'defly';
+  id: WalletType;
   name: string;
   description: string;
   icon: string;
@@ -15,13 +16,13 @@ export interface WalletOption {
 interface WalletSelectorProps {
   open: boolean;
   onOpenChange: (open: boolean) => void;
-  onSelectWallet: (walletId: WalletOption['id']) => Promise<void>;
+  onSelectWallet: (walletId: WalletType) => Promise<void>;
   isConnecting: boolean;
 }
 
 export function WalletSelector({ open, onOpenChange, onSelectWallet, isConnecting }: WalletSelectorProps) {
-  const [selectedWallet, setSelectedWallet] = useState<WalletOption['id'] | null>(null);
-  
+  const [selectedWallet, setSelectedWallet] = useState<WalletType>(null);
+
   const wallets: WalletOption[] = [
     {
       id: 'pera',
@@ -37,9 +38,16 @@ export function WalletSelector({ open, onOpenChange, onSelectWallet, isConnectin
       icon: '🦋',
       available: true,
     },
+    {
+      id: 'lute',
+      name: 'Lute Wallet',
+      description: 'Browser extension wallet for Algorand',
+      icon: '🎸',
+      available: true,
+    },
   ];
 
-  const handleConnect = async (walletId: WalletOption['id']) => {
+  const handleConnect = async (walletId: WalletType) => {
     setSelectedWallet(walletId);
     try {
       await onSelectWallet(walletId);
@@ -100,13 +108,22 @@ export function WalletSelector({ open, onOpenChange, onSelectWallet, isConnectin
         </div>
         <div className="text-xs text-muted-foreground text-center">
           Don't have a wallet?{" "}
-          <a 
-            href="https://perawallet.app/" 
-            target="_blank" 
+          <a
+            href="https://perawallet.app/"
+            target="_blank"
             rel="noopener noreferrer"
             className="text-primary hover:underline"
           >
             Download Pera Wallet
+          </a>
+          {" | "}
+          <a
+            href="https://lute.app/"
+            target="_blank"
+            rel="noopener noreferrer"
+            className="text-primary hover:underline"
+          >
+            Get Lute Wallet
           </a>
         </div>
       </DialogContent>

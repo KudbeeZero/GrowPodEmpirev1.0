@@ -1,6 +1,7 @@
 import { createContext, useContext, useState, useEffect, useCallback, ReactNode } from 'react';
 import { PeraWalletConnect } from '@perawallet/connect';
 import { DeflyWalletConnect } from '@blockshake/defly-connect';
+import LuteConnect from 'lute-connect';
 import algosdk from 'algosdk';
 import { useToast } from '@/hooks/use-toast';
 import { useQueryClient } from '@tanstack/react-query';
@@ -9,6 +10,11 @@ import { api } from '@shared/routes';
 const ALGOD_SERVER = 'https://testnet-api.algonode.cloud';
 const ALGOD_TOKEN = '';
 const CHAIN_ID = 416002;
+
+// Lute needs the genesis ID string to connect (identifies the network)
+const TESTNET_GENESIS_ID = 'testnet-v1.0';
+
+const LUTE_WALLET_KEY = 'growpod_lute_wallet';
 
 export const CONTRACT_CONFIG = {
   appId: Number(import.meta.env.VITE_GROWPOD_APP_ID) || 753910199,
@@ -24,6 +30,7 @@ export const algodClient = new algosdk.Algodv2(ALGOD_TOKEN, ALGOD_SERVER, '');
 // if polyfills (Buffer, global, process) haven't loaded yet
 let _peraWallet: PeraWalletConnect | null = null;
 let _deflyWallet: DeflyWalletConnect | null = null;
+let _luteWallet: LuteConnect | null = null;
 
 function getPeraWallet(): PeraWalletConnect {
   if (!_peraWallet) {
@@ -39,7 +46,14 @@ function getDeflyWallet(): DeflyWalletConnect {
   return _deflyWallet;
 }
 
-type WalletType = 'pera' | 'defly' | null;
+function getLuteWallet(): LuteConnect {
+  if (!_luteWallet) {
+    _luteWallet = new LuteConnect('GrowPod Empire');
+  }
+  return _luteWallet;
+}
+
+export type WalletType = 'pera' | 'defly' | 'lute' | null;
 
 interface AlgorandContextType {
   account: string | null;
@@ -91,7 +105,7 @@ export function AlgorandProvider({ children }: { children: ReactNode }) {
           setIsConnected(true);
           setWalletType('pera');
           await syncWithBackend(address);
-          return; // Pera connected, skip Defly
+          return;
         }
       } catch (err) {
         console.error('Pera reconnect failed:', err);
@@ -106,15 +120,29 @@ export function AlgorandProvider({ children }: { children: ReactNode }) {
           setIsConnected(true);
           setWalletType('defly');
           await syncWithBackend(address);
+          return;
         }
       } catch (err) {
         console.error('Defly reconnect failed:', err);
+      }
+
+      // Try Lute (stateless -- restore from localStorage)
+      try {
+        const savedLuteAddress = localStorage.getItem(LUTE_WALLET_KEY);
+        if (!cancelled && savedLuteAddress) {
+          setAccount(savedLuteAddress);
+          setIsConnected(true);
+          setWalletType('lute');
+          await syncWithBackend(savedLuteAddress);
+        }
+      } catch (err) {
+        console.error('Lute reconnect failed:', err);
       }
     };
 
     reconnect();
 
-    // Setup disconnect listeners
+    // Setup disconnect listeners for Pera/Defly
     try {
       getPeraWallet().connector?.on('disconnect', () => {
         setAccount(null);
@@ -151,6 +179,8 @@ export function AlgorandProvider({ children }: { children: ReactNode }) {
         accounts = await getPeraWallet().connect();
       } else if (type === 'defly') {
         accounts = await getDeflyWallet().connect();
+      } else if (type === 'lute') {
+        accounts = await getLuteWallet().connect(TESTNET_GENESIS_ID);
       } else {
         throw new Error('Unsupported wallet type');
       }
@@ -160,12 +190,18 @@ export function AlgorandProvider({ children }: { children: ReactNode }) {
       setIsConnected(true);
       setWalletType(type);
 
-      // Sync with backend (non-blocking, don't let failure prevent connection)
+      // Persist Lute address (stateless wallet, no session to reconnect)
+      if (type === 'lute') {
+        localStorage.setItem(LUTE_WALLET_KEY, address);
+      }
+
+      // Sync with backend (non-blocking)
       syncWithBackend(address).catch(() => {});
 
+      const walletName = type === 'pera' ? 'Pera' : type === 'defly' ? 'Defly' : 'Lute';
       toast({
         title: "Wallet Connected!",
-        description: `Connected via ${type === 'pera' ? 'Pera' : 'Defly'}: ${address.slice(0, 6)}...${address.slice(-4)}`
+        description: `Connected via ${walletName}: ${address.slice(0, 6)}...${address.slice(-4)}`
       });
     } catch (error: unknown) {
       const errorMessage = error instanceof Error ? error.message : 'Connection failed';
@@ -188,6 +224,9 @@ export function AlgorandProvider({ children }: { children: ReactNode }) {
         await getPeraWallet().disconnect();
       } else if (walletType === 'defly') {
         await getDeflyWallet().disconnect();
+      } else if (walletType === 'lute') {
+        // Lute is stateless -- just clear our saved address
+        localStorage.removeItem(LUTE_WALLET_KEY);
       }
       setAccount(null);
       setIsConnected(false);
@@ -212,6 +251,16 @@ export function AlgorandProvider({ children }: { children: ReactNode }) {
       signedTxns = await getDeflyWallet().signTransaction([
         txns.map(txn => ({ txn }))
       ]);
+    } else if (walletType === 'lute') {
+      // Lute uses ARC-0001 format: base64-encoded msgpack transactions
+      const luteResult = await getLuteWallet().signTxns(
+        txns.map(txn => ({
+          txn: Buffer.from(algosdk.encodeUnsignedTransaction(txn)).toString('base64'),
+        }))
+      );
+      // Filter out nulls (unsigned txns in a group) and convert to Uint8Array
+      signedTxns = luteResult
+        .filter((t): t is Uint8Array => t !== null);
     } else {
       throw new Error('No wallet connected');
     }
