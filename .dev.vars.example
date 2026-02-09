@@ -17,4 +17,4 @@ DATABASE_URL=postgresql://user:password@localhost:5432/growpod_empire
 # ADMIN_WALLET_ADDRESS=HW6U3RKLOYEW2X2L4DERSJHBPG6G6UTKDWBSS2MKPZJOSAWKLP72NTIMNQ
 
 # Algorand Deployment - Required for contract deployment to TestNet
-# ALGO_MNEMONIC="final adapt purpose intact naive action garbage curious feature tourist sense strong present snack control orbit pudding federal budget plug volcano olympic soda absorb monitor"
+# ALGO_MNEMONIC="your 25-word algorand mnemonic goes here"
