@@ -21,6 +21,9 @@ ALGOD_TOKEN = ""
 algod_client = algod.AlgodClient(ALGOD_TOKEN, ALGOD_ADDRESS)
 
 # Default Pinata IPFS URLs for pod images
+# WARNING: These are placeholder URLs and need to be replaced with real IPFS CIDs
+# before production deployment. Upload actual 800x1000 images to IPFS and update
+# the URLs with valid Pinata gateway links (e.g., QmXxXxXxXxXxXxXxXxXxXxXxXxX).
 POD_IMAGES = {
     "default": "https://gateway.pinata.cloud/ipfs/QmDefaultPodImage",
     "seedling": "https://gateway.pinata.cloud/ipfs/QmSeedlingImage",
@@ -44,6 +47,11 @@ def mint_pod_nft(
 ) -> int:
     """
     Mint a soulbound GrowPod NFT.
+    
+    IMPORTANT: This creates an NFT that is separate from the contract's pod state.
+    The NFT is primarily for visual representation and metadata storage.
+    The actual game state (growth stage, water count, etc.) is stored in the
+    smart contract's local state, not in this NFT.
     
     The NFT is "soulbound" via clawback mechanism:
     - Clawback address = app address (or creator if no app)
@@ -111,10 +119,13 @@ def plant_mystery_seed(user_mnemonic: str, app_id: int) -> dict:
     """
     Plant a mystery seed in the GrowPod (call mint_pod on contract).
     
-    This initializes the growth cycle with:
+    This initializes the growth cycle in the smart contract's local state:
     - Random DNA hash (hidden terpene/minor profile)
     - Stage set to 1 (seedling)
     - Water count reset to 0
+    
+    Note: This is separate from the NFT minted by mint_pod_nft(). The NFT is
+    for display purposes while this contract call manages the actual game state.
     
     Args:
         user_mnemonic: 25-word Algorand wallet mnemonic

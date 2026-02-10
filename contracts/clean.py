@@ -1,13 +1,12 @@
 #!/usr/bin/env python3
 """
 Cleanup script for GrowPod Empire
-Burns $BUD tokens + pays 1 ALGO to reset pod for new growth cycle
+Burns $BUD tokens to reset pod for new growth cycle
 """
 from algosdk import account, mnemonic
 from algosdk.transaction import (
     ApplicationNoOpTxn, 
     AssetTransferTxn,
-    PaymentTxn,
     wait_for_confirmation,
     assign_group_id
 )
@@ -22,7 +21,6 @@ algod_client = algod.AlgodClient(ALGOD_TOKEN, ALGOD_ADDRESS)
 
 # Cleanup costs
 CLEANUP_BUD_BURN = 500_000_000  # 500 $BUD (500 * 10^6)
-CLEANUP_ALGO_FEE = 1_000_000   # 1 ALGO in microAlgos
 
 
 def cleanup_pod(user_mnemonic: str, app_id: int, bud_asset_id: int, app_address: str) -> dict:
@@ -31,7 +29,6 @@ def cleanup_pod(user_mnemonic: str, app_id: int, bud_asset_id: int, app_address:
     
     Requirements:
     - Burn 500 $BUD tokens (transfer to contract)
-    - Pay 1 ALGO fee (transfer to contract)
     - Call cleanup application method
     
     Args:
@@ -48,7 +45,7 @@ def cleanup_pod(user_mnemonic: str, app_id: int, bud_asset_id: int, app_address:
     params = algod_client.suggested_params()
 
     print(f"Sender: {sender}")
-    print(f"Burning 500 $BUD + paying 1 ALGO cleanup fee...")
+    print(f"Burning 500 $BUD to cleanup pod...")
 
     # Transaction 1: Transfer $BUD to contract (burn)
     burn_txn = AssetTransferTxn(
@@ -59,15 +56,7 @@ def cleanup_pod(user_mnemonic: str, app_id: int, bud_asset_id: int, app_address:
         index=bud_asset_id
     )
     
-    # Transaction 2: Pay 1 ALGO fee
-    fee_txn = PaymentTxn(
-        sender=sender,
-        sp=params,
-        receiver=app_address,
-        amt=CLEANUP_ALGO_FEE
-    )
-    
-    # Transaction 3: Call cleanup on contract
+    # Transaction 2: Call cleanup on contract
     cleanup_txn = ApplicationNoOpTxn(
         sender=sender,
         sp=params,
@@ -76,23 +65,21 @@ def cleanup_pod(user_mnemonic: str, app_id: int, bud_asset_id: int, app_address:
     )
     
     # Group the transactions (must be atomic)
-    txn_group = [burn_txn, fee_txn, cleanup_txn]
+    txn_group = [burn_txn, cleanup_txn]
     assign_group_id(txn_group)
     
     # Sign all transactions
     signed_burn = burn_txn.sign(private_key)
-    signed_fee = fee_txn.sign(private_key)
     signed_cleanup = cleanup_txn.sign(private_key)
     
     # Send grouped transactions
-    txid = algod_client.send_transactions([signed_burn, signed_fee, signed_cleanup])
+    txid = algod_client.send_transactions([signed_burn, signed_cleanup])
     print(f"Cleaning up pod... TXID: {txid}")
     
     confirmed_txn = wait_for_confirmation(algod_client, txid, 4)
     
     print("\nCleanup successful!")
     print(f"  Burned: 500 $BUD")
-    print(f"  Paid: 1 ALGO")
     print(f"  Pod is now ready for new planting")
     
     return confirmed_txn
@@ -118,7 +105,7 @@ def main():
     print("=" * 50)
     print("GrowPod Empire - Pod Cleanup")
     print("=" * 50)
-    print("This will burn 500 $BUD + 1 ALGO to reset your pod.\n")
+    print("This will burn 500 $BUD to reset your pod.\n")
     
     cleanup_pod(
         mnemonic_phrase, 

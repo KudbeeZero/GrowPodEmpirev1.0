@@ -94,12 +94,12 @@ def water_plant(user_mnemonic: str, app_id: int) -> dict:
         print("ERROR: No plant in pod. Mint a pod first.")
         sys.exit(1)
     
-    if stage >= 5:
-        print("ERROR: Plant is ready for harvest or needs cleanup.")
-        sys.exit(1)
-    
     if stage == 6:
         print("ERROR: Plant is dead (overwatered/disease). Cleanup required.")
+        sys.exit(1)
+    
+    if stage >= 5:
+        print("ERROR: Plant is ready for harvest or needs cleanup.")
         sys.exit(1)
 
     txn = ApplicationNoOpTxn(
