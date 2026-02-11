@@ -22,8 +22,11 @@ import {
   Gamepad2,
   Users,
   Sparkles,
+  Dna,
+  Flower2,
+  Lock,
+  Landmark,
   Package,
-  TrendingUp
 } from "lucide-react";
 import { useState } from "react";
 import { Button } from "./ui/button";
@@ -58,13 +61,16 @@ export function Navigation() {
   const totalAttentionNeeded = plantsNeedingWater + plantsReadyToHarvest;
 
   const gameItems = [
-    { href: "/inventory", label: "NFT Inventory", icon: Package, description: "Seeds & Biomass NFTs" },
+    { href: "/seeds", label: "Seed Selection", icon: Dna, description: "Choose your genetics (free on TestNet)" },
+    { href: "/pods", label: "Grow Pods", icon: Flower2, description: "Manage your 5 pod slots" },
+    { href: "/cure-vault", label: "Cure Vault", icon: Lock, description: "Lock BIOMASS for bonus yields" },
+    { href: "/central-bank", label: "Central Bank", icon: Landmark, description: "Sell BIOMASS for $BUD" },
     { href: "/seed-bank", label: "Seed Bank", icon: Sparkles, description: "Premium genetics for your grow" },
     { href: "/predictions", label: "Predictions", icon: TrendingUp, description: "Trade crypto price predictions" },
     { href: "/vault", label: "Seed Vault", icon: Warehouse, description: "Manage your seed collection" },
     { href: "/lab", label: "Combiner Lab", icon: FlaskConical, description: "Breed and create new strains" },
     { href: "/store", label: "Supply Store", icon: Store, description: "Buy supplies and upgrades" },
-    { href: "/staking", label: "Cure Vault", icon: Sprout, description: "Stake tokens for rewards" },
+    { href: "/inventory", label: "Inventory", icon: Package, description: "View your seed collection" },
   ];
 
   const communityItems = [

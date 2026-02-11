@@ -1359,9 +1359,6 @@ app_global_put
 byte "cleanup_cost"
 int 500000000
 app_global_put
-byte "breed_cost"
-int 1000000000
-app_global_put
 byte "bud_asset"
 int 0
 app_global_put

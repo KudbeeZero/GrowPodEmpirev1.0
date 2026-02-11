@@ -17,6 +17,8 @@ import {
 import { motion } from "framer-motion";
 import { Link } from "wouter";
 import { cn } from "@/lib/utils";
+import { WalletSelector } from "@/components/WalletSelector";
+import { useState } from "react";
 
 const steps = [
   {
@@ -135,6 +137,7 @@ const tokenInfo = [
 
 export default function Tutorial() {
   const { isConnected, connectWallet, isConnecting } = useAlgorand();
+  const [walletSelectorOpen, setWalletSelectorOpen] = useState(false);
 
   return (
     <div className="min-h-screen py-12 px-4 container mx-auto">
@@ -160,8 +163,8 @@ export default function Tutorial() {
           <CardContent className="space-y-4">
             {!isConnected ? (
               <div className="flex flex-col sm:flex-row gap-4">
-                <Button 
-                  onClick={() => connectWallet('pera')} 
+                <Button
+                  onClick={() => setWalletSelectorOpen(true)}
                   disabled={isConnecting}
                   className="bg-primary"
                   data-testid="button-connect-tutorial"
@@ -169,6 +172,12 @@ export default function Tutorial() {
                   <Wallet className="mr-2 h-4 w-4" />
                   {isConnecting ? "Connecting..." : "Connect Wallet"}
                 </Button>
+                <WalletSelector
+                  open={walletSelectorOpen}
+                  onOpenChange={setWalletSelectorOpen}
+                  onSelectWallet={connectWallet}
+                  isConnecting={isConnecting}
+                />
                 <Button variant="outline" asChild>
                   <a 
                     href="https://bank.testnet.algorand.network/" 

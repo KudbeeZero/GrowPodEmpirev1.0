@@ -1,5 +1,5 @@
 import { useState, useEffect, type ReactNode, lazy, Suspense } from "react";
-import { Switch, Route } from "wouter";
+import { Switch, Route, Redirect } from "wouter";
 import { queryClient, apiRequest } from "./lib/queryClient";
 import { QueryClientProvider, useQuery, useMutation } from "@tanstack/react-query";
 import { Toaster } from "@/components/ui/toaster";
@@ -13,7 +13,7 @@ import Dashboard from "@/pages/Dashboard";
 import SeedVault from "@/pages/SeedVault";
 import CombinerLab from "@/pages/CombinerLab";
 import Store from "@/pages/Store";
-import CureVault from "@/pages/CureVault";
+
 import Tutorial from "@/pages/Tutorial";
 import Leaderboards from "@/pages/Leaderboards";
 import Stats from "@/pages/Stats";
@@ -22,8 +22,10 @@ import Jukebox from "@/pages/Jukebox";
 import SeedBank from "@/pages/SeedBank";
 import Predictions from "@/pages/Predictions";
 import Admin from "@/pages/Admin";
-import Inventory from "@/pages/Inventory";
-import MonitorDashboard from "@/pages/MonitorDashboard";
+import SeedSelection from "@/components/SeedSelection";
+import PodDisplay from "@/components/PodDisplay";
+import CureVaultNew from "@/components/CureVaultNew";
+import CentralBank from "@/components/CentralBank";
 import { MiniPlayer } from "@/components/MiniPlayer";
 import NotFound from "@/pages/not-found";
 import type { AnnouncementVideo } from "@shared/schema";
@@ -100,7 +102,10 @@ function Router() {
           <Route path="/vault" component={SeedVault} />
           <Route path="/lab" component={CombinerLab} />
           <Route path="/store" component={Store} />
-          <Route path="/staking" component={CureVault} />
+          <Route path="/staking">
+            {() => <Redirect to="/cure-vault" />}
+          </Route>
+          <Route path="/inventory" component={SeedBank} />
           <Route path="/tutorial" component={Tutorial} />
           <Route path="/leaderboards" component={Leaderboards} />
           <Route path="/stats" component={Stats} />
@@ -121,6 +126,12 @@ function Router() {
               </ErrorBoundary>
             )}
           </Route>
+          <Route path="/seeds">
+            {() => <SeedSelection />}
+          </Route>
+          <Route path="/pods" component={PodDisplay} />
+          <Route path="/cure-vault" component={CureVaultNew} />
+          <Route path="/central-bank" component={CentralBank} />
           <Route path="/jukebox" component={Jukebox} />
           <Route path="/seed-bank" component={SeedBank} />
           <Route path="/predictions" component={Predictions} />

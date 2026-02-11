@@ -1,5 +1,6 @@
-import { useState } from "react";
+import { useState, useMemo } from "react";
 import { useQuery, useMutation } from "@tanstack/react-query";
+import { useLocation } from "wouter";
 import { queryClient, apiRequest } from "@/lib/queryClient";
 import { Card, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
@@ -444,6 +445,10 @@ export default function SeedBank() {
   const { account: address } = useAlgorand();
   const [selectedSeed, setSelectedSeed] = useState<SeedBankItem | null>(null);
   const [purchasingSeedId, setPurchasingSeedId] = useState<number | null>(null);
+  const [location] = useLocation();
+  const defaultTab = useMemo(() => {
+    return location === "/inventory" ? "inventory" : "shop";
+  }, [location]);
 
   const { data: seeds = [], isLoading: seedsLoading } = useQuery<SeedBankItem[]>({
     queryKey: ["/api/seed-bank"],
@@ -495,7 +500,7 @@ export default function SeedBank() {
         </div>
       </div>
 
-      <Tabs defaultValue="shop" className="space-y-6">
+      <Tabs defaultValue={defaultTab} className="space-y-6">
         <TabsList className="bg-card/50">
           <TabsTrigger value="shop" className="gap-2" data-testid="tab-shop">
             <ShoppingCart className="h-4 w-4" />

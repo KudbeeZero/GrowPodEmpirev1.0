@@ -35,6 +35,10 @@ def harvest_plant(user_mnemonic: str, app_id: int) -> dict:
     private_key = mnemonic.to_private_key(user_mnemonic)
     sender = account.address_from_private_key(private_key)
     params = algod_client.suggested_params()
+    
+    # Extra fee for inner transaction (asset transfer)
+    params.fee = 2000
+    params.flat_fee = True
 
     # Create harvest transaction
     txn = ApplicationNoOpTxn(
@@ -75,6 +79,10 @@ def check_and_mint_terp(user_mnemonic: str, app_id: int) -> dict:
     private_key = mnemonic.to_private_key(user_mnemonic)
     sender = account.address_from_private_key(private_key)
     params = algod_client.suggested_params()
+    
+    # Extra fee for inner transaction (asset transfer)
+    params.fee = 2000
+    params.flat_fee = True
 
     txn = ApplicationNoOpTxn(
         sender=sender,

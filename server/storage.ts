@@ -553,3 +553,168 @@ function formatTokenAmount(amount: string): string {
 }
 
 export const storage = new DatabaseStorage();
+
+// Default seed bank data - inserted on startup if the seed bank is empty
+const DEFAULT_SEEDS = [
+  {
+    name: "OG Kush",
+    description: "A legendary strain with powerful relaxation effects. Known for its distinct earthy, pine aroma with notes of lemon.",
+    rarity: "rare",
+    terpeneProfile: ["Myrcene", "Limonene", "Caryophyllene"],
+    effects: ["Relaxation", "Euphoria", "Stress Relief"],
+    flavorNotes: ["Earthy", "Pine", "Lemon"],
+    thcRange: "20-26%",
+    cbdRange: "0-0.3%",
+    growthBonus: 15,
+    budPrice: "500",
+    glowColor: "#22c55e",
+    totalSupply: 100,
+    maxPerUser: 3,
+    isActive: true,
+  },
+  {
+    name: "Blue Dream",
+    description: "A balanced hybrid offering full-body relaxation with gentle cerebral invigoration. Sweet berry aroma inherited from its Blueberry parent.",
+    rarity: "uncommon",
+    terpeneProfile: ["Myrcene", "Caryophyllene", "Pinene"],
+    effects: ["Creative", "Uplifting", "Calm"],
+    flavorNotes: ["Blueberry", "Sweet", "Vanilla"],
+    thcRange: "17-24%",
+    cbdRange: "0.1-0.2%",
+    growthBonus: 10,
+    budPrice: "300",
+    glowColor: "#3b82f6",
+    totalSupply: 200,
+    maxPerUser: 5,
+    isActive: true,
+  },
+  {
+    name: "Sour Diesel",
+    description: "A fast-acting sativa that delivers energizing, dreamy cerebral effects. Named after its pungent diesel-like aroma.",
+    rarity: "uncommon",
+    terpeneProfile: ["Caryophyllene", "Limonene", "Myrcene"],
+    effects: ["Energizing", "Focus", "Happy"],
+    flavorNotes: ["Diesel", "Citrus", "Pungent"],
+    thcRange: "18-25%",
+    cbdRange: "0-0.2%",
+    growthBonus: 10,
+    budPrice: "350",
+    glowColor: "#eab308",
+    totalSupply: 150,
+    maxPerUser: 5,
+    isActive: true,
+  },
+  {
+    name: "Purple Haze",
+    description: "A classic psychedelic strain inspired by Jimi Hendrix. Delivers a dreamy burst of euphoria with sweet, berry undertones.",
+    rarity: "rare",
+    terpeneProfile: ["Terpinolene", "Myrcene", "Ocimene"],
+    effects: ["Euphoria", "Creative", "Energizing"],
+    flavorNotes: ["Berry", "Grape", "Spicy"],
+    thcRange: "17-20%",
+    cbdRange: "0-0.1%",
+    growthBonus: 12,
+    budPrice: "450",
+    glowColor: "#a855f7",
+    totalSupply: 120,
+    maxPerUser: 3,
+    isActive: true,
+  },
+  {
+    name: "Girl Scout Cookies",
+    description: "A potent hybrid with a sweet, earthy aroma. Known for producing full-body relaxation coupled with a time-warping cerebral high.",
+    rarity: "legendary",
+    terpeneProfile: ["Caryophyllene", "Limonene", "Humulene"],
+    effects: ["Euphoria", "Relaxation", "Happy"],
+    flavorNotes: ["Sweet", "Earthy", "Mint"],
+    thcRange: "25-28%",
+    cbdRange: "0-0.2%",
+    growthBonus: 20,
+    budPrice: "1000",
+    glowColor: "#f97316",
+    totalSupply: 50,
+    maxPerUser: 2,
+    isActive: true,
+  },
+  {
+    name: "White Widow",
+    description: "A balanced hybrid first bred in the Netherlands. Famous for its white crystal resin coating and burst of euphoria and energy.",
+    rarity: "common",
+    terpeneProfile: ["Myrcene", "Pinene", "Caryophyllene"],
+    effects: ["Relaxation", "Creative", "Social"],
+    flavorNotes: ["Earthy", "Woody", "Floral"],
+    thcRange: "15-20%",
+    cbdRange: "0-0.2%",
+    growthBonus: 5,
+    budPrice: "200",
+    glowColor: "#e2e8f0",
+    totalSupply: null,
+    maxPerUser: 10,
+    isActive: true,
+  },
+  {
+    name: "Granddaddy Purple",
+    description: "A famous indica cross of Purple Urkle and Big Bud. Delivers a potent fusion of cerebral euphoria and physical relaxation.",
+    rarity: "rare",
+    terpeneProfile: ["Myrcene", "Pinene", "Caryophyllene"],
+    effects: ["Relaxation", "Sleepy", "Pain Relief"],
+    flavorNotes: ["Grape", "Berry", "Sweet"],
+    thcRange: "17-24%",
+    cbdRange: "0-1%",
+    growthBonus: 15,
+    budPrice: "500",
+    glowColor: "#7c3aed",
+    totalSupply: 100,
+    maxPerUser: 3,
+    isActive: true,
+  },
+  {
+    name: "Jack Herer",
+    description: "Named after the legendary cannabis activist, this sativa-dominant strain delivers blissful, clear-headed creativity.",
+    rarity: "uncommon",
+    terpeneProfile: ["Terpinolene", "Pinene", "Myrcene"],
+    effects: ["Creative", "Uplifting", "Focus"],
+    flavorNotes: ["Pine", "Spicy", "Woody"],
+    thcRange: "18-23%",
+    cbdRange: "0-0.2%",
+    growthBonus: 10,
+    budPrice: "350",
+    glowColor: "#14b8a6",
+    totalSupply: 150,
+    maxPerUser: 5,
+    isActive: true,
+  },
+  {
+    name: "Alien OG",
+    description: "An otherworldly mythic strain rumored to have been crossbred under moonlight. Produces transcendent euphoria with psychedelic visuals.",
+    rarity: "mythic",
+    terpeneProfile: ["Limonene", "Myrcene", "Linalool", "Caryophyllene"],
+    effects: ["Transcendent", "Euphoria", "Psychedelic"],
+    flavorNotes: ["Citrus", "Pine", "Alien Musk"],
+    thcRange: "28-35%",
+    cbdRange: "0.5-1%",
+    growthBonus: 30,
+    budPrice: "2500",
+    glowColor: "#ec4899",
+    totalSupply: 25,
+    maxPerUser: 1,
+    isActive: true,
+  },
+];
+
+export async function initializeSeedBank(): Promise<void> {
+  try {
+    const existingSeeds = await db.select().from(seedBank).limit(1);
+    if (existingSeeds.length > 0) {
+      return; // Seeds already exist, skip initialization
+    }
+
+    console.log("Seed bank is empty, initializing with default seeds...");
+    for (const seed of DEFAULT_SEEDS) {
+      await db.insert(seedBank).values(seed as any);
+    }
+    console.log(`Initialized seed bank with ${DEFAULT_SEEDS.length} seeds.`);
+  } catch (error) {
+    console.error("Failed to initialize seed bank:", error);
+  }
+}

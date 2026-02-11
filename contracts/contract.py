@@ -28,7 +28,6 @@ KNOWN LIMITATIONS:
 GlobalOwner = Bytes("owner")
 GlobalPeriod = Bytes("period")  # 10 day cycle duration in seconds (864000)
 GlobalCleanupCost = Bytes("cleanup_cost")  # 500 $BUD (500 * 10^6 = 500000000)
-GlobalBreedCost = Bytes("breed_cost")  # 1000 $BUD (1000 * 10^6 = 1000000000)
 GlobalBudAsset = Bytes("bud_asset")  # $BUD ASA ID
 GlobalTerpAsset = Bytes("terp_asset")  # $TERP ASA ID
 GlobalSlotAsset = Bytes("slot_asset")  # Slot Token ASA ID
@@ -63,7 +62,6 @@ WATER_COOLDOWN_MIN = Int(600)  # 10 minutes minimum (TestNet)
 NUTRIENT_COOLDOWN = Int(600)  # 10 minutes in seconds (TestNet)
 GROWTH_CYCLE = Int(864000)  # 10 days in seconds
 CLEANUP_BURN = Int(500000000)  # 500 $BUD to burn for cleanup
-BREED_BURN = Int(1000000000)  # 1000 $BUD to burn for breeding
 MIN_TERP_REWARD = Int(5000000000)  # 5,000 $TERP minimum
 MAX_TERP_REWARD = Int(50000000000)  # 50,000 $TERP maximum
 SLOT_TOKEN_COST = Int(2500000000)  # 2,500 $BUD to claim a slot token
@@ -85,7 +83,6 @@ def approval_program():
         App.globalPut(GlobalOwner, Txn.sender()),
         App.globalPut(GlobalPeriod, GROWTH_CYCLE),
         App.globalPut(GlobalCleanupCost, CLEANUP_BURN),
-        App.globalPut(GlobalBreedCost, BREED_BURN),
         App.globalPut(GlobalBudAsset, Int(0)),
         App.globalPut(GlobalTerpAsset, Int(0)),
         App.globalPut(GlobalSlotAsset, Int(0)),
@@ -201,22 +198,22 @@ def approval_program():
     )
 
     # Water Pod 1 - Water the plant with configurable cooldown
-    # If args[1] is provided, use it as cooldown_seconds; otherwise default to WATER_COOLDOWN (10 min)
-    # Minimum cooldown enforced at WATER_COOLDOWN_MIN (10 min) to prevent abuse
+    # If args[1] is provided, use it as cooldown_seconds; otherwise default to WATER_COOLDOWN (10 minutes)
+    # Minimum cooldown enforced at WATER_COOLDOWN_MIN (10 minutes) to prevent abuse
     scratch_cooldown = ScratchVar(TealType.uint64)
     
     water = Seq(
         Assert(App.localGet(Txn.sender(), LocalStage) >= Int(1)),
         Assert(App.localGet(Txn.sender(), LocalStage) <= Int(4)),
         
-        # Use custom cooldown from args[1] if provided, else default 10 min (TestNet)
+        # Use custom cooldown from args[1] if provided, else default 10 minutes
         If(
             Txn.application_args.length() > Int(1),
             scratch_cooldown.store(Btoi(Txn.application_args[1])),
             scratch_cooldown.store(WATER_COOLDOWN)
         ),
         
-        # Enforce minimum cooldown to prevent abuse (at least 10 min)
+        # Enforce minimum cooldown to prevent abuse (at least 10 minutes)
         Assert(scratch_cooldown.load() >= WATER_COOLDOWN_MIN),
         
         Assert(
@@ -347,21 +344,21 @@ def approval_program():
     )
 
     # Water Pod 2 - with configurable cooldown
-    # Minimum cooldown enforced at WATER_COOLDOWN_MIN (10 min) to prevent abuse
+    # Minimum cooldown enforced at WATER_COOLDOWN_MIN (10 minutes) to prevent abuse
     scratch_cooldown_2 = ScratchVar(TealType.uint64)
     
     water_2 = Seq(
         Assert(App.localGet(Txn.sender(), LocalStage2) >= Int(1)),
         Assert(App.localGet(Txn.sender(), LocalStage2) <= Int(4)),
         
-        # Use custom cooldown from args[1] if provided, else default 10 min (TestNet)
+        # Use custom cooldown from args[1] if provided, else default 10 minutes
         If(
             Txn.application_args.length() > Int(1),
             scratch_cooldown_2.store(Btoi(Txn.application_args[1])),
             scratch_cooldown_2.store(WATER_COOLDOWN)
         ),
         
-        # Enforce minimum cooldown to prevent abuse (at least 10 min)
+        # Enforce minimum cooldown to prevent abuse (at least 10 minutes)
         Assert(scratch_cooldown_2.load() >= WATER_COOLDOWN_MIN),
         
         Assert(
@@ -707,7 +704,7 @@ if __name__ == "__main__":
         print(f"Compiled: {clear_path}")
     
     print("\nContract compilation complete!")
-    print("Global state: owner, period, cleanup_cost, breed_cost, bud_asset, terp_asset, slot_asset, terp_registry")
+    print("Global state: owner, period, cleanup_cost, bud_asset, terp_asset, slot_asset, terp_registry")
     print("Local state Pod 1: stage, water_count, last_watered, nutrient_count, last_nutrients, dna, terpene_profile")
     print("Local state Pod 2: stage_2, water_count_2, last_watered_2, nutrient_count_2, last_nutrients_2, dna_2, terpene_profile_2")
     print("Local state Slots: harvest_count, pod_slots")

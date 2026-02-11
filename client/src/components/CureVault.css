@@ -1,0 +1,327 @@
+/* CureVault Component Styles */
+
+.cure-vault {
+  min-height: 100vh;
+  padding: 2rem 1rem;
+}
+
+.cure-tiers {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+  gap: 1.25rem;
+  margin-bottom: 2rem;
+}
+
+.cure-tier-card {
+  position: relative;
+  background: rgba(30, 41, 59, 0.5);
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  border-radius: 1rem;
+  padding: 1.5rem;
+  cursor: pointer;
+  transition: all 0.3s ease;
+  overflow: hidden;
+}
+
+.cure-tier-card::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  height: 3px;
+  transition: opacity 0.3s ease;
+}
+
+.cure-tier-card.tier-quick::before {
+  background: linear-gradient(90deg, #22c55e, #00ff94);
+  opacity: 0.5;
+}
+
+.cure-tier-card.tier-standard::before {
+  background: linear-gradient(90deg, #3b82f6, #60a5fa);
+  opacity: 0.5;
+}
+
+.cure-tier-card.tier-premium::before {
+  background: linear-gradient(90deg, #a855f7, #c084fc);
+  opacity: 0.5;
+}
+
+.cure-tier-card:hover {
+  border-color: rgba(255, 255, 255, 0.2);
+  transform: translateY(-2px);
+}
+
+.cure-tier-card:hover::before {
+  opacity: 1;
+}
+
+.cure-tier-card.selected {
+  border-color: #00ff94;
+  background: rgba(0, 255, 148, 0.05);
+}
+
+.cure-tier-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 1rem;
+}
+
+.cure-tier-name {
+  font-family: 'Orbitron', sans-serif;
+  font-size: 1rem;
+  font-weight: 700;
+  color: #f0fdf4;
+}
+
+.cure-tier-bonus {
+  font-family: 'Orbitron', sans-serif;
+  font-size: 1.25rem;
+  font-weight: 800;
+  color: #00ff94;
+  text-shadow: 0 0 10px rgba(0, 255, 148, 0.3);
+}
+
+.cure-tier-duration {
+  font-size: 0.85rem;
+  color: #9ca3af;
+  margin-bottom: 0.5rem;
+}
+
+.cure-tier-description {
+  font-size: 0.8rem;
+  color: #6b7280;
+  line-height: 1.4;
+}
+
+/* Lock BIOMASS Input */
+.cure-lock-section {
+  background: rgba(30, 41, 59, 0.6);
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  border-radius: 1rem;
+  padding: 1.5rem;
+  margin-bottom: 2rem;
+}
+
+.cure-lock-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 1rem;
+}
+
+.cure-lock-title {
+  font-family: 'Orbitron', sans-serif;
+  font-size: 1rem;
+  font-weight: 700;
+  color: #f0fdf4;
+}
+
+.cure-lock-balance {
+  font-size: 0.8rem;
+  color: #9ca3af;
+}
+
+.cure-input-row {
+  display: flex;
+  gap: 0.75rem;
+  align-items: center;
+}
+
+.cure-input {
+  flex: 1;
+  background: rgba(0, 0, 0, 0.3);
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  border-radius: 0.5rem;
+  padding: 0.75rem 1rem;
+  color: #f0fdf4;
+  font-family: 'Orbitron', sans-serif;
+  font-size: 1.1rem;
+  font-weight: 700;
+  outline: none;
+  transition: border-color 0.2s ease;
+}
+
+.cure-input:focus {
+  border-color: #00ff94;
+  box-shadow: 0 0 10px rgba(0, 255, 148, 0.15);
+}
+
+.cure-input::placeholder {
+  color: #4b5563;
+  font-weight: 400;
+}
+
+.cure-max-btn {
+  padding: 0.5rem 1rem;
+  background: rgba(0, 255, 148, 0.1);
+  border: 1px solid rgba(0, 255, 148, 0.3);
+  border-radius: 0.5rem;
+  color: #00ff94;
+  font-weight: 700;
+  font-size: 0.75rem;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  font-family: 'Orbitron', sans-serif;
+}
+
+.cure-max-btn:hover {
+  background: rgba(0, 255, 148, 0.2);
+}
+
+.cure-lock-btn {
+  width: 100%;
+  margin-top: 1rem;
+  padding: 0.85rem;
+  background: linear-gradient(135deg, #00ff94, #00cc76);
+  color: #0a0a1a;
+  border: none;
+  border-radius: 0.5rem;
+  font-family: 'Orbitron', sans-serif;
+  font-weight: 700;
+  font-size: 0.9rem;
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+.cure-lock-btn:hover:not(:disabled) {
+  box-shadow: 0 0 20px rgba(0, 255, 148, 0.3);
+  transform: translateY(-1px);
+}
+
+.cure-lock-btn:disabled {
+  opacity: 0.4;
+  cursor: not-allowed;
+}
+
+/* Payout Preview */
+.cure-payout {
+  margin-top: 1rem;
+  padding: 1rem;
+  background: rgba(0, 0, 0, 0.2);
+  border-radius: 0.5rem;
+  border: 1px solid rgba(0, 255, 148, 0.1);
+}
+
+.cure-payout-row {
+  display: flex;
+  justify-content: space-between;
+  font-size: 0.8rem;
+  margin-bottom: 0.4rem;
+}
+
+.cure-payout-label {
+  color: #9ca3af;
+}
+
+.cure-payout-value {
+  color: #f0fdf4;
+  font-weight: 600;
+}
+
+.cure-payout-total {
+  display: flex;
+  justify-content: space-between;
+  margin-top: 0.5rem;
+  padding-top: 0.5rem;
+  border-top: 1px solid rgba(255, 255, 255, 0.1);
+}
+
+.cure-payout-total .cure-payout-label {
+  font-family: 'Orbitron', sans-serif;
+  font-weight: 700;
+  color: #f0fdf4;
+  font-size: 0.85rem;
+}
+
+.cure-payout-total .cure-payout-value {
+  font-family: 'Orbitron', sans-serif;
+  font-weight: 700;
+  color: #00ff94;
+  font-size: 1rem;
+  text-shadow: 0 0 8px rgba(0, 255, 148, 0.3);
+}
+
+/* Active Cures */
+.cure-active-list {
+  display: flex;
+  flex-direction: column;
+  gap: 0.75rem;
+}
+
+.cure-active-item {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 1rem 1.25rem;
+  background: rgba(30, 41, 59, 0.5);
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  border-radius: 0.75rem;
+}
+
+.cure-active-info {
+  display: flex;
+  flex-direction: column;
+  gap: 0.2rem;
+}
+
+.cure-active-amount {
+  font-family: 'Orbitron', sans-serif;
+  font-weight: 700;
+  font-size: 1rem;
+  color: #f0fdf4;
+}
+
+.cure-active-tier {
+  font-size: 0.75rem;
+  color: #9ca3af;
+}
+
+.cure-active-timer {
+  text-align: right;
+}
+
+.cure-active-countdown {
+  font-family: 'Orbitron', sans-serif;
+  font-weight: 700;
+  font-size: 1.1rem;
+  color: #00ff94;
+}
+
+.cure-active-status {
+  font-size: 0.7rem;
+  color: #6b7280;
+}
+
+.cure-unlock-btn {
+  padding: 0.5rem 1.25rem;
+  background: linear-gradient(135deg, #f59e0b, #d97706);
+  color: #1a1a2e;
+  border: none;
+  border-radius: 0.5rem;
+  font-family: 'Orbitron', sans-serif;
+  font-weight: 700;
+  font-size: 0.8rem;
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+.cure-unlock-btn:hover {
+  box-shadow: 0 0 15px rgba(245, 158, 11, 0.3);
+}
+
+@media (max-width: 768px) {
+  .cure-tiers {
+    grid-template-columns: 1fr;
+  }
+
+  .cure-input-row {
+    flex-direction: column;
+  }
+
+  .cure-max-btn {
+    width: 100%;
+  }
+}

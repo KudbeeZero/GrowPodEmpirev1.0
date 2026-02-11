@@ -2,12 +2,52 @@
 
 This guide explains how to deploy the GrowPod Empire smart contract with the updated admin wallet on Algorand TestNet.
 
-## Admin Wallet Information (TestNet Only)
+## Current Deployment (Feb 2026)
+
+### Admin Wallet (NEW)
 
 **⚠️ WARNING: This wallet is for TestNet deployment only. Never use TestNet mnemonics on MainNet.**
 
+- **Mnemonic**: `final adapt purpose intact naive action garbage curious feature tourist sense strong present snack control orbit pudding federal budget plug volcano olympic soda absorb monitor`
+- **Address**: `HW6U3RKLOYEW2X2L4DERSJHBPG6G6UTKDWBSS2MKPZJOSAWKLP72NTIMNQ`
+- **Network**: Algorand TestNet (Chain ID: 416002)
+- **Balance**: ~1.82 ALGO (after deployment)
+
+### Deployed Contract
+
+| Resource | ID | Explorer |
+|----------|----|----------|
+| **App** | `755243944` | https://testnet.algoexplorer.io/application/755243944 |
+| **$BUD Token** | `755243947` | https://testnet.algoexplorer.io/asset/755243947 |
+| **$TERP Token** | `755243948` | https://testnet.algoexplorer.io/asset/755243948 |
+| **Slot Token** | `755243949` | https://testnet.algoexplorer.io/asset/755243949 |
+| **App Address** | `CWGAVWZRVKKFHRYZHEPQPELVJMFNW2QMIWNEB2H3ZXCKOXRIPKWCW2IBRI` | |
+
+### Environment Variables
+
+```bash
+VITE_GROWPOD_APP_ID=755243944
+VITE_BUD_ASSET_ID=755243947
+VITE_TERP_ASSET_ID=755243948
+VITE_SLOT_ASSET_ID=755243949
+VITE_GROWPOD_APP_ADDRESS=CWGAVWZRVKKFHRYZHEPQPELVJMFNW2QMIWNEB2H3ZXCKOXRIPKWCW2IBRI
+ADMIN_WALLET_ADDRESS=HW6U3RKLOYEW2X2L4DERSJHBPG6G6UTKDWBSS2MKPZJOSAWKLP72NTIMNQ
+```
+
+---
+
+## Previous Admin Wallet (Legacy)
+
 - **Mnemonic**: `any virus dynamic mind figure glide shove peanut village grab wisdom film luggage shoulder fetch license tunnel daring lounge rubber eagle source inch able world`
 - **Address**: `ZK55X7SGIGMLGORVNJHHPTYZMZOGSQNVROBHX7N27X6ZEQRHAZ2UPKOXQU`
+- **Status**: Previous deployment (App ID 753910199)
+
+---
+
+## Admin Wallet Information (TestNet Only)
+
+- **Mnemonic**: `final adapt purpose intact naive action garbage curious feature tourist sense strong present snack control orbit pudding federal budget plug volcano olympic soda absorb monitor`
+- **Address**: `HW6U3RKLOYEW2X2L4DERSJHBPG6G6UTKDWBSS2MKPZJOSAWKLP72NTIMNQ`
 - **Network**: Algorand TestNet (Chain ID: 416002)
 
 ## Prerequisites

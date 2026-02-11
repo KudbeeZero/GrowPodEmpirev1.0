@@ -22,6 +22,7 @@ import { useQuery, useMutation } from "@tanstack/react-query";
 import { queryClient, apiRequest } from "@/lib/queryClient";
 import type { UserSeed, SeedBankItem } from "@shared/schema";
 import { FeatureHighlight } from "@/components/FeatureHighlight";
+import { WalletSelector } from "@/components/WalletSelector";
 
 // Cannabis history facts for "Did You Know?" feature
 const cannabisFacts = [
@@ -52,6 +53,7 @@ export default function Dashboard() {
   const [lastHarvestData, setLastHarvestData] = useState<{podId: number; budEarned: number; rareTerp: boolean; terpEarned: number} | null>(null);
   const [seedSelectOpen, setSeedSelectOpen] = useState(false);
   const [selectedSeed, setSelectedSeed] = useState<(UserSeed & { seed: SeedBankItem }) | null>(null);
+  const [walletSelectorOpen, setWalletSelectorOpen] = useState(false);
 
   // Memoize random fact to prevent it from changing on every render
   const randomFact = useMemo(() => 
@@ -497,8 +499,8 @@ export default function Dashboard() {
                     breed rare genetics, and harvest $BUD tokens in this innovative play-to-earn game.
                   </p>
                   <div className="flex flex-col sm:flex-row gap-4">
-                    <Button 
-                      onClick={() => connectWallet('pera')} 
+                    <Button
+                      onClick={() => setWalletSelectorOpen(true)}
                       size="lg"
                       className="bg-gradient-to-r from-primary to-emerald-600 hover:brightness-110 shadow-lg shadow-primary/20"
                       data-testid="button-connect-wallet-hero"
@@ -506,6 +508,12 @@ export default function Dashboard() {
                       <Wallet className="mr-2 h-5 w-5" />
                       Connect Wallet to Start
                     </Button>
+                    <WalletSelector
+                      open={walletSelectorOpen}
+                      onOpenChange={setWalletSelectorOpen}
+                      onSelectWallet={connectWallet}
+                      isConnecting={false}
+                    />
                     <Link href="/tutorial">
                       <Button 
                         variant="outline" 
@@ -921,12 +929,12 @@ export default function Dashboard() {
             <h2 className="text-2xl font-display font-semibold flex items-center gap-2">
               <Sprout className="text-primary" /> Active Grow Pods
             </h2>
-            <Link href="/vault">
-              <Button 
+            <Link href="/seed-bank">
+              <Button
                 className="bg-primary hover:bg-primary/90 text-primary-foreground shadow-lg shadow-primary/20 group"
                 data-testid="button-seed-vault"
               >
-                <Plus className="mr-2 h-4 w-4 group-hover:rotate-90 transition-transform" /> 
+                <Plus className="mr-2 h-4 w-4 group-hover:rotate-90 transition-transform" />
                 Plant New Seed
               </Button>
             </Link>
@@ -1112,6 +1120,16 @@ export default function Dashboard() {
           </div>
         </DialogContent>
       </Dialog>
+
+      {/* Version Info */}
+      <div className="container mx-auto px-4 py-6 mt-8 border-t border-white/5">
+        <div className="flex flex-wrap items-center justify-between gap-2 text-xs text-muted-foreground/60">
+          <span>GrowPod Empire v{__APP_VERSION__}</span>
+          <span>
+            Build: {new Date(__BUILD_TIMESTAMP__).toLocaleString()}
+          </span>
+        </div>
+      </div>
     </div>
   );
 }

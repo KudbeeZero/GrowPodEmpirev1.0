@@ -1,9 +1,10 @@
 import { useSeeds } from "@/hooks/use-algorand";
 import { Button } from "@/components/ui/button";
-import { Warehouse, ArrowRight, Dna } from "lucide-react";
+import { Warehouse, ArrowRight, Dna, Sparkles } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
 import { motion } from "framer-motion";
 import { cn } from "@/lib/utils";
+import { Link } from "wouter";
 
 export default function SeedVault() {
   const seeds = useSeeds();
@@ -75,8 +76,13 @@ export default function SeedVault() {
           <Dna className="h-16 w-16 text-muted-foreground/30 mb-4" />
           <h3 className="text-xl font-bold text-muted-foreground">No Seeds Yet</h3>
           <p className="text-muted-foreground/70 mt-2 text-center max-w-md">
-            Breed plants in the Combiner Lab to create new seeds, or harvest plants to discover rare genetics.
+            Visit the Seed Bank to purchase premium genetics, or breed plants in the Combiner Lab.
           </p>
+          <Link href="/seed-bank">
+            <Button className="mt-4 bg-purple-600 hover:bg-purple-700">
+              <Sparkles className="mr-2 h-4 w-4" /> Visit Seed Bank
+            </Button>
+          </Link>
         </div>
       )}
     </div>

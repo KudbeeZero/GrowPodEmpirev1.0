@@ -123,11 +123,11 @@ Types exported:
 ```typescript
 // Contract configuration
 export const CONTRACT_CONFIG = {
-  appId: Number(import.meta.env.VITE_GROWPOD_APP_ID) || 754825112,
-  budAssetId: Number(import.meta.env.VITE_BUD_ASSET_ID) || 754825127,
-  terpAssetId: Number(import.meta.env.VITE_TERP_ASSET_ID) || 754825128,
-  slotAssetId: Number(import.meta.env.VITE_SLOT_ASSET_ID) || 754825129,
-  appAddress: import.meta.env.VITE_GROWPOD_APP_ADDRESS || '6P55NJ7FDJSZA2YSZNT2HRF2FBIUYNKBZLPX4LJ72Q76SBDN4VAB65W6KM',
+  appId: Number(import.meta.env.VITE_GROWPOD_APP_ID) || 755243944,
+  budAssetId: Number(import.meta.env.VITE_BUD_ASSET_ID) || 755243947,
+  terpAssetId: Number(import.meta.env.VITE_TERP_ASSET_ID) || 755243948,
+  slotAssetId: Number(import.meta.env.VITE_SLOT_ASSET_ID) || 755243949,
+  appAddress: import.meta.env.VITE_GROWPOD_APP_ADDRESS || '...',
 };
 ```
 
@@ -230,24 +230,18 @@ DATABASE_URL=postgresql://...
 
 ### Optional (for blockchain features)
 ```bash
-VITE_GROWPOD_APP_ID=753910199
-VITE_BUD_ASSET_ID=753910204
-VITE_TERP_ASSET_ID=753910205
-VITE_SLOT_ASSET_ID=753910206
-VITE_GROWPOD_APP_ADDRESS=...
-ADMIN_WALLET_ADDRESS=ZK55X7SGIGMLGORVNJHHPTYZMZOGSQNVROBHX7N27X6ZEQRHAZ2UPKOXQU  # TestNet admin wallet
-VITE_GROWPOD_APP_ID=754825112
-VITE_BUD_ASSET_ID=754825127
-VITE_TERP_ASSET_ID=754825128
-VITE_SLOT_ASSET_ID=754825129
-VITE_GROWPOD_APP_ADDRESS=6P55NJ7FDJSZA2YSZNT2HRF2FBIUYNKBZLPX4LJ72Q76SBDN4VAB65W6KM
-ADMIN_WALLET_ADDRESS=...  # For admin-only features
+VITE_GROWPOD_APP_ID=755243944
+VITE_BUD_ASSET_ID=755243947
+VITE_TERP_ASSET_ID=755243948
+VITE_SLOT_ASSET_ID=755243949
+VITE_GROWPOD_APP_ADDRESS=CWGAVWZRVKKFHRYZHEPQPELVJMFNW2QMIWNEB2H3ZXCKOXRIPKWCW2IBRI
+ADMIN_WALLET_ADDRESS=HW6U3RKLOYEW2X2L4DERSJHBPG6G6UTKDWBSS2MKPZJOSAWKLP72NTIMNQ  # TestNet admin wallet
 ```
 
 ### Smart Contract Deployment (TestNet)
 ```bash
-ALGO_MNEMONIC="any virus dynamic mind figure glide shove peanut village grab wisdom film luggage shoulder fetch license tunnel daring lounge rubber eagle source inch able world"
-GROWPOD_APP_ID=<after_deployment>
+ALGO_MNEMONIC="final adapt purpose intact naive action garbage curious feature tourist sense strong present snack control orbit pudding federal budget plug volcano olympic soda absorb monitor"
+GROWPOD_APP_ID=755243944
 
 # See ADMIN_WALLET_DEPLOYMENT.md for complete deployment guide
 ```
