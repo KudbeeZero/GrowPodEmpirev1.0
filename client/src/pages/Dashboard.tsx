@@ -1119,6 +1119,16 @@ export default function Dashboard() {
           </div>
         </DialogContent>
       </Dialog>
+
+      {/* Version Info */}
+      <div className="container mx-auto px-4 py-6 mt-8 border-t border-white/5">
+        <div className="flex flex-wrap items-center justify-between gap-2 text-xs text-muted-foreground/60">
+          <span>GrowPod Empire v{__APP_VERSION__}</span>
+          <span>
+            Build: {new Date(__BUILD_TIMESTAMP__).toLocaleString()}
+          </span>
+        </div>
+      </div>
     </div>
   );
 }
