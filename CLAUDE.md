@@ -24,7 +24,7 @@ GrowPod Empire is a blockchain-based idle farming game built on **Algorand TestN
 | State | TanStack Query |
 | Backend | Express.js + TypeScript |
 | Database | PostgreSQL + Drizzle ORM |
-| Blockchain | Algorand (PyTeal smart contracts) |
+| Blockchain | Algorand (TEALScript TypeScript contracts) |
 | Wallet | Pera Wallet (@perawallet/connect) |
 
 ## Project Structure
@@ -64,10 +64,16 @@ GrowPodEmpirev1.0/
 │   ├── schema.ts           # Drizzle schema + types
 │   └── routes.ts           # API route definitions
 ├── contracts/              # Algorand smart contracts
-│   ├── contract.py         # Main PyTeal contract
-│   ├── bootstrap.py        # Create $BUD/$TERP ASAs
-│   ├── mint.py, water.py, harvest.py, etc.
-│   ├── approval.teal       # Compiled TEAL
+│   ├── GrowPodEmpire.algo.ts  # Main TEALScript contract (TypeScript)
+│   ├── deploy.ts           # TypeScript deployment script
+│   ├── tsconfig.json       # TypeScript config for contracts
+│   ├── artifacts/          # Compiled output (TEAL + ABI)
+│   │   ├── GrowPodEmpire.approval.teal
+│   │   ├── GrowPodEmpire.clear.teal
+│   │   └── GrowPodEmpire.arc4.json  # ABI definition
+│   ├── contract.py         # Legacy PyTeal contract (reference)
+│   ├── mint.py, water.py, harvest.py, etc.  # Legacy scripts
+│   ├── approval.teal       # Legacy compiled TEAL
 │   └── clear.teal
 └── package.json
 ```
@@ -90,8 +96,14 @@ npm start
 # Push database schema changes
 npm run db:push
 
-# Compile smart contract (from contracts/ directory)
-python contract.py
+# Compile smart contract (TEALScript → TEAL)
+npm run contract:compile
+
+# Deploy smart contract to TestNet
+ALGO_MNEMONIC="..." npm run contract:deploy
+
+# Legacy: Compile PyTeal contract (from contracts/ directory)
+# python contract.py
 ```
 
 ## Key Files and Patterns
@@ -130,12 +142,17 @@ Key hooks from `use-algorand.ts`:
 - `useGameState(account)` - Pod data from local state
 - `useTransactions()` - Transaction builders for game actions
 
-### Smart Contract Methods (`contracts/contract.py`)
+### Smart Contract Methods (`contracts/GrowPodEmpire.algo.ts`)
 
-Pod 1 methods: `mint_pod`, `water`, `nutrients`, `harvest`, `cleanup`
-Pod 2 methods: `mint_pod_2`, `water_2`, `nutrients_2`, `harvest_2`, `cleanup_2`
-Shared: `breed`, `check_terp`, `check_terp_2`, `claim_slot_token`, `unlock_slot`
-Admin: `bootstrap`, `set_asa_ids`
+The contract is written in **TEALScript** (TypeScript) and uses ABI method routing (ARC-4).
+
+Pod 1 methods: `mintPod`, `water(uint64)`, `nutrients`, `harvest`, `cleanup(axfer)`
+Pod 2 methods: `mintPod2`, `water2(uint64)`, `nutrients2`, `harvest2`, `cleanup2(axfer)`
+Shared: `breed(axfer,axfer,asset,asset)`, `checkTerp`, `checkTerp2`, `claimSlotToken(axfer)`, `unlockSlot(axfer)`
+Admin: `bootstrap`, `setAsaIds(asset,asset,asset)`
+
+Methods that validate preceding transactions (cleanup, breed, claimSlotToken, unlockSlot) use
+TEALScript's `verifyAssetTransferTxn()` for type-safe group transaction validation.
 
 Local state keys per pod:
 - `stage` (0=empty, 1-4=growing, 5=ready, 6=needs_cleanup)
@@ -190,22 +207,31 @@ import type { User } from "@shared/schema";
 
 ### Blockchain Transactions
 
+The TEALScript contract uses ABI (ARC-4) method routing. Use `AtomicTransactionComposer`
+with ABI method calls instead of raw `appArgs`:
+
 ```typescript
-// Example: Water a plant
-const waterPlant = useCallback(async (podId: number): Promise<string | null> => {
-  const suggestedParams = await algodClient.getTransactionParams().do();
+// Example: Water a plant using ABI method call
+import abi from '../../contracts/artifacts/GrowPodEmpire.arc4.json';
 
-  const txn = algosdk.makeApplicationNoOpTxnFromObject({
-    sender: account,
-    suggestedParams,
-    appIndex: CONTRACT_CONFIG.appId,
-    appArgs: [new TextEncoder().encode(podId === 2 ? 'water_2' : 'water')],
-  });
+const contract = new algosdk.ABIContract(abi);
+const waterMethod = contract.getMethodByName(podId === 2 ? 'water2' : 'water');
 
-  const signedTxns = await signTransactions([txn]);
-  return await submitTransaction(signedTxns);
-}, [account, signTransactions]);
+const atc = new algosdk.AtomicTransactionComposer();
+atc.addMethodCall({
+  appID: CONTRACT_CONFIG.appId,
+  method: waterMethod,
+  methodArgs: [600], // cooldownSeconds (uint64)
+  sender: account,
+  suggestedParams,
+  signer: walletSigner,
+});
+
+const result = await atc.execute(algodClient, 4);
 ```
+
+For methods requiring group transactions (cleanup, breed, claimSlotToken, unlockSlot),
+add the preceding asset transfer via `atc.addTransaction()` before `atc.addMethodCall()`.
 
 ### Error Handling
 
@@ -281,10 +307,11 @@ GROWPOD_APP_ID=755243944
 
 ### Adding a Smart Contract Method
 
-1. Add method in `contracts/contract.py`
-2. Add to router `Cond` at bottom of `approval_program()`
-3. Recompile: `python contract.py`
-4. Add frontend transaction builder in `hooks/use-algorand.ts`
+1. Add method to the `GrowPodEmpire` class in `contracts/GrowPodEmpire.algo.ts`
+2. TEALScript auto-routes ABI methods (no manual router needed)
+3. Recompile: `npm run contract:compile`
+4. Use the generated ABI (`contracts/artifacts/GrowPodEmpire.arc4.json`) to build frontend calls
+5. Add frontend transaction builder in `hooks/use-algorand.ts` using `AtomicTransactionComposer`
 
 ## Gotchas
 
