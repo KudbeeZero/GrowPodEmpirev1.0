@@ -12,7 +12,7 @@ ALGOD_ADDRESS = "https://testnet-api.algonode.cloud"
 ALGOD_TOKEN = ""
 
 # Expected admin wallet
-EXPECTED_ADMIN = "ZK55X7SGIGMLGORVNJHHPTYZMZOGSQNVROBHX7N27X6ZEQRHAZ2UPKOXQU"
+EXPECTED_ADMIN = "HW6U3RKLOYEW2X2L4DERSJHBPG6G6UTKDWBSS2MKPZJOSAWKLP72NTIMNQ"
 
 def verify_deployment(app_id: int):
     """Verify the smart contract deployment."""

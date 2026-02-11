@@ -39,3 +39,156 @@ NODE_ENV = "production"
 [assets]
 directory = "./dist/public"
 binding = "ASSETS"
+# GrowPod Empire - Cloudflare Workers Configuration
+# Documentation: https://developers.cloudflare.com/workers/wrangler/configuration/
+
+name = "growpod-empire"
+main = "src/worker.ts"
+compatibility_date = "2026-01-01"
+compatibility_flags = ["nodejs_compat"]
+
+# ============================================
+# REQUIRED: Add your Cloudflare Account ID
+# ============================================
+# Get this from: https://dash.cloudflare.com/ → Workers & Pages → Overview (right sidebar)
+# For deployment, provide via: wrangler deploy --account-id <YOUR_ACCOUNT_ID>
+# Or set in GitHub secrets: CLOUDFLARE_ACCOUNT_ID
+account_id = "REPLACE_WITH_YOUR_ACCOUNT_ID"
+
+# Serve static assets from the dist folder (new wrangler v4 syntax)
+[assets]
+directory = "./dist/public"
+binding = "ASSETS"
+
+# ============================================
+# Environment Variables
+# ============================================
+# These can also be set in the Cloudflare dashboard under Workers → Settings → Variables
+
+[vars]
+NODE_ENV = "production"
+# VITE_GROWPOD_APP_ID = "754825112"
+# VITE_BUD_ASSET_ID = "754825127"
+# VITE_TERP_ASSET_ID = "754825128"
+# VITE_SLOT_ASSET_ID = "754825129"
+# VITE_GROWPOD_APP_ADDRESS = "6P55NJ7FDJSZA2YSZNT2HRF2FBIUYNKBZLPX4LJ72Q76SBDN4VAB65W6KM"
+
+# ============================================
+# Secrets (set via `wrangler secret put <NAME>`)
+# ============================================
+# Run these commands to set secrets:
+#   wrangler secret put DATABASE_URL
+#   wrangler secret put ALGO_MNEMONIC
+#   wrangler secret put ADMIN_WALLET_ADDRESS
+#   wrangler secret put SECURITY_EMAIL
+#   wrangler secret put RESEND_API_KEY
+
+# ============================================
+# D1 Database (Cloudflare's SQLite)
+# ============================================
+# Create database: wrangler d1 create growpod-empire-db
+# Then replace the database_id below with the ID returned by that command.
+# For deployment, you can also provide via: wrangler deploy --var database_id:<YOUR_DB_ID>
+[[d1_databases]]
+binding = "DB"
+database_name = "growpod-empire-db"
+database_id = "REPLACE_WITH_YOUR_DATABASE_ID"
+
+# ============================================
+# KV Namespaces (for caching and security metrics)
+# ============================================
+# Create with: wrangler kv:namespace create "CACHE"
+# [[kv_namespaces]]
+# binding = "CACHE"
+# id = "YOUR_KV_NAMESPACE_ID"
+
+# Create with: wrangler kv:namespace create "SECURITY_KV"
+# [[kv_namespaces]]
+# binding = "SECURITY_KV"
+# id = "YOUR_SECURITY_KV_NAMESPACE_ID"
+
+# ============================================
+# R2 Storage (for media uploads - jukebox, NFTs, etc.)
+# ============================================
+# To enable file uploads:
+# 1. Create bucket: wrangler r2 bucket create growpod-media
+# 2. Uncomment the lines below:
+# [[r2_buckets]]
+# binding = "MEDIA_BUCKET"
+# bucket_name = "growpod-media"
+
+# ============================================
+# Build Configuration
+# ============================================
+# Note: Build is handled separately in CI/CD pipeline before deployment
+# Uncomment below if you want wrangler to handle builds automatically
+# [build]
+# command = "npm run build"
+
+# ============================================
+# Development Server
+# ============================================
+[dev]
+port = 8787
+local_protocol = "http"
+
+# ============================================
+# Production Environment
+# ============================================
+[env.production]
+name = "growpod-empire-prod"
+# Add production-specific variables here
+
+# ============================================
+# Staging Environment
+# ============================================
+[env.staging]
+name = "growpod-empire-staging"
+# Add staging-specific variables here
+
+# ============================================
+# Routes (if using custom domain)
+# ============================================
+# routes = [
+#   { pattern = "growpod.empire/*", zone_name = "yourdomain.com" }
+# ]
+
+# ============================================
+# Observability
+# ============================================
+[observability]
+enabled = true
+
+# ============================================
+# Limits
+# ============================================
+# Workers have execution limits:
+# - CPU time: 10ms (free) / 30s (paid)
+# - Memory: 128MB
+# - Subrequest limit: 50 (free) / 1000 (paid)
+
+# ============================================
+# Cron Triggers (for scheduled tasks)
+# ============================================
+# Market generator runs every 15 minutes to create new prediction markets
+[triggers]
+crons = [
+  "*/15 * * * *",  # Every 15 minutes - for 15-min and hourly markets
+]
+# Available patterns:
+#   "*/5 * * * *"  - Every 5 minutes
+#   "0 * * * *"    - Every hour
+#   "0 */6 * * *"  - Every 6 hours
+#   "0 9 * * *"    - Daily at 9 AM UTC
+
+# ============================================
+# Security Monitor Worker (separate deployment)
+# ============================================
+# To deploy the security monitor as a separate worker:
+#   wrangler deploy src/security-monitor.ts --name growpod-security-monitor
+#
+# Or create a separate wrangler.security.toml with:
+#   name = "growpod-security-monitor"
+#   main = "src/security-monitor.ts"
+#   [triggers]
+#   crons = ["*/5 * * * *"]

@@ -1,0 +1,704 @@
+// This source code is subject to the terms of the Mozilla Public License 2.0 at https://mozilla.org/MPL/2.0/
+// Original pattern formation by plasmapug, rise retrace continuation to the upside by infernix and peshocore
+
+//@version=4
+study("Traders Reality", overlay = true)
+
+
+// Config
+adr_offset_input = input(group="Label offsets", title= "ADR Label Offset", type=input.integer, defval=25)
+pivot_offset_input = input(group="Label offsets", title= "Pivot Label Offset", type=input.integer, defval=-5)
+label_offset_input = input(group="Label offsets", title= "MA/HiLo Label Offset", type=input.integer, defval=5)
+showEmas = input(group="EMAs", title="Show EMAs?", type=input.bool, defval=true)
+labelEmas = input(group="EMAs", title="Show EMA Labels?", type=input.bool, defval=false)
+oneEmaColor = input(group="EMAs", title="5 EMA Color", type=input.color, defval=color.new(color.yellow,0))
+twoEmaColor = input(group="EMAs", title="13 EMA Color", type=input.color, defval=color.new(color.red,0))
+threeEmaColor = input(group="EMAs", title="50 EMA Color", type=input.color, defval=color.new(color.aqua,0))
+fourEmaColor = input(group="EMAs", title="200 EMA Color", type=input.color, defval=color.new(color.white,0))
+fiveEmaColor = input(group="EMAs", title="800 EMA Color", type=input.color, defval=color.new(color.navy,0))
+EmaCloudBorderColor = input(group="EMAs", title="EMA Cloud Border Color", type=input.color, defval=color.new(color.teal,100))
+EmaCloudColor = input(group="EMAs", title="EMA Cloud Color", type=input.color, defval=color.new(color.purple,60))
+
+//Daily Pivot Points
+showLevelOnePivotPoints = input(group="Pivot Points", title="Show Level 1?", type=input.bool, defval=false)
+showLevelTwoPivotPoints = input(group="Pivot Points", title="Show Level 2?", type=input.bool, defval=false)
+showLevelThreePivotPoints = input(group="Pivot Points", title="Show Level 3?", type=input.bool, defval=false)
+extendPivots = input(group="Pivot Points", title="Extend lines in both directions?", type=input.bool, defval=false)
+showPivotLabels = input(group="Pivot Points", title="Show Level 1-3 labels?", type=input.bool, defval=true)
+pivotColor = input(group="Pivot Points", title="Pivot Point Color", type=input.color, defval=color.new(color.yellow,50))
+mColor = input(group="Pivot Points", title="M Levels Color", type=input.color, defval=color.new(color.white,50))
+showDayHighLowLabels = input(group="High/low/ADR", title="Show Daily/Weekly labels?", type=input.bool, defval=true)
+showDayHighLow = input(group="High/low/ADR", title="Show Daily Hi/Lo?", type=input.bool, defval=true)
+showWeekHighLow = input(group="High/low/ADR", title="Show Weekly Hi/Lo?", type=input.bool, defval=true)
+bool overridesym = input(group="PVSRA", title="Override chart symbol?", defval=false)
+string pvsra_sym = input(group="PVSRA", title="Symbol to use for volume candles", type=input.symbol, defval="INDEX:BTCUSD", tooltip="You can use INDEX:BTCUSD or you can combine multiple feeds, for example '(BINANCE:BTCUSDT+COINBASE:BTCUSD)'. Note that adding too many will slow things down.")
+showADR = input(group="High/low/ADR", title="Show ADR?", type=input.bool, defval=true)
+showADRLabels =  input(group="High/low/ADR", title="Show ADR labels?", type=input.bool, defval=true)
+showADRRange = input(group="High/low/ADR", title="Show ADR range label?", type=input.bool, defval=true)
+showAWR = input(group="High/low/ADR", title="Show AWR?", type=input.bool, defval=false)
+showAWRLabels =  input(group="High/low/ADR", title="Show AWR labels?", type=input.bool, defval=false)
+showAWRRange = input(group="High/low/ADR", title="Show AWR range label?", type=input.bool, defval=false)
+showAMR = input(group="High/low/ADR", title="Show AMR?", type=input.bool, defval=false)
+showAMRLabels =  input(group="High/low/ADR", title="Show AMR labels?", type=input.bool, defval=false)
+showAMRRange = input(group="High/low/ADR", title="Show AMR range label?", type=input.bool, defval=false)
+
+activeM = input(group="Pivot Points", title="Show M levels?", type=input.bool, defval=true)
+showMLabels = input(group="Pivot Points", title="Show M labels?", type=input.bool, defval=true)
+
+/// market boxes
+bool show = timeframe.isintraday and timeframe.multiplier <= 60 and timeframe.multiplier >= 3
+
+
+int lookbackOrMins = input(group="Market sessions",title="Opening Range offset (minutes)", type=input.integer, defval=0)
+string rectStyle = input(group="Market sessions",defval="Dashed", title="Linestyle of Rectangle", options=["Dashed", "Solid"])
+
+
+bool show_rectangle1 = input(group="Market session 1",defval=true, title="Show Market Session 1 Rectangle?", tooltip="If this checkbox is off, Lable and Open Range have no effect") and show
+bool show_label1 = input(group="Market session 1",defval=true, title="Show Market's Session 1 Name Labels?") and show_rectangle1 and show
+bool show_or1 = input(group="Market session 1",defval=true, title="Show Market Session 1 Opening Range Rectangle?", tooltip="This controls the shaded area for the session") and show_rectangle1 and show
+string sess1Time = input(group="Market session 1", defval="0800-1631", title="Session 1", type=input.session)
+string sess1Label = input(group="Market session 1", defval="London", title="Session 1 Label")
+color sess1col = input(group="Market session 1", title="Session 1 Color", type=input.color, defval=color.new(color.gray,75))
+color sess1colLable = input(group="Market session 1", title="Session 1 Label Color", type=input.color, defval=color.new(color.gray,75))
+
+bool show_rectangle2 = input(group="Market session 2",defval=true, title="Show Market Session 2 Rectangle?", tooltip="If this checkbox is off, Label and Open Range have no effect") and show
+bool show_label2 = input(group="Market session 2",defval=true, title="Show Market's Session 2 Name Labels?") and show_rectangle2 and show
+bool show_or2 = input(group="Market session 2",defval=true, title="Show Market Session 2 Opening Range Rectangle?", tooltip="This controls the shaded area for the session") and show_rectangle2 and show
+string sess2Time = input(group="Market session 2", defval="1330-2001", title="Session 2", type=input.session)
+string sess2Label = input(group="Market session 2", defval="NewYork", title="Session 2 Label")
+color sess2col = input(group="Market session 2", title="Session 2 Color", type=input.color, defval=color.new(color.red,75))
+color sess2colLable = input(group="Market session 2", title="Session 2 Label Color", type=input.color, defval=color.new(color.red,75))
+
+bool show_rectangle3 = input(group="Market session 3",defval=true, title="Show Market Session 3 Rectangle?", tooltip="If this checkbox is off, Label and Open Range have no effect") and show
+bool show_label3 = input(group="Market session 3",defval=true, title="Show Market's Session 3 Name Labels?") and show_rectangle3 and show
+bool show_or3 = input(group="Market session 3",defval=true, title="Show Market Session 3 Opening Range Rectangle?", tooltip="This controls the shaded area for the session") and show_rectangle3 and show
+string sess3Time = input(group="Market session 3", defval="0000-0601", title="Session 3", type=input.session)
+string sess3Label = input(group="Market session 3", defval="Tokyo", title="Session 3 Label")
+color sess3col = input(group="Market session 3", title="Session 3 Color", type=input.color, defval=color.new(color.green,75))
+color sess3colLable = input(group="Market session 3", title="Session 3 Label Color", type=input.color, defval=color.new(color.green,75))
+
+bool show_rectangle4 = input(group="Market session 4",defval=true, title="Show Market Session 4 Rectangle?", tooltip="If this checkbox is off, Label and Open Range have no effect") and show
+bool show_label4 = input(group="Market session 4",defval=true, title="Show Market's Session 4 Name Labels?") and show_rectangle4 and show
+bool show_or4 = input(group="Market session 4",defval=true, title="Show Market Session 4 Opening Range Rectangle?", tooltip="This controls the shaded area for the session") and show_rectangle4 and show
+string sess4Time = input(group="Market session 4", defval="0130-0801", title="Session 4", type=input.session)
+string sess4Label = input(group="Market session 4", defval="HongKong", title="Session 4 Label")
+color sess4col = input(group="Market session 4", title="Session 4 Color", type=input.color, defval=color.new(color.olive,75))
+color sess4colLable = input(group="Market session 4", title="Session 4 Label Color", type=input.color, defval=color.new(color.olive,75))
+
+bool show_rectangle5 = input(group="Market session 5",defval=true, title="Show Market Session 5 Rectangle?", tooltip="If this checkbox is off, Label and Open Range have no effect") and show
+bool show_label5 = input(group="Market session 5",defval=true, title="Show Market's Session 5 Name Labels?") and show_rectangle5 and show
+bool show_or5 = input(group="Market session 5",defval=true, title="Show Market Session 5 Opening Range Rectangle?", tooltip="This controls the shaded area for the session") and show_rectangle5 and show
+string sess5Time = input(group="Market session 5", defval="2100-0501", title="Session 5", type=input.session)
+string sess5Label = input(group="Market session 5", defval="Sydney", title="Session 5 Label")
+color sess5col = input(group="Market session 5", title="Session 5 Color", type=input.color, defval=color.new(color.lime,75))
+color sess5colLable = input(group="Market session 5", title="Session 5 Lable Color", type=input.color, defval=color.new(color.lime,75))
+
+bool show_rectangle6 = input(group="Market session 6",defval=true, title="Show Market Session 6 Rectangle?", tooltip="If this checkbox is off, Label and Open Range have no effect") and show
+bool show_label6 = input(group="Market session 6",defval=true, title="Show Market's Session 6 Name Labels?") and show_rectangle6 and show
+bool show_or6 = input(group="Market session 6",defval=true, title="Show Market Session 6 Opening Range Rectangle?", tooltip="This controls the shaded area for the session") and show_rectangle6 and show
+string sess6Time = input(group="Market session 6", defval="0700-0801", title="Session 6", type=input.session)
+string sess6Label = input(group="Market session 6", defval="EU Brinks", title="Session 6 Label")
+color sess6col = input(group="Market session 6", title="Session 6 Color", type=input.color, defval=color.new(color.white,65))
+color sess6colLable = input(group="Market session 6", title="Session 6 Label Color", type=input.color, defval=color.new(color.white,65))
+
+bool show_rectangle7 = input(group="Market session 7",defval=true, title="Show Market Session 7 Rectangle?", tooltip="If this checkbox is off, Label and Open Range have no effect") and show
+bool show_label7 = input(group="Market session 7",defval=true, title="Show Market's Session 7 Name Labels?") and show_rectangle7 and show
+bool show_or7 = input(group="Market session 7",defval=true, title="Show Market Session 7 Opening Range Rectangle?", tooltip="This controls the shaded area for the session") and show_rectangle7 and show
+string sess7Time = input(group="Market session 7", defval="1300-1401", title="Session 7", type=input.session)
+string sess7Label = input(group="Market session 7", defval="US Brinks", title="Session 7 Label")
+color sess7col = input(group="Market session 7", title="Session 7 Color", type=input.color, defval=color.new(color.white,65))
+color sess7colLable = input(group="Market session 7", title="Session 7 Lable Color", type=input.color, defval=color.new(color.white,65))
+
+bool show_rectangle8 = input(group="Market session 8",defval=true, title="Show Market Session 8 Rectangle?", tooltip="If this checkbox is off, Label and Open Range have no effect") and show
+bool show_label8 = input(group="Market session 8",defval=true, title="Show Market's Session 8 Name Labels?") and show_rectangle8 and show
+bool show_or8 = input(group="Market session 8",defval=true, title="Show Market Session 8 Opening Range Rectangle?", tooltip="This controls the shaded area for the session") and show_rectangle8 and show
+string sess8Time = input(group="Market session 8", defval="0630-1500", title="Session 8", type=input.session)
+string sess8Label = input(group="Market session 8", defval="Frankfurt", title="Session 8 Label")
+color sess8col = input(group="Market session 8", title="Session 8 Color", type=input.color, defval=color.new(color.orange,65))
+color sess8colLable = input(group="Market session 8", title="Session 8 Label Color", type=input.color, defval=color.new(color.orange,65))
+
+
+
+bool show_daily_open = input(group="Daily Open", title="Show daily open", type=input.bool, defval=true)
+bool show_daily_open_label = input(group="Daily Open", title="Show daily open label", type=input.bool, defval=true)
+color daily_open_color = input(group="Daily Open", title="Daily Open Color", type=input.color, defval=color.new(color.yellow,5))
+
+//Non repainting security
+f_security(_symbol, _res, _src, _repaint) => security(_symbol, _res, _src[_repaint ? 0 : barstate.isrealtime ? 1 : 0])[_repaint ? 0 : barstate.isrealtime ? 0 : 1]
+
+
+// Basic vars (needed in functions)
+
+// Only render intraday
+validTimeFrame = timeframe.isintraday == true
+
+// If above the 5 minute, we start drawing yesterday. below, we start today
+levelsstart = iff((timeframe.isseconds == true) or (timeframe.isminutes == true and timeframe.multiplier < 5), time('D'), time('D') - (86400 * 1000))
+levelsstartbar = barssince(levelsstart)
+
+
+// Functions
+// new_bar: check if we're on a new bar within the session in a given resolution
+new_bar(res) => change(time(res)) != 0
+
+// adr: Calculate average daily range for a given length
+adr(length) =>
+    // This is effectively an atr, which is what is used in MT4 to get those levels. FWIW, true range can be also calculated with tr(true)
+    trueRange = na(high[1])? high-low : max(max(high - low, abs(high - close[1])), abs(low - close[1]))
+    // Switched to SMA from RMA because somehow it matches MT4 better
+    sma(trueRange[1], length)
+    
+// adr_high: Calculate the ADR high given an ADR
+adr_high(adr) => high - low < adr ? low + adr : close >= open ? low + adr : high
+
+// adr_low: Calculate the ADR low given an ADR
+adr_low(adr) => high - low < adr ? high - adr : close >= open ? low : high - adr
+
+// to_pips: Convert to pips
+to_pips(val) => round( (val/syminfo.mintick)*100)/100
+
+pivot_label_x_offset = time_close + (pivot_offset_input * timeframe.multiplier * 60 * 1000)
+label_x_offset = time_close + (label_offset_input * timeframe.multiplier * 60 * 1000)
+adr_label_x_offset = time_close + (adr_offset_input * timeframe.multiplier * 60 * 1000)
+
+//Right_Label
+r_label(ry, rtext, rstyle, rcolor,valid) => 
+    if(valid and barstate.isrealtime)
+        rLabel = label.new(x = label_x_offset, y =ry,text = rtext,xloc = xloc.bar_time, style=rstyle,textcolor = rcolor, textalign = text.align_right) 
+        label.delete(rLabel[1])
+
+draw_line(x_series ,res,tag, xColor, xStyle, xWidth, xExtend,isLabelValid, xLabelOffset) =>
+    var line x_line = na
+   
+    if new_bar(res) and validTimeFrame
+        line.set_x2(x_line, bar_index)
+        line.set_extend(x_line, extend.none)
+       
+        x_line := line.new(bar_index, x_series, bar_index, x_series, extend=xExtend, color=xColor, style = xStyle,width = xWidth)
+        line.delete(x_line[1])
+        
+    if not na(x_line) and line.get_x2(x_line) != bar_index
+        line.set_x2(x_line, bar_index)
+       
+    if(isLabelValid)//showADRLabels and validTimeFrame
+        x_label = label.new(xLabelOffset, x_series, tag, xloc = xloc.bar_time, style=label.style_none,textcolor = xColor)
+        label.delete(x_label[1])
+        
+
+draw_absline(xSeries,starttime, endtime, res, tag, xColor, xStyle, xWidth, xExtend,isLabelValid, xLableOffset) =>
+    var line x_line = na
+    if new_bar(res) 
+        line.set_x2(x_line, endtime)
+        line.set_extend(x_line, extend.none)
+        x_line := line.new(starttime, xSeries, endtime, xSeries, xloc = xloc.bar_time, extend=xExtend, color=xColor, style = xStyle,width = xWidth)
+        line.delete(x_line[1])
+    if not na(x_line) and line.get_x2(x_line) != bar_index
+        line.set_x2(x_line, endtime)
+    if(isLabelValid)//showADRLabels and validTimeFrame
+        x_label = label.new(xLableOffset, xSeries, tag, xloc = xloc.bar_time, style=label.style_none,textcolor = xColor)
+        label.delete(x_label[1])
+
+
+draw_pivot(pivot_level,res,tag, pivotColor,pivotStyle,pivotWidth,pivotExtend,isLabelValid) =>
+    var line pivot_line = na
+    
+    // Start drawing yesterday
+    if new_bar(res) and validTimeFrame
+        line.set_x2(pivot_line, bar_index)
+        line.set_extend(pivot_line, extend.none)
+        pivot_line := line.new(bar_index, pivot_level, bar_index, pivot_level, extend=pivotExtend, color=pivotColor, style = pivotStyle,width = pivotWidth)
+        line.delete(pivot_line[1])
+    if not na(pivot_line) and line.get_x2(pivot_line) != bar_index
+        line.set_x2(pivot_line, bar_index)
+    if(isLabelValid)//showADRLabels and validTimeFrame
+        pivot_label = label.new(pivot_label_x_offset, pivot_level, tag, xloc = xloc.bar_time, style=label.style_none,textcolor = pivotColor, textalign = text.align_right)
+        
+        label.delete(pivot_label[1])
+    if (not barstate.islast)
+        line.set_x2(pivot_line, x=bar_index)
+    else
+        line.set_xloc(pivot_line, levelsstart, time_close + (1 * 86400000), xloc=xloc.bar_time)
+    pivot_line
+        
+update_pivot(pivot_line,pivot_level,res,tag, pivotColor,pivotStyle,pivotWidth,pivotExtend,isLabelValid) =>
+    if new_bar(res) and validTimeFrame
+        line.set_x1(pivot_line, bar_index)
+        line.set_y1(pivot_line, pivot_level)
+        line.set_y2(pivot_line, pivot_level)
+    if (not barstate.islast)
+        line.set_x2(pivot_line, x=bar_index)
+    else
+        line.set_xloc(pivot_line, levelsstart, time_close + (1 * 86400000), xloc=xloc.bar_time)
+
+//sessions line function
+showOrFunctionX(show_orX, sessX, sessXOrCalc, orX_h, orX_l, sessXcol ) =>
+    if show_orX
+        if (sessX and sessXOrCalc)
+            line.new(bar_index, orX_h, bar_index, orX_l, color=sessXcol, style=line.style_dotted)
+
+    if ((not sessX) and sessX[1])
+        line.new(bar_index - 1, orX_h[1], bar_index - 1, orX_l[1], color=sessXcol, style=line.style_dotted)
+
+
+//calculate orX_h, orX_l
+calcXOrHL(sessX, sessXorcalc, lookbackOrBars) =>
+    float orX_h = na
+    float orX_l = na
+    orX_h := sessX ? orX_h[1] : na
+    orX_l := sessX ? orX_l[1] : na
+    
+    if sessXorcalc
+        for i = 0 to lookbackOrBars
+            orX_h := i == 0 ? high : max(high[i], orX_h)
+            orX_l := i == 0 ? low  : min(low[i],  orX_l)
+    [orX_l, orX_h]
+
+////////////
+//calculate sess and sessorcalc function
+///////////
+calcSessAndSessOr(sessXTime, showX_or, lookbackMinsX, lookbackOrBarsX) => 
+    int sessX = time(timeframe.period, sessXTime)
+    bool sessXorcalc = (sessX[lookbackOrBarsX] and na(sessX[lookbackOrBarsX + 1])) and showX_or
+    [sessX, sessXorcalc]
+
+
+
+//Emas
+oneEmaLength =5
+twoEmaLength = 13
+threeEmaLength = 50
+fourEmaLength = 200
+fiveEmaLength = 800
+
+oneEma = ema(close,oneEmaLength)
+plot(showEmas ? oneEma : na,color = oneEmaColor, title = "5 Ema")
+
+twoEma = ema(close,twoEmaLength)
+plot(showEmas ?  twoEma : na,color = twoEmaColor,  title = "13 Ema")
+
+threeEma = ema(close,threeEmaLength)
+plot(showEmas ? threeEma: na,color = threeEmaColor,  title = "50 Ema")
+
+fourEma = ema(close,fourEmaLength)
+plot(showEmas ? fourEma: na,color = fourEmaColor,   title = "200 Ema")
+
+fiveEma = ema(close,fiveEmaLength)
+plot(showEmas ? fiveEma: na,color = fiveEmaColor, linewidth = 2,  title = "800 Ema")
+
+
+// Ema 50 cloud placed here for readability on data window
+cloudSize = stdev(close,threeEmaLength*2)/4
+p1 = plot(showEmas ? threeEma+cloudSize: na, "Upper 50 Ema Cloud", color=EmaCloudBorderColor,  offset = 0)
+p2 = plot(showEmas ? threeEma-cloudSize: na, "Lower 50 Ema Cloud", color=EmaCloudBorderColor,  offset = 0) 
+fill(p1, p2, title = "EMA 50 Cloud", color=EmaCloudColor)
+
+//Label emas
+
+
+r_label(oneEma,"5 Ema",label.style_none,oneEmaColor,labelEmas)//ry, rtext, rstyle, rcolor,valid
+r_label(twoEma,"13 Ema",label.style_none,twoEmaColor,labelEmas)
+r_label(threeEma,"50 Ema",label.style_none,threeEmaColor,labelEmas)
+r_label(fourEma,"200 Ema",label.style_none,fourEmaColor,labelEmas)
+r_label(fiveEma,"800 Ema",label.style_none,fiveEmaColor,labelEmas)
+
+
+// Get Daily price data
+dayHigh = f_security(syminfo.tickerid, "D",high, false)
+dayLow = f_security(syminfo.tickerid, "D",low, false)
+dayOpen  = f_security(syminfo.tickerid, "D",open, false)
+dayClose = f_security(syminfo.tickerid, "D",close, false)
+
+//Compute Values
+pivotPoint = (dayHigh + dayLow + dayClose)/3
+
+// Updated 2021-03-25 by infernix
+pivR1 = (2 * pivotPoint) - dayLow
+pivS1 = (2 * pivotPoint) - dayHigh
+pivR2 = pivotPoint-pivS1+pivR1
+pivS2 = pivotPoint-pivR1+pivS1
+pivR3 = (2*pivotPoint)+(dayHigh-(2*dayLow))
+pivS3 = (2*pivotPoint)-((2*dayHigh)-dayLow)
+
+//Plot Values
+//plot(validTimeFrame and showLevelOnePivotPoints? pivotPoint : na, linewidth = 1, color = color.yellow, style = plot.style_circles, transp = 25, title = "Daily Pivot Point", show_last = plot_bars)
+
+pivline = draw_pivot(validTimeFrame and (showLevelOnePivotPoints or showLevelTwoPivotPoints or showLevelThreePivotPoints or activeM)? pivotPoint : na, 'D',"PP", pivotColor,line.style_dashed,1,extendPivots ? extend.both : extend.right, showPivotLabels and validTimeFrame)
+pivr1line = draw_pivot(validTimeFrame and showLevelOnePivotPoints? pivR1 : na, 'D',"R1", color.new(color.green, 50),line.style_dashed,1,extendPivots ? extend.both : extend.right,showLevelOnePivotPoints and showPivotLabels and validTimeFrame)
+pivs1line = draw_pivot(validTimeFrame and showLevelOnePivotPoints? pivS1 : na, 'D',"S1", color.new(color.red, 50),line.style_dashed,1,extendPivots ? extend.both : extend.right,showLevelOnePivotPoints and showPivotLabels and validTimeFrame)
+pivr2line = draw_pivot(validTimeFrame and showLevelTwoPivotPoints? pivR2 : na, 'D',"R2", color.new(color.green, 50),line.style_dashed,1,extendPivots ? extend.both : extend.right,showLevelTwoPivotPoints and showPivotLabels and validTimeFrame)
+pivs2line = draw_pivot(validTimeFrame and showLevelTwoPivotPoints? pivS2 : na, 'D',"S2", color.new(color.red, 50),line.style_dashed,1,extendPivots ? extend.both : extend.right,showLevelTwoPivotPoints and showPivotLabels and validTimeFrame)
+pivr3line = draw_pivot(validTimeFrame and showLevelThreePivotPoints? pivR3 : na, 'D',"R3", color.new(color.green, 50),line.style_dashed,1,extendPivots ? extend.both : extend.right,showLevelThreePivotPoints and showPivotLabels and validTimeFrame)
+pivs3line = draw_pivot(validTimeFrame and showLevelThreePivotPoints? pivS3 : na, 'D',"S3", color.new(color.red, 50),line.style_dashed,1,extendPivots ? extend.both : extend.right,showLevelThreePivotPoints and showPivotLabels and validTimeFrame)
+
+
+if (not na(pivotPoint))
+    update_pivot(pivline,validTimeFrame and (showLevelOnePivotPoints or showLevelTwoPivotPoints or showLevelThreePivotPoints or activeM)? pivotPoint : na, 'D',"PP", pivotColor,line.style_dashed,1,extendPivots ? extend.both : extend.right, showPivotLabels and validTimeFrame)
+    
+if (not na(pivR1))
+    update_pivot(pivr1line,validTimeFrame and showLevelOnePivotPoints? pivR1 : na, 'D',"R1", color.new(color.green, 50),line.style_dashed,1,extendPivots ? extend.both : extend.right,showLevelOnePivotPoints and showPivotLabels and validTimeFrame)
+    
+if (not na(pivS1))
+    update_pivot(pivs1line,validTimeFrame and showLevelOnePivotPoints? pivS1 : na, 'D',"S1", color.new(color.red, 50),line.style_dashed,1,extendPivots ? extend.both : extend.right,showLevelOnePivotPoints and showPivotLabels and validTimeFrame)
+
+if (not na(pivR2))
+    update_pivot(pivr2line,validTimeFrame and showLevelTwoPivotPoints? pivR2 : na, 'D',"R2", color.new(color.green, 50),line.style_dashed,1,extendPivots ? extend.both : extend.right,showLevelTwoPivotPoints and showPivotLabels and validTimeFrame)
+    
+if (not na(pivS2))
+    update_pivot(pivs2line,validTimeFrame and showLevelTwoPivotPoints? pivS2 : na, 'D',"S2", color.new(color.red, 50),line.style_dashed,1,extendPivots ? extend.both : extend.right,showLevelTwoPivotPoints and showPivotLabels and validTimeFrame)
+
+if (not na(pivR3))
+    update_pivot(pivr3line,validTimeFrame and showLevelThreePivotPoints? pivR3 : na, 'D',"R3", color.new(color.green, 50),line.style_dashed,1,extendPivots ? extend.both : extend.right,showLevelThreePivotPoints and showPivotLabels and validTimeFrame)
+
+if (not na(pivS3))
+    update_pivot(pivs3line,validTimeFrame and showLevelThreePivotPoints? pivS3 : na, 'D',"S3", color.new(color.red, 50),line.style_dashed,1,extendPivots ? extend.both : extend.right,showLevelThreePivotPoints and showPivotLabels and validTimeFrame)
+
+
+
+// Daily H/L 
+
+validDHLTimeFrame = timeframe.isintraday == true
+validWHLTimeFrame = timeframe.isintraday == true or timeframe.isdaily == true
+
+plot(validDHLTimeFrame and showDayHighLow ? dayHigh : na, linewidth = 1, color = color.blue, style = plot.style_linebr, transp = 50, title = "Last Day High")
+plot(validDHLTimeFrame and showDayHighLow ? dayLow : na, linewidth = 1, color = color.blue, style = plot.style_linebr, transp = 50, title = "Last Day Low")
+
+r_label(dayHigh,"YDay Hi",label.style_none,color.blue,validDHLTimeFrame and showDayHighLow and showDayHighLowLabels)//ry, rtext, rstyle, rcolor, valid
+r_label(dayLow,"YDay Lo",label.style_none,color.blue,validDHLTimeFrame and showDayHighLow and showDayHighLowLabels)
+
+// Weekly H/L
+weekHigh = f_security(syminfo.tickerid, "W",high, false)
+weekLow = f_security(syminfo.tickerid, "W",low, false)
+
+plot(validWHLTimeFrame and showWeekHighLow ? weekHigh : na, linewidth = 1, color = color.green, style = plot.style_linebr, transp = 60, title = "Last Week High")
+plot(validWHLTimeFrame and showWeekHighLow ? weekLow : na, linewidth = 1, color = color.green, style = plot.style_linebr, transp = 60, title = "Last Week Low")
+
+r_label(weekHigh,"LWeek Hi",label.style_none,color.green,validWHLTimeFrame and showWeekHighLow and showDayHighLowLabels)//ry, rtext, rstyle, rcolor, valid
+r_label(weekLow,"LWeek Lo",label.style_none,color.green,validWHLTimeFrame and showWeekHighLow and showDayHighLowLabels)
+
+
+// PVSRA
+// From MT4 source:
+
+//   Situation "Climax"
+//   Bars with volume >= 200% of the average volume of the 10 previous chart TFs, and bars
+//   where the product of candle spread x candle volume is >= the highest for the 10 previous
+//   chart time TFs.
+//   Default Colors:  Bull bars are green and bear bars are red.
+
+//   Situation "Volume Rising Above Average"
+//   Bars with volume >= 150% of the average volume of the 10 previous chart TFs.
+//   Default Colors:  Bull bars are blue and bear are blue-violet.
+
+// We want to be able to override where we get the volume data for the candles.
+
+
+pvsra_security(sresolution,sseries) => security(overridesym ? pvsra_sym : syminfo.tickerid ,sresolution,sseries[barstate.isrealtime?1:0], barmerge.gaps_off,barmerge.lookahead_off)
+pvsra_volume = iff(overridesym == true, pvsra_security("",volume), volume)
+pvsra_high = iff(overridesym == true, pvsra_security("",high), high)
+pvsra_low = iff(overridesym == true, pvsra_security("",low), low)
+pvsra_close = iff(overridesym == true, pvsra_security("",close), close)
+pvsra_open = iff(overridesym == true, pvsra_security("",open), open)
+
+
+r_label(high-((high-low)/2),"PVSRA Override Active!", label.style_none,color.orange,overridesym)//ry, rtext, rstyle, rcolor, valid
+
+//label.new(overridesym ? 0 : na, low, text = "PVSRA Override: " + pvsra_sym, xloc = xloc.bar_index, yloc=yloc.belowbar,style=label.style_label_down, size=size.huge)
+
+// The below math matches MT4 PVSRA indicator source
+// average volume from last 10 candles
+av = iff(overridesym == true,(sum(pvsra_volume,10))/10,(sum(volume,10))/10)
+//climax volume on the previous candle
+value2 = iff(overridesym == true,pvsra_volume*(pvsra_high-pvsra_low),volume*(high-low))
+// highest climax volume of the last 10 candles
+hivalue2 = highest(value2,10) 
+// VA value determines the bar color. va = 0: normal. va = 1: climax.  va = 2: rising
+va = iff(overridesym == true,iff(pvsra_volume >= (av * 2) or value2 >= hivalue2, 1, iff(pvsra_volume >= av * 1.5, 2, 0)),iff(volume >= (av * 2) or value2 >= hivalue2, 1, iff(volume >= av * 1.5, 2, 0)))
+
+// Bullish or bearish coloring
+isBull = iff(overridesym == true,pvsra_close > pvsra_open,close > open)
+
+CUColor = color.lime // Climax up (bull) bull and bear both start with b so it would be weird hence up down
+CDColor = color.red // Climax down (bear)
+
+AUColor = color.blue //Avobe average up (bull)
+ADColor = color.fuchsia //Above average down (bear))
+
+NUColor = #999999
+NDColor = #4d4d4d
+
+// candleColor = iff(climax,iff(isBull,CUColor,CDColor),iff(aboveA,iff(isBull,AUColor,ADColor),iff(isBull,NUColor,NDColor)))
+candleColor = iff(isBull,iff(va == 1,CUColor,iff(va == 2,AUColor,NUColor)),iff(va == 1,CDColor,iff(va == 2,ADColor,NDColor)))
+barcolor(candleColor) 
+
+alertcondition(va > 0, title="Alert on Vector Candle", message="{{ticker}} Vector Candle on the {{interval}}")
+
+//ADR
+// Daily ADR
+//
+day_adr      = security(syminfo.tickerid, 'D', adr(15), lookahead=barmerge.lookahead_on)
+day_adr_high = security(syminfo.tickerid, 'D', adr_high(day_adr), lookahead=barmerge.lookahead_on)
+day_adr_low  = security(syminfo.tickerid, 'D', adr_low(day_adr), lookahead=barmerge.lookahead_on)
+
+if showADR
+    draw_line(day_adr_high ,'D',"Hi-ADR",  color.new(color.silver,50), line.style_dotted, 2, extend.right ,showADRLabels and validTimeFrame, adr_label_x_offset)
+    draw_line(day_adr_low ,'D',"Lo-ADR",  color.new(color.silver,50), line.style_dotted, 2, extend.right ,showADRLabels and validTimeFrame, adr_label_x_offset)
+    r_label((day_adr_high + day_adr_low)/2, "ADR " + tostring(to_pips(day_adr)), label.style_none,color.silver,showADRLabels and validTimeFrame and showADRRange)//ry, rtext, rstyle, rcolor, valid
+    
+//Weekly ADR    
+week_adr      = security(syminfo.tickerid, "W",adr(1), lookahead=barmerge.lookahead_on)
+week_adr_high = security(syminfo.tickerid, "W",adr_high(week_adr), lookahead=barmerge.lookahead_on)
+week_adr_low  = security(syminfo.tickerid, "W",adr_low(week_adr),  lookahead=barmerge.lookahead_on)
+
+if showAWR
+    draw_line(week_adr_high ,'W',"Hi-AWR", color.new(color.orange,50), line.style_dotted, 1, extend.right,showAWRLabels and validTimeFrame, adr_label_x_offset)
+    draw_line(week_adr_low ,'W',"Lo-AWR", color.new(color.orange,50), line.style_dotted, 1, extend.right,showAWRLabels and validTimeFrame, adr_label_x_offset)
+    r_label((week_adr_high + week_adr_low)/2,"AWR " + tostring(to_pips(week_adr)), label.style_none,color.orange,showAWRLabels and validTimeFrame and showAWRRange)//ry, rtext, rstyle, rcolor, valid
+
+//Monthly ADR 
+month_adr      = security(syminfo.tickerid, "M",adr(1),  lookahead=barmerge.lookahead_on)
+month_adr_high = security(syminfo.tickerid, "M",adr_high(week_adr), lookahead=barmerge.lookahead_on)
+month_adr_low  = security(syminfo.tickerid, "M",adr_low(week_adr), lookahead=barmerge.lookahead_on)
+
+if showAMR
+    draw_line(month_adr_high ,'M',"Hi-AMR", color.new(color.red,50), line.style_dotted, 1, extend.right,showAMRLabels and validTimeFrame, adr_label_x_offset)
+    draw_line(month_adr_low ,'M',"Hi-AMR", color.new(color.red,50), line.style_dotted, 1, extend.right,showAMRLabels and validTimeFrame, adr_label_x_offset)
+    r_label((month_adr_high + month_adr_low)/2,"AMR " + tostring(to_pips(month_adr)), label.style_none,color.red,showAMRLabels and validTimeFrame and showAMRRange)//ry, rtext, rstyle, rcolor, valid
+
+// M - Levels
+
+
+//Calculate Pivot Point
+// 2021-03025 updated by infernix 
+//M calculations
+m0C = (pivS2+pivS3)/2
+m1C = (pivS1+pivS2)/2
+m2C = (pivotPoint+pivS1)/2
+m3C = (pivotPoint+pivR1)/2
+m4C = (pivR1+pivR2)/2
+m5C = (pivR2+pivR3)/2
+
+//M Levels
+//m0 = f_security(syminfo.tickerid, "D",m0C, false)
+//m1 = f_security(syminfo.tickerid, "D",m1C, false)
+//m2 = f_security(syminfo.tickerid, "D",m2C, false)
+//m3 = f_security(syminfo.tickerid, "D",m3C, false)
+//m4 = f_security(syminfo.tickerid, "D",m4C, false)
+//m5 = f_security(syminfo.tickerid, "D",m5C, false)
+
+//Plot
+//Labels
+
+
+m0line = draw_pivot(validTimeFrame and activeM and m0C? m0C : na, 'D',"M0",mColor,line.style_dashed,1,extendPivots ? extend.both : extend.right,showMLabels and validTimeFrame)
+m1line = draw_pivot(validTimeFrame and activeM and m1C? m1C : na, 'D',"M1",mColor,line.style_dashed,1,extendPivots ? extend.both : extend.right,showMLabels and validTimeFrame)
+m2line = draw_pivot(validTimeFrame and activeM and m2C? m2C : na, 'D',"M2",mColor,line.style_dashed,1,extendPivots ? extend.both : extend.right,showMLabels and validTimeFrame)
+m3line = draw_pivot(validTimeFrame and activeM and m3C? m3C : na, 'D',"M3",mColor,line.style_dashed,1,extendPivots ? extend.both : extend.right,showMLabels and validTimeFrame)
+m4line = draw_pivot(validTimeFrame and activeM and m4C? m4C : na, 'D',"M4",mColor,line.style_dashed,1,extendPivots ? extend.both : extend.right,showMLabels and validTimeFrame)
+m5line = draw_pivot(validTimeFrame and activeM and m5C? m5C : na, 'D',"M5",mColor,line.style_dashed,1,extendPivots ? extend.both : extend.right,showMLabels and validTimeFrame)
+
+if (not na(m0C))
+    update_pivot(m0line, validTimeFrame and activeM and m0C? m0C : na, 'D',"M0",mColor,line.style_dashed,1,extendPivots ? extend.both : extend.right,showMLabels and validTimeFrame)
+if (not na(m1C))
+    update_pivot(m1line, validTimeFrame and activeM and m1C? m1C : na, 'D',"M1",mColor,line.style_dashed,1,extendPivots ? extend.both : extend.right,showMLabels and validTimeFrame)
+if (not na(m2C))
+    update_pivot(m2line, validTimeFrame and activeM and m2C? m2C : na, 'D',"M2",mColor,line.style_dashed,1,extendPivots ? extend.both : extend.right,showMLabels and validTimeFrame)
+if (not na(m3C))
+    update_pivot(m3line, validTimeFrame and activeM and m3C? m3C : na, 'D',"M3",mColor,line.style_dashed,1,extendPivots ? extend.both : extend.right,showMLabels and validTimeFrame)
+if (not na(m4C))
+    update_pivot(m4line, validTimeFrame and activeM and m4C? m4C : na, 'D',"M4",mColor,line.style_dashed,1,extendPivots ? extend.both : extend.right,showMLabels and validTimeFrame)
+if (not na(m5C))
+    update_pivot(m5line, validTimeFrame and activeM and m5C? m5C : na, 'D',"M5",mColor,line.style_dashed,1,extendPivots ? extend.both : extend.right,showMLabels and validTimeFrame)
+
+    
+
+
+
+
+/// Market sessions
+///////////////
+// Inputs
+///////////////
+
+
+
+///////////////
+// Switches
+///////////////
+
+
+
+///////////////
+// Functions
+///////////////
+get_session (sessionText) => 
+    time(timeframe.period, sessionText)
+
+get_isInSession (session) =>
+    isInSession = not na(session)
+
+get_posTopAndBottom (begin_index, to_index) => 
+    float pT = 0
+    float pB = high
+
+    for i = begin_index to to_index
+        pT := max(high[i], pT)
+        pB := min(low[i], pB)
+
+    [pT, pB]
+
+create_marketRect (sessionTime, sessionDuration, t, col, colLable, showme) =>
+    bool is_inSession = get_isInSession(sessionTime)
+    string style = rectStyle == "Dashed" ? line.style_dashed : line.style_solid
+
+    if (is_inSession)
+        int minsLen = round(sessionDuration / timeframe.multiplier)
+        int begin_index = 0
+
+        for i = 1 to minsLen
+            if (not na(sessionTime[i]))
+                begin_index := begin_index + 1
+
+        int pR = bar_index
+        int pL = bar_index - begin_index
+        [pT, pB] = get_posTopAndBottom(1, begin_index)
+        float range = (pT - pB)
+
+        //line_r = line.new(pR, pT, pR, pB, style=style, color=col)
+        //line_l = line.new(pL, pT, pL, pB, style=style, color=col)
+        line_t = line.new(pL, pT, pR, pT, style=style, color=col)
+        line_b = line.new(pL, pB, pR, pB, style=style, color=col)
+       
+        //line.delete(line_r[1])
+        //line.delete(line_l[1])
+        line.delete(line_t[1])
+        line.delete(line_b[1])
+        
+        if (showme)
+            line_label = label.new(pL, pT, t, textcolor=colLable, style=label.style_none, size=size.normal)
+            label.delete(line_label[1])
+
+///////////////
+// Calculating
+///////////////
+int lookbackMins = (12 * 60)
+
+
+// (Opening Range)
+int lookbackOrBars = floor(lookbackOrMins / timeframe.multiplier)
+
+[sess1, sess1orcalc] = calcSessAndSessOr(sess1Time, show_or1, lookbackMins, lookbackOrBars)
+[sess2, sess2orcalc] = calcSessAndSessOr(sess2Time, show_or2, lookbackMins, lookbackOrBars)
+[sess3, sess3orcalc] = calcSessAndSessOr(sess3Time, show_or3, lookbackMins, lookbackOrBars)
+[sess4, sess4orcalc] = calcSessAndSessOr(sess4Time, show_or4, lookbackMins, lookbackOrBars)
+[sess5, sess5orcalc] = calcSessAndSessOr(sess5Time, show_or5, lookbackMins, lookbackOrBars)
+[sess6, sess6orcalc] = calcSessAndSessOr(sess6Time, show_or6, lookbackMins, lookbackOrBars)
+[sess7, sess7orcalc] = calcSessAndSessOr(sess7Time, show_or7, lookbackMins, lookbackOrBars)
+[sess8, sess8orcalc] = calcSessAndSessOr(sess8Time, show_or8, lookbackMins, lookbackOrBars)
+
+[or1_l, or1_h] = calcXOrHL(sess1, sess1orcalc, lookbackOrBars )
+[or2_l, or2_h] = calcXOrHL(sess2, sess2orcalc, lookbackOrBars )
+[or3_l, or3_h] = calcXOrHL(sess3, sess3orcalc, lookbackOrBars )
+[or4_l, or4_h] = calcXOrHL(sess4, sess4orcalc, lookbackOrBars )
+[or5_l, or5_h] = calcXOrHL(sess5, sess5orcalc, lookbackOrBars )
+[or6_l, or6_h] = calcXOrHL(sess6, sess6orcalc, lookbackOrBars )
+[or7_l, or7_h] = calcXOrHL(sess7, sess7orcalc, lookbackOrBars )
+[or8_l, or8_h] = calcXOrHL(sess8, sess8orcalc, lookbackOrBars )
+        
+///////////////
+// Colors
+///////////////
+//get_rectcolor(col) =>
+//    x = col == "black" ? color.black: col == "silver" ? color.silver: col == "gray" ? color.gray: col == "white" ? color.white: col == "maroon" ? color.maroon: col == "red" ? color.red: col == "purple" ? color.purple: col == "fuchsia" ? color.fuchsia: col == "green" ? color.green: col == "lime" ? color.lime: col == "olive" ? color.olive: col == "yellow" ? color.yellow: col == "navy" ? color.navy: col == "blue" ? color.blue: col == "orange" ? color.orange: col == "aqua" ? color.aqua: color.white
+//    x
+
+//sess1col = get_rectcolor(sess1Color)
+//sess2col = get_rectcolor(sess2Color)
+//sess3col = get_rectcolor(sess3Color)
+//sess4col = get_rectcolor(sess4Color)
+//sess5col = get_rectcolor(sess5Color)
+///////////////
+// Plotting
+///////////////
+// TODO: this breaks on the 3 minute view for some reason, so we disable it for now.
+if (timeframe.multiplier != 3)
+    if(show_rectangle1)
+        create_marketRect(sess1, lookbackMins, sess1Label, sess1col, sess1colLable, show_label1)
+    if(show_rectangle2)
+        create_marketRect(sess2, lookbackMins, sess2Label, sess2col, sess2colLable, show_label2)
+    if(show_rectangle3)
+        create_marketRect(sess3, lookbackMins, sess3Label, sess3col, sess3colLable, show_label3)
+    if(show_rectangle4)
+        create_marketRect(sess4, lookbackMins, sess4Label, sess4col, sess4colLable, show_label4)
+    if(show_rectangle5)
+        create_marketRect(sess5, lookbackMins, sess5Label, sess5col, sess5colLable, show_label5)
+    if(show_rectangle6)
+        create_marketRect(sess6, lookbackMins, sess6Label, sess6col, sess6colLable, show_label6)
+    if(show_rectangle7)
+        create_marketRect(sess7, lookbackMins, sess7Label, sess7col, sess7colLable, show_label7)
+    if(show_rectangle8)
+        create_marketRect(sess8, lookbackMins, sess8Label, sess8col, sess8colLable, show_label8)
+
+
+// (Opening Range)
+or1u = plot(or1_h, color=sess1col, style=plot.style_linebr, editable=false)
+or1b = plot(or1_l, color=sess1col, style=plot.style_linebr, editable=false)
+fill(or1u, or1b, color=sess1col, transp=90, editable=false)
+
+or2u = plot(or2_h, color=sess2col, style=plot.style_linebr, editable=false)
+or2b = plot(or2_l, color=sess2col, style=plot.style_linebr, editable=false)
+fill(or2u, or2b, color=sess2col, transp=90, editable=false)
+
+or3u = plot(or3_h, color=sess3col, style=plot.style_linebr, editable=false)
+or3b = plot(or3_l, color=sess3col, style=plot.style_linebr, editable=false)
+fill(or3u, or3b, color=sess3col, transp=90, editable=false)
+
+or4u = plot(or4_h, color=sess4col, style=plot.style_linebr, editable=false)
+or4b = plot(or4_l, color=sess4col, style=plot.style_linebr, editable=false)
+fill(or4u, or4b, color=sess4col, transp=90, editable=false)
+
+or5u = plot(or5_h, color=sess5col, style=plot.style_linebr, editable=false)
+or5b = plot(or5_l, color=sess5col, style=plot.style_linebr, editable=false)
+fill(or5u, or5b, color=sess5col, transp=90, editable=false)
+
+or6u = plot(or6_h, color=sess6col, style=plot.style_linebr, editable=false)
+or6b = plot(or6_l, color=sess6col, style=plot.style_linebr, editable=false)
+fill(or6u, or6b, color=sess6col, transp=90, editable=false)
+
+or7u = plot(or7_h, color=sess7col, style=plot.style_linebr, editable=false)
+or7b = plot(or7_l, color=sess7col, style=plot.style_linebr, editable=false)
+fill(or7u, or7b, color=sess7col, transp=90, editable=false)
+
+or8u = plot(or8_h, color=sess8col, style=plot.style_linebr, editable=false)
+or8b = plot(or8_l, color=sess8col, style=plot.style_linebr, editable=false)
+fill(or8u, or8b, color=sess8col, transp=90, editable=false)
+
+showOrFunctionX(show_or1, sess1, sess1orcalc, or1_h, or1_l, sess1col)
+showOrFunctionX(show_or2, sess2, sess2orcalc, or2_h, or2_l, sess2col)
+showOrFunctionX(show_or3, sess3, sess3orcalc, or3_h, or3_l, sess3col)
+showOrFunctionX(show_or4, sess4, sess4orcalc, or4_h, or4_l, sess4col)
+showOrFunctionX(show_or5, sess5, sess5orcalc, or5_h, or5_l, sess5col)
+showOrFunctionX(show_or6, sess6, sess6orcalc, or6_h, or6_l, sess6col)
+showOrFunctionX(show_or7, sess7, sess7orcalc, or7_h, or7_l, sess7col)
+showOrFunctionX(show_or8, sess8, sess8orcalc, or8_h, or8_l, sess8col)
+
+// Daily open 
+daily_open = security(syminfo.tickerid, 'D', open, lookahead=barmerge.lookahead_on)
+// Date & time variables
+current_year = year(timenow)
+current_month = month(timenow)
+current_weekofyear = weekofyear(timenow)
+current_dayofmonth = dayofmonth(timenow)
+current_dayofweek = dayofweek(timenow)
+
+// Opens (re-test previous values, so we take the closing price as that is defining the upcoming open price)
+
+bar_is_today = (year == current_year and weekofyear == current_weekofyear and dayofweek == current_dayofweek)
+plot(show_daily_open and bar_is_today and validTimeFrame? daily_open : na, title="Daily open", color=daily_open_color, style=plot.style_line, linewidth=1)
+
+
+
+
+// Labels
+if (show_daily_open_label and barstate.isrealtime)
+    if show_daily_open
+        r_label(daily_open,"Daily Open",label.style_none,daily_open_color,validTimeFrame)

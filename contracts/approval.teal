@@ -103,6 +103,13 @@ assert
 txn GroupIndex
 int 1
 -
+gtxns Sender
+txn Sender
+==
+assert
+txn GroupIndex
+int 1
+-
 gtxns TypeEnum
 int axfer
 ==
@@ -155,6 +162,13 @@ byte "harvest_count"
 app_local_get
 int 5
 >=
+assert
+txn GroupIndex
+int 1
+-
+gtxns Sender
+txn Sender
+==
 assert
 txn GroupIndex
 int 1
@@ -218,6 +232,13 @@ int 3
 assert
 txn GroupIndex
 int 2
+-
+gtxns Sender
+txn Sender
+==
+assert
+txn GroupIndex
+int 1
 -
 gtxns TypeEnum
 int axfer
@@ -435,6 +456,13 @@ byte "bud_asset"
 app_global_get
 int 0
 !=
+assert
+txn GroupIndex
+int 1
+-
+gtxns Sender
+txn Sender
+==
 assert
 txn GroupIndex
 int 1
@@ -778,6 +806,13 @@ byte "bud_asset"
 app_global_get
 int 0
 !=
+assert
+txn GroupIndex
+int 1
+-
+gtxns Sender
+txn Sender
+==
 assert
 txn GroupIndex
 int 1

@@ -1,4 +1,5 @@
 import { useAlgorand, useGameState, useTransactions, CONTRACT_CONFIG, MAX_PODS } from "@/hooks/use-algorand";
+import { useAlgorand, useGameState, useTransactions, CONTRACT_CONFIG, WATER_COOLDOWN, WATER_COOLDOWN_TESTNET } from "@/hooks/use-algorand";
 import { CurrencyDisplay } from "@/components/CurrencyDisplay";
 import { PodCard } from "@/components/PodCard";
 import { ShareButtons } from "@/components/ShareButtons";
@@ -456,8 +457,8 @@ export default function Dashboard() {
     <div className="min-h-screen pb-20">
       <section className="relative pt-12 pb-12 px-4">
         <div className="container mx-auto">
-          <div className="flex flex-col md:flex-row justify-between items-end gap-6 mb-8">
-            <div className="space-y-2">
+          <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-6 mb-8">
+            <div className="space-y-2 text-left">
               <h1 className="text-4xl md:text-5xl font-display font-bold text-transparent bg-clip-text bg-gradient-to-r from-white to-white/60">
                 Command Center
               </h1>

@@ -17,12 +17,29 @@ export const CONTRACT_CONFIG = {
   slotAssetId: Number(import.meta.env.VITE_SLOT_ASSET_ID) || 753910206,
   appAddress: import.meta.env.VITE_GROWPOD_APP_ADDRESS || 'DOZMB24AAMRL4BRVMUNGO3IWV64OMU33UQ7O7D5ISTXIZUSFIXOMXO4TEI',
 };
+/**
+ * AlgorandContext - Wallet Integration
+ *
+ * Integrates Algorand wallets via @txnlab/use-wallet-react.
+ *
+ * Currently configured and tested with:
+ * - Pera Wallet (Mobile & Web)
+ *
+ * The underlying multi-wallet infrastructure can be extended to support
+ * additional wallets (e.g. Defly, Exodus, Kibisis, Lute) by modifying
+ * the wallet configuration in MultiWalletProvider.tsx.
+ *
+ * Maintains backward compatibility with the existing useAlgorand hook.
+ */
 
-export const algodClient = new algosdk.Algodv2(ALGOD_TOKEN, ALGOD_SERVER, '');
+import { createContext, useContext, useState, useEffect, ReactNode } from 'react';
+import algosdk from 'algosdk';
+import { useMultiWallet, CONTRACT_CONFIG, algodClient } from '@/hooks/use-multi-wallet';
+import { WalletModal } from '@/components/WalletModal';
+import { monitor, addBreadcrumb } from '@/lib/growpod-monitor';
 
-const peraWallet = new PeraWalletConnect({
-  chainId: CHAIN_ID,
-});
+// Re-export for backward compatibility
+export { CONTRACT_CONFIG, algodClient };
 
 const deflyWallet = new DeflyWalletConnect({
   chainId: CHAIN_ID,
@@ -41,6 +58,9 @@ interface AlgorandContextType {
   algodClient: algosdk.Algodv2;
   peraWallet: PeraWalletConnect;
   deflyWallet: DeflyWalletConnect;
+  // New multi-wallet features
+  openWalletModal: () => void;
+  activeWalletName: string | null;
 }
 
 const AlgorandContext = createContext<AlgorandContextType | null>(null);
@@ -164,8 +184,37 @@ export function AlgorandProvider({ children }: { children: ReactNode }) {
       console.error('Disconnect error:', error);
     }
   }, [walletType, queryClient, toast]);
+  const [modalOpen, setModalOpen] = useState(false);
+  const {
+    account,
+    isConnected,
+    isReady,
+    disconnectWallet,
+    signTransactions: multiSignTransactions,
+    activeWalletName,
+  } = useMultiWallet();
 
-  const signTransactions = useCallback(async (txns: algosdk.Transaction[]): Promise<Uint8Array[]> => {
+  // Set user in monitor when wallet connects/disconnects
+  useEffect(() => {
+    if (isConnected && account) {
+      monitor.setUser(account);
+      addBreadcrumb('wallet_connected', 'blockchain', {
+        walletAddress: account,
+        walletName: activeWalletName
+      });
+    } else {
+      monitor.setUser(null);
+    }
+  }, [isConnected, account, activeWalletName]);
+
+  // Wrapper to open modal instead of directly connecting
+  // This provides the multi-wallet selection experience
+  const connectWallet = async () => {
+    setModalOpen(true);
+  };
+
+  // Wrapper for signTransactions to maintain compatibility
+  const signTransactions = async (txns: algosdk.Transaction[]): Promise<Uint8Array[]> => {
     if (!account) throw new Error('Wallet not connected');
     
     let signedTxns: Uint8Array[];
@@ -198,7 +247,35 @@ export function AlgorandProvider({ children }: { children: ReactNode }) {
       peraWallet,
       deflyWallet
     }}>
+
+    // Encode transactions for signing
+    const encodedTxns = txns.map((txn) => txn.toByte());
+
+    // Sign with multi-wallet
+    const signedTxns = await multiSignTransactions(encodedTxns);
+
+    // Filter out null values
+    return signedTxns.filter((t): t is Uint8Array => t !== null);
+  };
+
+  const openWalletModal = () => setModalOpen(true);
+
+  return (
+    <AlgorandContext.Provider
+      value={{
+        account,
+        isConnected,
+        isConnecting: !isReady && !isConnected,
+        connectWallet,
+        disconnectWallet,
+        signTransactions,
+        algodClient,
+        openWalletModal,
+        activeWalletName,
+      }}
+    >
       {children}
+      <WalletModal open={modalOpen} onOpenChange={setModalOpen} />
     </AlgorandContext.Provider>
   );
 }

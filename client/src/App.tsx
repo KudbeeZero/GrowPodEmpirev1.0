@@ -4,6 +4,7 @@ import { queryClient, apiRequest } from "./lib/queryClient";
 import { QueryClientProvider, useQuery, useMutation } from "@tanstack/react-query";
 import { Toaster } from "@/components/ui/toaster";
 import { TooltipProvider } from "@/components/ui/tooltip";
+import { MultiWalletProvider } from "@/context/MultiWalletProvider";
 import { AlgorandProvider } from "@/context/AlgorandContext";
 import { useAlgorand } from "@/hooks/use-algorand";
 import { Navigation } from "@/components/Navigation";
@@ -19,7 +20,10 @@ import Stats from "@/pages/Stats";
 import Achievements from "@/pages/Achievements";
 import Jukebox from "@/pages/Jukebox";
 import SeedBank from "@/pages/SeedBank";
+import Predictions from "@/pages/Predictions";
 import Admin from "@/pages/Admin";
+import Inventory from "@/pages/Inventory";
+import MonitorDashboard from "@/pages/MonitorDashboard";
 import { MiniPlayer } from "@/components/MiniPlayer";
 import NotFound from "@/pages/not-found";
 import type { AnnouncementVideo } from "@shared/schema";
@@ -92,6 +96,7 @@ function Router() {
         <Navigation />
         <Switch>
           <Route path="/" component={Dashboard} />
+          <Route path="/inventory" component={Inventory} />
           <Route path="/vault" component={SeedVault} />
           <Route path="/lab" component={CombinerLab} />
           <Route path="/store" component={Store} />
@@ -118,7 +123,9 @@ function Router() {
           </Route>
           <Route path="/jukebox" component={Jukebox} />
           <Route path="/seed-bank" component={SeedBank} />
+          <Route path="/predictions" component={Predictions} />
           <Route path="/admin" component={Admin} />
+          <Route path="/monitor" component={MonitorDashboard} />
           <Route component={NotFound} />
         </Switch>
         {/* Floating mini player - always available */}
@@ -132,10 +139,12 @@ function App() {
   return (
     <QueryClientProvider client={queryClient}>
       <TooltipProvider>
-        <AlgorandProvider>
-          <Toaster />
-          <Router />
-        </AlgorandProvider>
+        <MultiWalletProvider>
+          <AlgorandProvider>
+            <Toaster />
+            <Router />
+          </AlgorandProvider>
+        </MultiWalletProvider>
       </TooltipProvider>
     </QueryClientProvider>
   );

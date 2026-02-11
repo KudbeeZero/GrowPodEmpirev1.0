@@ -3,7 +3,7 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { useQuery, useMutation } from "@tanstack/react-query";
 import { queryClient, apiRequest } from "@/lib/queryClient";
-import { Video, Upload, Loader2, Shield, AlertTriangle, Sparkles, Plus, Leaf, Trash2 } from "lucide-react";
+import { Video, Upload, Loader2, Shield, AlertTriangle, Sparkles, Plus, Leaf, Trash2, TrendingUp, Play, Pause, RefreshCw } from "lucide-react";
 import { ObjectUploader } from "@/components/ObjectUploader";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
 import { Input } from "@/components/ui/input";
@@ -11,9 +11,10 @@ import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Badge } from "@/components/ui/badge";
+import { Switch } from "@/components/ui/switch";
 import { useToast } from "@/hooks/use-toast";
 import { useAlgorand } from "@/hooks/use-algorand";
-import type { AnnouncementVideo, SeedBankItem } from "@shared/schema";
+import type { AnnouncementVideo, SeedBankItem, MarketTemplate } from "@shared/schema";
 
 export default function Admin() {
   const { toast } = useToast();
@@ -57,6 +58,102 @@ export default function Admin() {
     queryKey: ["/api/seed-bank"],
     enabled: isAdminData?.isAdmin,
   });
+
+  // Market templates state
+  const [templateDialogOpen, setTemplateDialogOpen] = useState(false);
+  const [templateName, setTemplateName] = useState("");
+  const [templateTitle, setTemplateTitle] = useState("");
+  const [templateDescription, setTemplateDescription] = useState("");
+  const [templateAsset, setTemplateAsset] = useState("BTC");
+  const [templateSchedule, setTemplateSchedule] = useState("hourly");
+  const [templateDuration, setTemplateDuration] = useState("60");
+  const [templatePriceLevels, setTemplatePriceLevels] = useState("");
+  const [templateYesPrice, setTemplateYesPrice] = useState("50");
+
+  const { data: templates = [], isLoading: loadingTemplates } = useQuery<MarketTemplate[]>({
+    queryKey: ["/api/templates"],
+    enabled: isAdminData?.isAdmin,
+  });
+
+  const generateMarketsMutation = useMutation({
+    mutationFn: async () => {
+      return apiRequest("POST", "/api/markets/generate", {});
+    },
+    onSuccess: (data: any) => {
+      toast({
+        title: "Markets generated!",
+        description: `Generated ${data.generated} new markets`,
+      });
+      queryClient.invalidateQueries({ queryKey: ["/api/markets"] });
+    },
+    onError: (err: any) => {
+      toast({ title: "Failed to generate markets", description: err.message, variant: "destructive" });
+    },
+  });
+
+  const createTemplateMutation = useMutation({
+    mutationFn: async (data: any) => {
+      return apiRequest("POST", "/api/templates", data);
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["/api/templates"] });
+      toast({ title: "Template created!" });
+      setTemplateDialogOpen(false);
+      resetTemplateForm();
+    },
+    onError: (err: any) => {
+      toast({ title: "Failed to create template", description: err.message, variant: "destructive" });
+    },
+  });
+
+  const toggleTemplateMutation = useMutation({
+    mutationFn: async ({ id, isActive }: { id: number; isActive: boolean }) => {
+      return apiRequest("PATCH", `/api/templates/${id}`, { isActive });
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["/api/templates"] });
+    },
+  });
+
+  const deleteTemplateMutation = useMutation({
+    mutationFn: async (id: number) => {
+      return apiRequest("DELETE", `/api/templates/${id}`, {});
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["/api/templates"] });
+      toast({ title: "Template deleted" });
+    },
+  });
+
+  const resetTemplateForm = () => {
+    setTemplateName("");
+    setTemplateTitle("");
+    setTemplateDescription("");
+    setTemplateAsset("BTC");
+    setTemplateSchedule("hourly");
+    setTemplateDuration("60");
+    setTemplatePriceLevels("");
+    setTemplateYesPrice("50");
+  };
+
+  const handleCreateTemplate = () => {
+    if (!templateName || !templateTitle) {
+      toast({ title: "Missing fields", description: "Name and title template are required", variant: "destructive" });
+      return;
+    }
+
+    createTemplateMutation.mutate({
+      name: templateName,
+      titleTemplate: templateTitle,
+      description: templateDescription || undefined,
+      category: "crypto",
+      asset: templateAsset,
+      scheduleType: templateSchedule,
+      durationMinutes: parseInt(templateDuration) || 60,
+      priceLevels: templatePriceLevels.split(",").map(s => s.trim()).filter(Boolean),
+      defaultYesPrice: parseInt(templateYesPrice) || 50,
+    });
+  };
 
   const createSeedMutation = useMutation({
     mutationFn: async (data: any) => {
@@ -548,6 +645,231 @@ export default function Admin() {
                       onClick={() => deleteSeedMutation.mutate(seed.id)}
                       disabled={deleteSeedMutation.isPending}
                       data-testid={`button-delete-seed-${seed.id}`}
+                    >
+                      <Trash2 className="h-4 w-4 text-destructive" />
+                    </Button>
+                  </div>
+                ))}
+              </div>
+            )}
+          </CardContent>
+        </Card>
+
+        {/* Market Templates */}
+        <Card className="border-cyan-500/20 lg:col-span-2">
+          <CardHeader className="flex flex-row items-center justify-between">
+            <CardTitle className="flex items-center gap-2">
+              <TrendingUp className="h-5 w-5 text-cyan-400" />
+              Market Templates
+            </CardTitle>
+            <div className="flex gap-2">
+              <Button
+                size="sm"
+                variant="outline"
+                onClick={() => generateMarketsMutation.mutate()}
+                disabled={generateMarketsMutation.isPending}
+                data-testid="button-generate-markets"
+              >
+                {generateMarketsMutation.isPending ? (
+                  <Loader2 className="h-4 w-4 animate-spin" />
+                ) : (
+                  <>
+                    <RefreshCw className="h-4 w-4 mr-1" />
+                    Generate Now
+                  </>
+                )}
+              </Button>
+              <Dialog open={templateDialogOpen} onOpenChange={setTemplateDialogOpen}>
+                <DialogTrigger asChild>
+                  <Button size="sm" className="bg-gradient-to-r from-cyan-600 to-blue-600" data-testid="button-add-template">
+                    <Plus className="h-4 w-4 mr-1" />
+                    Add Template
+                  </Button>
+                </DialogTrigger>
+                <DialogContent className="max-w-lg max-h-[90vh] overflow-y-auto">
+                  <DialogHeader>
+                    <DialogTitle>Create Market Template</DialogTitle>
+                  </DialogHeader>
+                  <div className="space-y-4 pt-4">
+                    <div className="grid grid-cols-2 gap-4">
+                      <div className="space-y-2">
+                        <Label>Template Name</Label>
+                        <Input
+                          value={templateName}
+                          onChange={(e) => setTemplateName(e.target.value)}
+                          placeholder="BTC Hourly"
+                          data-testid="input-template-name"
+                        />
+                      </div>
+                      <div className="space-y-2">
+                        <Label>Asset</Label>
+                        <Select value={templateAsset} onValueChange={setTemplateAsset}>
+                          <SelectTrigger data-testid="select-template-asset">
+                            <SelectValue />
+                          </SelectTrigger>
+                          <SelectContent>
+                            <SelectItem value="BTC">Bitcoin (BTC)</SelectItem>
+                            <SelectItem value="ETH">Ethereum (ETH)</SelectItem>
+                            <SelectItem value="SOL">Solana (SOL)</SelectItem>
+                            <SelectItem value="ALGO">Algorand (ALGO)</SelectItem>
+                            <SelectItem value="SHIB">Shiba Inu (SHIB)</SelectItem>
+                            <SelectItem value="DOGE">Dogecoin (DOGE)</SelectItem>
+                          </SelectContent>
+                        </Select>
+                      </div>
+                    </div>
+
+                    <div className="space-y-2">
+                      <Label>Title Template</Label>
+                      <Input
+                        value={templateTitle}
+                        onChange={(e) => setTemplateTitle(e.target.value)}
+                        placeholder="Bitcoin price on {date} at {time} EST?"
+                        data-testid="input-template-title"
+                      />
+                      <p className="text-xs text-muted-foreground">
+                        Use {"{date}"}, {"{time}"}, {"{price}"} as placeholders
+                      </p>
+                    </div>
+
+                    <div className="space-y-2">
+                      <Label>Description (optional)</Label>
+                      <Textarea
+                        value={templateDescription}
+                        onChange={(e) => setTemplateDescription(e.target.value)}
+                        placeholder="Predict if price will be above the target..."
+                        data-testid="input-template-desc"
+                      />
+                    </div>
+
+                    <div className="grid grid-cols-2 gap-4">
+                      <div className="space-y-2">
+                        <Label>Schedule</Label>
+                        <Select value={templateSchedule} onValueChange={setTemplateSchedule}>
+                          <SelectTrigger data-testid="select-template-schedule">
+                            <SelectValue />
+                          </SelectTrigger>
+                          <SelectContent>
+                            <SelectItem value="15min">Every 15 minutes</SelectItem>
+                            <SelectItem value="hourly">Hourly</SelectItem>
+                            <SelectItem value="daily">Daily</SelectItem>
+                            <SelectItem value="weekly">Weekly</SelectItem>
+                          </SelectContent>
+                        </Select>
+                      </div>
+                      <div className="space-y-2">
+                        <Label>Duration (minutes)</Label>
+                        <Input
+                          type="number"
+                          value={templateDuration}
+                          onChange={(e) => setTemplateDuration(e.target.value)}
+                          placeholder="60"
+                          data-testid="input-template-duration"
+                        />
+                      </div>
+                    </div>
+
+                    <div className="space-y-2">
+                      <Label>Price Levels (comma-separated)</Label>
+                      <Input
+                        value={templatePriceLevels}
+                        onChange={(e) => setTemplatePriceLevels(e.target.value)}
+                        placeholder="95000, 96000, 97000, 98000, 99000, 100000"
+                        data-testid="input-template-prices"
+                      />
+                      <p className="text-xs text-muted-foreground">
+                        Each price level creates a separate market
+                      </p>
+                    </div>
+
+                    <div className="space-y-2">
+                      <Label>Default Yes Price (1-99)</Label>
+                      <Input
+                        type="number"
+                        min={1}
+                        max={99}
+                        value={templateYesPrice}
+                        onChange={(e) => setTemplateYesPrice(e.target.value)}
+                        placeholder="50"
+                        data-testid="input-template-yesprice"
+                      />
+                    </div>
+
+                    <Button
+                      className="w-full bg-gradient-to-r from-cyan-600 to-blue-600"
+                      onClick={handleCreateTemplate}
+                      disabled={createTemplateMutation.isPending}
+                      data-testid="button-create-template"
+                    >
+                      {createTemplateMutation.isPending ? (
+                        <Loader2 className="h-4 w-4 animate-spin" />
+                      ) : (
+                        <>
+                          <TrendingUp className="h-4 w-4 mr-2" />
+                          Create Template
+                        </>
+                      )}
+                    </Button>
+                  </div>
+                </DialogContent>
+              </Dialog>
+            </div>
+          </CardHeader>
+          <CardContent>
+            <p className="text-sm text-muted-foreground mb-4">
+              Templates automatically generate prediction markets on a schedule. Markets run every 15 minutes via cron.
+            </p>
+            {loadingTemplates ? (
+              <div className="flex items-center justify-center py-8">
+                <Loader2 className="h-6 w-6 animate-spin text-muted-foreground" />
+              </div>
+            ) : templates.length === 0 ? (
+              <div className="text-center py-8 text-muted-foreground">
+                <TrendingUp className="h-10 w-10 mx-auto mb-2 opacity-30" />
+                <p>No templates yet. Add one to start generating markets automatically.</p>
+              </div>
+            ) : (
+              <div className="space-y-2 max-h-[400px] overflow-y-auto">
+                {templates.map((template: any) => (
+                  <div
+                    key={template.id}
+                    className="flex items-center justify-between p-3 rounded-lg bg-muted/50 border border-border"
+                  >
+                    <div className="flex items-center gap-3">
+                      <div className="flex items-center gap-2">
+                        <Switch
+                          checked={template.isActive}
+                          onCheckedChange={(checked) =>
+                            toggleTemplateMutation.mutate({ id: template.id, isActive: checked })
+                          }
+                        />
+                      </div>
+                      <div>
+                        <div className="flex items-center gap-2">
+                          <p className="font-medium">{template.name}</p>
+                          <Badge variant="outline" className="text-xs">
+                            {template.asset}
+                          </Badge>
+                          <Badge variant="secondary" className="text-xs">
+                            {template.scheduleType}
+                          </Badge>
+                        </div>
+                        <p className="text-xs text-muted-foreground">
+                          {Array.isArray(template.priceLevels) ? template.priceLevels.length : 0} price levels · {template.durationMinutes}min duration
+                        </p>
+                        {template.lastGenerated && (
+                          <p className="text-xs text-muted-foreground">
+                            Last generated: {new Date(template.lastGenerated).toLocaleString()}
+                          </p>
+                        )}
+                      </div>
+                    </div>
+                    <Button
+                      size="icon"
+                      variant="ghost"
+                      onClick={() => deleteTemplateMutation.mutate(template.id)}
+                      disabled={deleteTemplateMutation.isPending}
+                      data-testid={`button-delete-template-${template.id}`}
                     >
                       <Trash2 className="h-4 w-4 text-destructive" />
                     </Button>

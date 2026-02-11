@@ -38,7 +38,7 @@ A blockchain-based idle/farming game built on **Algorand TestNet**. Players mana
 
 1. **Mint Pod**: Create soulbound GrowPod NFT (non-transferable until first harvest)
 2. **Plant Seed**: Random DNA hash with hidden terpene/minor profile
-3. **Water**: 2-hour cooldown, 10 waters = ready to harvest
+3. **Water**: 10-minute cooldown (TestNet), 10 waters = ready to harvest
 4. **Harvest**: Mint $BUD based on yield calculation, check for rare $TERP
 5. **Cleanup**: Burn 500 $BUD + 1 ALGO to reset pod for next cycle
 6. **Breed**: Combine two plants in Combiner Lab (1,000 $BUD) for hybrid seeds
@@ -94,10 +94,13 @@ npm run dev
 
 | Script | Description |
 |--------|-------------|
-| `contracts/contract.py` | Main smart contract (PyTeal) - compiles to TEAL |
-| `contracts/deploy.py` | Full deployment script - deploys contract and bootstraps tokens |
-| `contracts/bootstrap.py` | Legacy script - creates $BUD and $TERP ASAs separately |
-| `scripts/deploy-testnet.sh` | **Recommended** - One-click deployment script with admin wallet |
+| `contracts/contract.py` | Main smart contract (PyTeal) |
+| `contracts/bootstrap.py` | Create $BUD and $TERP ASAs |
+| `contracts/mint.py` | Mint soulbound GrowPod NFT |
+| `contracts/water.py` | Water plant (10 min cooldown) |
+| `contracts/harvest.py` | Harvest + check $TERP reward |
+| `contracts/clean.py` | Cleanup pod (burn 500 $BUD + 1 ALGO) |
+| `contracts/breed.py` | Breed plants (burn 1,000 $BUD) |
 
 ## Frontend Pages
 
@@ -107,6 +110,19 @@ npm run dev
 - **Supply Store**: Buy nutrients/controls with $BUD
 - **Cure Vault**: Cure $BUD for bonus yields
 - **Cannabis History**: Educational section exploring 5000 years of cannabis history with interactive features (Timeline, Quiz, Myths, World Map)
+- **Predictions**: Prediction markets with $SMOKE token (requires Cloudflare Worker deployment)
+
+### Note on Predictions Feature
+
+The `/predictions` page requires the Cloudflare Worker deployment to function. The following API endpoints are only available when running the Worker (`npm run dev:worker` or deployed to Cloudflare):
+
+- `GET /api/markets` - List prediction markets
+- `GET /api/smoke/:account` - Get $SMOKE token balance
+- `GET /api/positions/:account` - Get user's market positions
+- `POST /api/smoke/burn` - Burn $SMOKE tokens
+- `POST /api/markets/buy` - Buy market position
+
+**For local development**: Run `npm run dev:worker` instead of `npm run dev` to enable Predictions functionality. The standard Express server (`npm run dev`) does not include these endpoints.
 
 ## Environment Variables
 

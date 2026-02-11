@@ -1,0 +1,11 @@
+branch: main
+gha_enabled: true
+description: "AI agent trading platform on Algorand blockchain"
+docs:
+  - "README.md"
+  - "docs/"
+rules:
+  - "Follow Python type hints strictly"
+  - "Use async/await for Algorand SDK calls"
+  - "Include error handling for blockchain transactions"
+  - "Add tests for new trading logic"
