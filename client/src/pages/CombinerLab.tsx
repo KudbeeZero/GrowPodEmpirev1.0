@@ -53,8 +53,10 @@ export default function CombinerLab() {
       description: "Burning 1000 $BUD to fuse genetic material...",
     });
 
+    if (!selectedParent1 || !selectedParent2) return;
+
     try {
-      const txId = await breedPlants();
+      const txId = await breedPlants(selectedParent1, selectedParent2);
       toast({
         title: "Breeding Complete!",
         description: `New hybrid seed created! TX: ${txId?.slice(0, 8)}...`,
