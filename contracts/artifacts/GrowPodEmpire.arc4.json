@@ -1,0 +1,252 @@
+{
+  "name": "GrowPodEmpire",
+  "desc": "",
+  "methods": [
+    {
+      "name": "createApplication",
+      "desc": "Initialize the contract - set owner and default global state",
+      "args": [],
+      "returns": {
+        "type": "void"
+      }
+    },
+    {
+      "name": "optInToApplication",
+      "desc": "User opt-in - Initialize local state for both pods (16 keys max)",
+      "args": [],
+      "returns": {
+        "type": "void"
+      }
+    },
+    {
+      "name": "closeOutOfApplication",
+      "desc": "Allow close-out",
+      "args": [],
+      "returns": {
+        "type": "void"
+      }
+    },
+    {
+      "name": "updateApplication",
+      "desc": "Allow contract updates (owner only)",
+      "args": [],
+      "returns": {
+        "type": "void"
+      }
+    },
+    {
+      "name": "deleteApplication",
+      "desc": "Allow contract deletion (owner only)",
+      "args": [],
+      "returns": {
+        "type": "void"
+      }
+    },
+    {
+      "name": "bootstrap",
+      "desc": "Bootstrap - Create $BUD, $TERP, and Slot Token ASAs via inner transactions",
+      "args": [],
+      "returns": {
+        "type": "void"
+      }
+    },
+    {
+      "name": "setAsaIds",
+      "desc": "Set ASA IDs manually (owner only, for re-deployment or recovery)",
+      "args": [
+        {
+          "name": "budId",
+          "type": "uint64"
+        },
+        {
+          "name": "terpId",
+          "type": "uint64"
+        },
+        {
+          "name": "slotId",
+          "type": "uint64"
+        }
+      ],
+      "returns": {
+        "type": "void"
+      }
+    },
+    {
+      "name": "mintPod",
+      "desc": "Mint Pod 1 - Start growing a new plant",
+      "args": [],
+      "returns": {
+        "type": "void"
+      }
+    },
+    {
+      "name": "water",
+      "desc": "Water Pod 1 - Water the plant with configurable cooldown.\nMinimum cooldown enforced at WATER_COOLDOWN_MIN (10 min) to prevent abuse.",
+      "args": [
+        {
+          "name": "cooldownSeconds",
+          "type": "uint64",
+          "desc": "Custom cooldown in seconds (minimum 600)"
+        }
+      ],
+      "returns": {
+        "type": "void"
+      }
+    },
+    {
+      "name": "nutrients",
+      "desc": "Nutrients Pod 1 - Add nutrients with cooldown for yield bonus",
+      "args": [],
+      "returns": {
+        "type": "void"
+      }
+    },
+    {
+      "name": "harvest",
+      "desc": "Harvest Pod 1 - Mint $BUD tokens based on care quality",
+      "args": [],
+      "returns": {
+        "type": "void"
+      }
+    },
+    {
+      "name": "cleanup",
+      "desc": "Cleanup Pod 1 - Reset pod after harvest by burning $BUD.\nExpects a preceding AssetTransfer of = 500 $BUD to the contract address.",
+      "args": [
+        {
+          "name": "budBurnTxn",
+          "type": "axfer",
+          "desc": "The $BUD burn asset transfer transaction"
+        }
+      ],
+      "returns": {
+        "type": "void"
+      }
+    },
+    {
+      "name": "mintPod2",
+      "desc": "Mint Pod 2 - Start growing a new plant in the second pod",
+      "args": [],
+      "returns": {
+        "type": "void"
+      }
+    },
+    {
+      "name": "water2",
+      "desc": "Water Pod 2 - Water the second plant with configurable cooldown.",
+      "args": [
+        {
+          "name": "cooldownSeconds",
+          "type": "uint64",
+          "desc": "Custom cooldown in seconds (minimum 600)"
+        }
+      ],
+      "returns": {
+        "type": "void"
+      }
+    },
+    {
+      "name": "nutrients2",
+      "desc": "Nutrients Pod 2 - Add nutrients to the second plant",
+      "args": [],
+      "returns": {
+        "type": "void"
+      }
+    },
+    {
+      "name": "harvest2",
+      "desc": "Harvest Pod 2 - Mint $BUD tokens based on care quality",
+      "args": [],
+      "returns": {
+        "type": "void"
+      }
+    },
+    {
+      "name": "cleanup2",
+      "desc": "Cleanup Pod 2 - Reset the second pod after harvest by burning $BUD.",
+      "args": [
+        {
+          "name": "budBurnTxn",
+          "type": "axfer",
+          "desc": "The $BUD burn asset transfer transaction"
+        }
+      ],
+      "returns": {
+        "type": "void"
+      }
+    },
+    {
+      "name": "checkTerp",
+      "desc": "Check and mint $TERP for Pod 1.\nHashes the terpene profile; if first byte  32 (~12.5% chance), mints rare $TERP reward.\nReward scales: 5,000 - 50,000 $TERP based on rarity score.",
+      "args": [],
+      "returns": {
+        "type": "void"
+      }
+    },
+    {
+      "name": "checkTerp2",
+      "desc": "Check and mint $TERP for Pod 2.\nSame logic as checkTerp but uses Pod 2 terpene profile.",
+      "args": [],
+      "returns": {
+        "type": "void"
+      }
+    },
+    {
+      "name": "breed",
+      "desc": "Breed - Combine two seed NFTs with full security validation.\nExpects atomic group: [seed1 transfer, seed2 transfer, breed app call]",
+      "args": [
+        {
+          "name": "seed1Txn",
+          "type": "axfer",
+          "desc": "Asset transfer of seed 1 NFT to contract"
+        },
+        {
+          "name": "seed2Txn",
+          "type": "axfer",
+          "desc": "Asset transfer of seed 2 NFT to contract"
+        },
+        {
+          "name": "seed1AssetId",
+          "type": "uint64",
+          "desc": "Expected asset ID of seed 1"
+        },
+        {
+          "name": "seed2AssetId",
+          "type": "uint64",
+          "desc": "Expected asset ID of seed 2"
+        }
+      ],
+      "returns": {
+        "type": "void"
+      }
+    },
+    {
+      "name": "claimSlotToken",
+      "desc": "Claim Slot Token - Burn 2,500 $BUD after 5 harvests to earn a Slot Token.\nDeducts 5 harvests (preserves carryover for players who harvested more).",
+      "args": [
+        {
+          "name": "budBurnTxn",
+          "type": "axfer",
+          "desc": "The $BUD burn asset transfer (= 2,500 $BUD)"
+        }
+      ],
+      "returns": {
+        "type": "void"
+      }
+    },
+    {
+      "name": "unlockSlot",
+      "desc": "Unlock Slot - Burn 1 Slot Token to unlock an additional pod slot (max 5).",
+      "args": [
+        {
+          "name": "slotBurnTxn",
+          "type": "axfer",
+          "desc": "The Slot Token burn (exactly 1 SLOT token)"
+        }
+      ],
+      "returns": {
+        "type": "void"
+      }
+    }
+  ]
+}

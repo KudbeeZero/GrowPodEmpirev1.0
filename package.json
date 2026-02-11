@@ -14,7 +14,9 @@
     "worker:dev": "wrangler dev",
     "worker:deploy": "wrangler deploy",
     "worker:tail": "wrangler tail",
-    "worker:whoami": "wrangler whoami"
+    "worker:whoami": "wrangler whoami",
+    "contract:compile": "npx tealscript contracts/GrowPodEmpire.algo.ts contracts/artifacts",
+    "contract:deploy": "tsx contracts/deploy.ts"
   },
   "dependencies": {
     "@blockshake/defly-connect": "^1.2.1",
@@ -94,6 +96,7 @@
     "zod-validation-error": "^3.4.0"
   },
   "devDependencies": {
+    "@algorandfoundation/tealscript": "^0.107.2",
     "@cloudflare/workers-types": "^4.20260131.0",
     "@replit/vite-plugin-cartographer": "^0.4.4",
     "@replit/vite-plugin-dev-banner": "^0.1.1",
