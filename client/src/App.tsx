@@ -8,6 +8,7 @@ import { AlgorandProvider } from "@/context/AlgorandContext";
 import { useAlgorand } from "@/hooks/use-algorand";
 import { Navigation } from "@/components/Navigation";
 import { AnnouncementModal } from "@/components/AnnouncementModal";
+import { SpeedInsights } from "@vercel/speed-insights/react";
 import Dashboard from "@/pages/Dashboard";
 import SeedVault from "@/pages/SeedVault";
 import CombinerLab from "@/pages/CombinerLab";
@@ -148,6 +149,7 @@ function App() {
         <AlgorandProvider>
           <Toaster />
           <Router />
+          <SpeedInsights />
         </AlgorandProvider>
       </TooltipProvider>
     </QueryClientProvider>
