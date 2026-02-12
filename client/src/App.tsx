@@ -29,6 +29,7 @@ import NotFound from "@/pages/not-found";
 import type { AnnouncementVideo } from "@shared/schema";
 import { Loader2 } from "lucide-react";
 import { ErrorBoundary } from "@/components/ErrorBoundary";
+import { Analytics } from "@vercel/analytics/react";
 
 // Lazy load Cannabis History page for better initial load performance
 const CannabisHistory = lazy(() => import("@/pages/CannabisHistory"));
@@ -148,6 +149,7 @@ function App() {
         <AlgorandProvider>
           <Toaster />
           <Router />
+          <Analytics />
         </AlgorandProvider>
       </TooltipProvider>
     </QueryClientProvider>
