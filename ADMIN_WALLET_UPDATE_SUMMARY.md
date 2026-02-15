@@ -99,7 +99,7 @@ cd contracts
 python3 contract.py
 
 # 2. Deploy
-ALGO_MNEMONIC="final adapt purpose intact naive action garbage curious feature tourist sense strong present snack control orbit pudding federal budget plug volcano olympic soda absorb monitor" python3 deploy.py
+ALGO_MNEMONIC="<TESTNET_ADMIN_MNEMONIC – DO NOT COMMIT REAL VALUE>" python3 deploy.py
 
 # 3. Note the output IDs and addresses
 # 4. Update configuration files
