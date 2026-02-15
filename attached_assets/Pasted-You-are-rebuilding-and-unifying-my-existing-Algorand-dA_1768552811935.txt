@@ -1,0 +1,41 @@
+You are rebuilding and unifying my existing Algorand dApp called GrowPod Empire version 1.0. Use AlgoKit, PyTeal, React + Vite, Tailwind CSS (dark theme), and Pera Wallet integration. Target TestNet deployment.
+
+The project already has these components from previous work — preserve and improve them:
+- Cure Vault (post-harvest $BUD curing area for bonus yields)
+- Seed Vault (storage/display of mystery/hybrid seeds)
+- Combiner Lab (breeding interface to combine two harvested plant DNA for new hybrid seed NFT)
+- Vault (general storage for items, nutrients, controls)
+- Dashboard (main overview: pod status, plant stage, countdowns, $BUD/$TERP balances)
+- Store (buy nutrients/items/pH adjusters with $BUD burns)
+
+Core gameplay (10-day cycle, soulbound pods):
+- Mint soulbound GrowPod ASA NFT (clawback = app address, non-transferable until first harvest; 800×1000 Pinata image URL)
+- Plant mystery seed (random DNA hash, hidden terpene/minor profile)
+- Water function: 24h cooldown (86400s), advances stage 0→5 after exactly 10 successful waters
+- Overwater defect: 3+ waters in 48h → stage 6 (dead), update NFT to mold image
+- Harvest at stage 5: mint fungible $BUD ASA (0.25g base = 250_000_000 units, adjusted by terpenes/minors/entourage profile)
+- Cleanup pod: burn 500 $BUD + pay 1 ALGO to reset pod for next cycle
+- Basic nutrient deficiencies: roll during water if pH off → yield penalty (-20–70%), secondary pest/disease risk
+- Pest/disease: 15% chance on water if low fan/pH/overwater → level increases, >80% = death; controls burn $BUD ASAs (neem, ladybugs, potassium bicarb, etc.)
+- Terpene discovery (10 terpenes) and minor cannabinoids (6: CBG, CBC, CBN, THCV, CBDV, CBGA) unlocked via nutrient/pH/flush rolls
+- Entourage effect: calculate profile at harvest (e.g., high myrcene + CBN = Couch Lock buff when $BUD is "smoked")
+- Breeding in Combiner Lab: combine two harvested plants → new hybrid seed NFT (60% parent1 + 30% parent2 + 10% mutation on terps/minors)
+- $TERP mint on unique/rare profiles at harvest (5k–50k reward, 100M fixed supply)
+
+Tokenomics:
+- $BUD: harvest-backed, 10B hard cap, minted only from harvests, heavy burns (cleanup, breeding, upgrades, items)
+- $TERP: 100M fixed, minted on rare discoveries, stakers earn 40% perpetual royalties on strain seeds
+
+Frontend requirements:
+- Pera Wallet connect/disconnect
+- Dashboard shows pod/plant status, stage, next water countdown, $BUD/$TERP balance
+- Store: buy nutrients/controls with $BUD burn
+- Seed Vault: view stored seeds
+- Cure Vault: cure $BUD for bonuses
+- Combiner Lab: breed button (select two IDs)
+- Water button (disabled on cooldown), progress bar
+- Error handling, loading states
+
+Use TestNet (chain ID 416002). Generate all files: contract.py, mint/water/harvest/breed/clean scripts, frontend components, package.json, vite config, README with deploy steps (algokit build/deploy --network testnet).
+
+Keep code clean, commented, exploit-proof (cooldowns, atomic burns, DNA uniqueness). Run algokit build after generating and show any errors.

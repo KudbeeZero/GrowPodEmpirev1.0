@@ -1,0 +1,9 @@
+[project]
+name = "repl-nix-workspace"
+version = "0.1.0"
+description = "Add your description here"
+requires-python = ">=3.11"
+dependencies = [
+    "py-algorand-sdk>=2.11.1",
+    "pyteal>=0.27.0",
+]

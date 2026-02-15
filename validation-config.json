@@ -1,0 +1,155 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "version": "1.0.0",
+  "description": "Configuration for repository consistency validation system",
+  "validation_rules": {
+    "admin_wallet": {
+      "enabled": true,
+      "expected_value": "ZK55X7SGIGMLGORVNJHHPTYZMZOGSQNVROBHX7N27X6ZEQRHAZ2UPKOXQU",
+      "files_to_check": [
+        ".dev.vars.example",
+        ".github/copilot-instructions.md",
+        "README.md",
+        "CLAUDE.md",
+        "ADMIN_WALLET_DEPLOYMENT.md",
+        "POST_DEPLOYMENT_CHECKLIST.md",
+        "DEPLOYMENT_CHECKLIST.md",
+        "CLOUDFLARE_DEPLOYMENT.md",
+        "wrangler.toml"
+      ],
+      "pattern": "ZK55X7SGIGMLGORVNJHHPTYZMZOGSQNVROBHX7N27X6ZEQRHAZ2UPKOXQU",
+      "description": "TestNet admin wallet address - must be consistent across all configuration files"
+    },
+    "token_ids": {
+      "enabled": true,
+      "tokens": {
+        "BUD": {
+          "asset_id": "753910204",
+          "app_id": "753910199",
+          "files_to_check": [
+            "client/src/context/AlgorandContext.tsx",
+            ".dev.vars.example",
+            ".github/copilot-instructions.md",
+            "CLAUDE.md"
+          ],
+          "description": "$BUD token - harvest commodity token"
+        },
+        "TERP": {
+          "asset_id": "753910205",
+          "files_to_check": [
+            "client/src/context/AlgorandContext.tsx",
+            ".dev.vars.example",
+            ".github/copilot-instructions.md",
+            "CLAUDE.md"
+          ],
+          "description": "$TERP token - terpene rights/governance token"
+        },
+        "SLOT": {
+          "asset_id": "753910206",
+          "files_to_check": [
+            "client/src/context/AlgorandContext.tsx",
+            ".dev.vars.example",
+            ".github/copilot-instructions.md",
+            "CLAUDE.md"
+          ],
+          "description": "$SLOT token - progression token"
+        }
+      }
+    },
+    "algorand_config": {
+      "enabled": true,
+      "chain_id": "416002",
+      "network": "TestNet",
+      "algod_server": "https://testnet-api.algonode.cloud",
+      "files_to_check": [
+        "client/src/context/AlgorandContext.tsx",
+        "CLAUDE.md",
+        "README.md"
+      ],
+      "description": "Algorand TestNet configuration"
+    },
+    "cloudflare_config": {
+      "enabled": true,
+      "account_id": "b591c2e07ca352d33076f4d2f8414b89",
+      "database_name": "growpod-primary",
+      "database_id": "712d926f-c396-473f-96d9-f0dfc3d1d069",
+      "files_to_check": [
+        "wrangler.toml"
+      ],
+      "description": "Cloudflare Workers configuration"
+    },
+    "environment_variables": {
+      "enabled": true,
+      "required_vars": [
+        "DATABASE_URL",
+        "VITE_GROWPOD_APP_ID",
+        "VITE_BUD_ASSET_ID",
+        "VITE_TERP_ASSET_ID",
+        "VITE_SLOT_ASSET_ID",
+        "VITE_GROWPOD_APP_ADDRESS",
+        "ADMIN_WALLET_ADDRESS"
+      ],
+      "files_to_check": [
+        ".dev.vars.example",
+        "wrangler.toml",
+        ".github/copilot-instructions.md"
+      ],
+      "description": "Required environment variables"
+    },
+    "token_economy": {
+      "enabled": true,
+      "tokens": {
+        "BUD": {
+          "total_supply": "10000000000",
+          "decimals": 6,
+          "base_harvest": "250000000",
+          "cleanup_cost": "500",
+          "breeding_cost": "1000",
+          "slot_claim_cost": "2500",
+          "files_to_check": [
+            "README.md",
+            "CLAUDE.md",
+            ".github/copilot-instructions.md"
+          ]
+        },
+        "TERP": {
+          "total_supply": "100000000",
+          "decimals": 6,
+          "reward_range": "5000-50000",
+          "files_to_check": [
+            "README.md",
+            "CLAUDE.md",
+            ".github/copilot-instructions.md"
+          ]
+        }
+      },
+      "description": "Token economy values consistency"
+    }
+  },
+  "alerting": {
+    "github_actions": {
+      "enabled": true,
+      "on_pr": true,
+      "on_push": true,
+      "scheduled": "0 0 * * *",
+      "fail_on_error": true
+    },
+    "output_format": {
+      "json": true,
+      "markdown": true,
+      "github_annotations": true
+    }
+  },
+  "exclusions": {
+    "directories": [
+      "node_modules",
+      "dist",
+      ".git",
+      "attached_assets"
+    ],
+    "files": [
+      "package-lock.json",
+      "*.log"
+    ]
+  }
+}

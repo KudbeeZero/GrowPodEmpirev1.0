@@ -1,0 +1,234 @@
+@import url('https://fonts.googleapis.com/css2?family=Orbitron:wght@400;500;600;700;800;900&family=Rajdhani:wght@300;400;500;600;700&display=swap');
+
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+:root {
+  /* HSL Color Palette - Dark Cyberpunk / Organic Tech */
+  
+  /* Backgrounds */
+  --background: 222 47% 11%;
+  --foreground: 142 70% 96%; /* Soft green-white */
+  
+  /* Card/Surface */
+  --card: 217 33% 17%;
+  --card-foreground: 142 70% 96%;
+  --popover: 217 33% 17%;
+  --popover-foreground: 142 70% 96%;
+  
+  /* Primary - Vibrant Growth Green */
+  --primary: 142 71% 45%;
+  --primary-foreground: 144 100% 11%;
+  --primary-rgb: 16, 163, 74; /* RGB values for glow effects */
+  
+  /* Secondary - Tech Blue/Purple */
+  --secondary: 262 83% 58%;
+  --secondary-foreground: 210 40% 98%;
+  --secondary-rgb: 124, 58, 237; /* RGB values for glow effects */
+  
+  /* Muted/Subtle */
+  --muted: 215 25% 27%;
+  --muted-foreground: 215 20% 65%;
+  
+  /* Accents */
+  --accent: 142 71% 45%;
+  --accent-foreground: 144 100% 11%;
+  
+  /* Destructive */
+  --destructive: 0 84% 60%;
+  --destructive-foreground: 210 40% 98%;
+  --destructive-rgb: 239, 68, 68; /* RGB values for glow effects */
+  
+  /* Borders & Inputs */
+  --border: 215 25% 27%;
+  --input: 215 25% 27%;
+  --ring: 142 71% 45%; /* Focus ring matches primary */
+  
+  /* Charts */
+  --chart-1: 142 71% 45%;
+  --chart-2: 262 83% 58%;
+  --chart-3: 30 80% 55%;
+  --chart-4: 280 65% 60%;
+  --chart-5: 340 75% 55%;
+
+  /* Custom Fonts */
+  --font-display: 'Orbitron', sans-serif;
+  --font-body: 'Rajdhani', sans-serif;
+  
+  --radius: 0.75rem;
+}
+
+@layer base {
+  body {
+    @apply bg-background text-foreground antialiased selection:bg-primary/30 selection:text-primary-foreground;
+    font-family: var(--font-body);
+    background-image: 
+      radial-gradient(circle at 50% 0%, hsl(142 71% 45% / 0.15), transparent 40%),
+      radial-gradient(circle at 0% 100%, hsl(262 83% 58% / 0.1), transparent 40%),
+      url("data:image/svg+xml,%3Csvg width='60' height='60' viewBox='0 0 60 60' xmlns='http://www.w3.org/2000/svg'%3E%3Cg fill='none' fill-rule='evenodd'%3E%3Cg fill='%2316a34a' fill-opacity='0.03'%3E%3Cpath d='M36 34v-4h-2v4h-4v2h4v4h2v-4h4v-2h-4zm0-30V0h-2v4h-4v2h4v4h2V6h4V4h-4zM6 34v-4H4v4H0v2h4v4h2v-4h4v-2H6zM6 4V0H4v4H0v2h4v4h2V6h4V4H6z'/%3E%3C/g%3E%3C/g%3E%3C/svg%3E");
+  }
+  
+  h1, h2, h3, h4, h5, h6 {
+    font-family: var(--font-display);
+    @apply font-bold tracking-wide;
+  }
+}
+
+/* Custom Scrollbar */
+::-webkit-scrollbar {
+  width: 10px;
+}
+
+::-webkit-scrollbar-track {
+  @apply bg-muted/30;
+}
+
+::-webkit-scrollbar-thumb {
+  @apply bg-muted rounded-full hover:bg-muted/80 transition-colors;
+}
+
+/* Glassmorphism Utilities */
+.glass {
+  @apply bg-card/60 backdrop-blur-md border border-white/10 shadow-xl;
+}
+
+.glass-card {
+  @apply bg-card/40 backdrop-blur-md border border-white/5 shadow-lg hover:bg-card/60 hover:border-primary/30 transition-all duration-300;
+}
+
+/* Safe area insets for phones with notches */
+@supports (padding: env(safe-area-inset-bottom)) {
+  .pb-safe {
+    padding-bottom: env(safe-area-inset-bottom);
+  }
+  
+  .pt-safe {
+    padding-top: env(safe-area-inset-top);
+  }
+  
+  .px-safe {
+    padding-left: env(safe-area-inset-left);
+    padding-right: env(safe-area-inset-right);
+  }
+}
+
+/* Mobile touch target sizing */
+@layer utilities {
+  .touch-target {
+    min-width: 44px;
+    min-height: 44px;
+  }
+}
+
+/* Prevent horizontal overflow on mobile */
+html, body {
+  overflow-x: hidden;
+  width: 100%;
+}
+
+/* Smooth scrolling for iOS */
+@supports (-webkit-touch-callout: none) {
+  .scroll-touch {
+    -webkit-overflow-scrolling: touch;
+  }
+}
+
+/* Uppy Dashboard Dark Theme - Cyberpunk Style */
+.uppy-Dashboard-inner {
+  background: hsl(217 33% 17%) !important;
+  border-color: hsl(262 83% 58% / 0.3) !important;
+  font-family: 'Rajdhani', sans-serif !important;
+}
+
+.uppy-Dashboard-AddFiles {
+  background: hsl(222 47% 11%) !important;
+  border-color: hsl(262 83% 58% / 0.4) !important;
+}
+
+.uppy-Dashboard-AddFiles-info {
+  display: flex !important;
+  flex-direction: column !important;
+  align-items: center !important;
+  justify-content: center !important;
+  height: 100% !important;
+  text-align: center !important;
+}
+
+.uppy-Dashboard-AddFiles-info::before {
+  content: '';
+  display: block;
+  width: 64px;
+  height: 64px;
+  margin-bottom: 16px;
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='64' height='64' viewBox='0 0 24 24' fill='none' stroke='%23a855f7' stroke-width='1.5' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='M9 18V5l12-2v13'/%3E%3Ccircle cx='6' cy='18' r='3'/%3E%3Ccircle cx='18' cy='16' r='3'/%3E%3C/svg%3E");
+  background-size: contain;
+  background-repeat: no-repeat;
+  background-position: center;
+  opacity: 0.9;
+}
+
+.uppy-Dashboard-AddFiles-title {
+  color: hsl(142 70% 96%) !important;
+  font-family: 'Orbitron', sans-serif !important;
+  font-size: 1.1rem !important;
+  font-weight: 500 !important;
+  text-align: center !important;
+}
+
+.uppy-Dashboard-browse {
+  color: hsl(280 100% 70%) !important;
+}
+
+.uppy-Dashboard-browse:hover {
+  color: hsl(320 100% 70%) !important;
+}
+
+.uppy-Dashboard-dropFilesHereHint {
+  color: hsl(215 20% 65%) !important;
+  border-color: hsl(262 83% 58% / 0.5) !important;
+  background: hsl(222 47% 11% / 0.8) !important;
+}
+
+.uppy-Dashboard-Item {
+  background: hsl(217 33% 17%) !important;
+  border-color: hsl(215 25% 27%) !important;
+}
+
+.uppy-Dashboard-Item-name {
+  color: hsl(142 70% 96%) !important;
+}
+
+.uppy-Dashboard-Item-statusSize {
+  color: hsl(215 20% 65%) !important;
+}
+
+.uppy-DashboardContent-bar {
+  background: hsl(217 33% 17%) !important;
+  border-color: hsl(215 25% 27%) !important;
+}
+
+.uppy-DashboardContent-title {
+  color: hsl(142 70% 96%) !important;
+}
+
+.uppy-DashboardContent-back {
+  color: hsl(280 100% 70%) !important;
+}
+
+.uppy-StatusBar {
+  background: hsl(217 33% 17%) !important;
+}
+
+.uppy-StatusBar-progress {
+  background: linear-gradient(to right, hsl(280 100% 70%), hsl(320 100% 70%)) !important;
+}
+
+.uppy-StatusBar-content {
+  color: hsl(142 70% 96%) !important;
+}
+
+.uppy-StatusBar-actionBtn--upload {
+  background: linear-gradient(to right, hsl(280 100% 60%), hsl(320 100% 60%)) !important;
+  color: white !important;
+}
