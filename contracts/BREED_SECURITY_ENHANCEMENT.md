@@ -19,9 +19,7 @@ The new breed function validates:
 3. **Expected asset ID validation** for both seed NFTs
 4. **Security property guards** (rekey, close, clawback prevention)
 
-## Transaction Group Structure
-
-The enhanced breed function expects a **3-transaction atomic group**:
+## Transaction Group Structur enhanced breed function expects a **3-transaction atomic group**:
 
 ```
 Transaction 0 (index - 2): Seed 1 NFT Transfer
