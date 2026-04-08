@@ -38,12 +38,24 @@ export async function registerRoutes(
     }
   });
 
+  const syncBalancesSchema = z.object({
+    walletAddress: z.string().length(58),
+    budBalance: z.string().regex(/^\d+$/),
+    terpBalance: z.string().regex(/^\d+$/),
+  });
+
   app.post("/api/users/sync-balances", async (req, res) => {
     try {
-      const { walletAddress, budBalance, terpBalance } = req.body;
+      const { walletAddress, budBalance, terpBalance } = syncBalancesSchema.parse(req.body);
       const user = await storage.updateUserBalances(walletAddress, budBalance, terpBalance);
       res.json(user);
     } catch (err) {
+      if (err instanceof z.ZodError) {
+        return res.status(400).json({
+          message: err.errors[0].message,
+          field: err.errors[0].path.join('.'),
+        });
+      }
       res.status(500).json({ message: "Failed to sync balances" });
     }
   });

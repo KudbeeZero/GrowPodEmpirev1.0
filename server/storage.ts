@@ -224,7 +224,7 @@ export class DatabaseStorage implements IStorage {
   }
 
   async getSeedById(id: number): Promise<SeedBankItem | undefined> {
-    const [seed] = await db.select().from(seedBank).where(eq(seedBank.id, id));
+    const [seed] = await db.select().from(seedBank).where(and(eq(seedBank.id, id), eq(seedBank.isActive, true)));
     return seed;
   }
 
