@@ -381,22 +381,24 @@ function SeedDetailModal({
   );
 }
 
-function InventoryCard({ 
-  userSeed 
-}: { 
+function InventoryCard({
+  userSeed,
+  onPlant,
+}: {
   userSeed: UserSeed & { seed: SeedBankItem };
+  onPlant: () => void;
 }) {
   const seed = userSeed.seed;
   const rarity = RARITY_CONFIG[seed.rarity as keyof typeof RARITY_CONFIG] || RARITY_CONFIG.common;
 
   return (
     <div className="group">
-      <Card 
+      <Card
         className="relative overflow-hidden border transition-all"
         style={{ borderColor: `${seed.glowColor || "#a855f7"}40` }}
       >
         <CardContent className="p-4 flex items-center gap-4">
-          <div 
+          <div
             className="w-14 h-14 rounded-full flex items-center justify-center shrink-0"
             style={{ backgroundColor: `${seed.glowColor || "#a855f7"}20` }}
           >
@@ -406,10 +408,10 @@ function InventoryCard({
               <Leaf className="h-6 w-6" style={{ color: seed.glowColor || "#a855f7" }} />
             )}
           </div>
-          
+
           <div className="flex-1 min-w-0">
             <div className="flex items-center gap-2 mb-1">
-              <h4 
+              <h4
                 className="font-display font-bold truncate"
                 style={{ color: seed.glowColor || "#a855f7" }}
               >
@@ -424,12 +426,14 @@ function InventoryCard({
             </p>
           </div>
 
-          <Button 
-            size="sm" 
+          <Button
+            size="sm"
             variant="outline"
             style={{ borderColor: seed.glowColor || "#a855f7" }}
+            onClick={onPlant}
             data-testid={`button-plant-seed-${seed.id}`}
           >
+            <Leaf className="h-3 w-3 mr-1" />
             Plant
           </Button>
         </CardContent>
@@ -443,7 +447,7 @@ export default function SeedBank() {
   const { account: address } = useAlgorand();
   const [selectedSeed, setSelectedSeed] = useState<SeedBankItem | null>(null);
   const [purchasingSeedId, setPurchasingSeedId] = useState<number | null>(null);
-  const [location] = useLocation();
+  const [location, setLocation] = useLocation();
   const defaultTab = useMemo(() => {
     return location === "/inventory" ? "inventory" : "shop";
   }, [location]);
@@ -577,7 +581,17 @@ export default function SeedBank() {
           ) : (
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
               {userSeeds.map((userSeed) => (
-                <InventoryCard key={userSeed.id} userSeed={userSeed} />
+                <InventoryCard
+                  key={userSeed.id}
+                  userSeed={userSeed}
+                  onPlant={() => {
+                    toast({
+                      title: "Heading to Dashboard",
+                      description: `Select an empty pod slot to plant ${userSeed.seed.name}.`,
+                    });
+                    setLocation('/');
+                  }}
+                />
               ))}
             </div>
           )}

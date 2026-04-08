@@ -3,6 +3,7 @@ import algosdk from 'algosdk';
 import { useQuery, useQueryClient } from '@tanstack/react-query';
 import { useAlgorandContext, CONTRACT_CONFIG, algodClient } from '@/context/AlgorandContext';
 import type { UserSeed, SeedBankItem } from '@shared/schema';
+import abi from '../../../contracts/artifacts/GrowPodEmpire.arc4.json';
 
 export { CONTRACT_CONFIG } from '@/context/AlgorandContext';
 
@@ -305,6 +306,12 @@ export function useTransactions() {
   const { account, signTransactions } = useAlgorand();
   const queryClient = useQueryClient();
 
+  // ABI contract instance for method lookup
+  const abiContract = useMemo(() => new algosdk.ABIContract(abi as algosdk.ABIContractParams), []);
+
+  // Dummy signer - signing is handled externally via executeAtc
+  const dummySigner: algosdk.TransactionSigner = useCallback(async () => [], []);
+
   const submitTransaction = async (signedTxns: Uint8Array[]): Promise<string> => {
     const result = await algodClient.sendRawTransaction(signedTxns).do();
     const txId = result.txid;
@@ -325,34 +332,37 @@ export function useTransactions() {
     throw new Error('Failed to get transaction parameters');
   };
 
-  // Simple refresh function - uses current values from closure (non-blocking)
+  // Build ATC group, sign all transactions via wallet, then submit
+  const executeAtc = useCallback(async (atc: algosdk.AtomicTransactionComposer): Promise<string> => {
+    const txnGroup = atc.buildGroup();
+    const unsignedTxns = txnGroup.map((t) => t.txn);
+    const signedTxns = await signTransactions(unsignedTxns);
+    return submitTransaction(signedTxns);
+  }, [signTransactions]);
+
+  // Simple refresh function - invalidates balance and state queries
   const refreshState = () => {
-    // Invalidate all balance and state queries to force refresh
     queryClient.invalidateQueries({ queryKey: ['/api/balances', account] });
     queryClient.invalidateQueries({ queryKey: ['/api/local-state', account] });
-    // Refetch with a slight delay to allow blockchain to update
     setTimeout(() => {
       queryClient.refetchQueries({ queryKey: ['/api/balances', account] });
       queryClient.refetchQueries({ queryKey: ['/api/local-state', account] });
     }, 2000);
   };
 
-  // Helper to encode string to Uint8Array (browser-safe, no Buffer dependency)
-  const encodeArg = (str: string) => new TextEncoder().encode(str);
-
-  // Opt-in to the application
+  // Opt-in to the application (lifecycle transaction - no ABI method selector needed)
   const optInToApp = useCallback(async (): Promise<string | null> => {
     if (!account || !CONTRACT_CONFIG.appId) return null;
-    
+
     try {
       const suggestedParams = await getParamsWithRetry();
-      
+
       const txn = algosdk.makeApplicationOptInTxnFromObject({
         sender: account,
         suggestedParams,
         appIndex: CONTRACT_CONFIG.appId,
       });
-      
+
       const signedTxns = await signTransactions([txn]);
       const txId = await submitTransaction(signedTxns);
       refreshState();
@@ -366,10 +376,10 @@ export function useTransactions() {
   // Opt-in to an ASA (asset)
   const optInToAsset = useCallback(async (assetId: number): Promise<string | null> => {
     if (!account || !assetId) return null;
-    
+
     try {
       const suggestedParams = await getParamsWithRetry();
-      
+
       const txn = algosdk.makeAssetTransferTxnWithSuggestedParamsFromObject({
         sender: account,
         receiver: account,
@@ -377,7 +387,7 @@ export function useTransactions() {
         assetIndex: assetId,
         suggestedParams,
       });
-      
+
       const signedTxns = await signTransactions([txn]);
       const txId = await submitTransaction(signedTxns);
       refreshState();
@@ -388,142 +398,126 @@ export function useTransactions() {
     }
   }, [account, signTransactions]);
 
-  // Mint a new GrowPod - calls "mint_pod" or "mint_pod_2" on the smart contract
+  // Mint a new GrowPod - ABI call to mintPod or mintPod2
   const mintPod = useCallback(async (podId: number = 1): Promise<string | null> => {
-    if (!account) {
-      throw new Error('Please connect your wallet first');
-    }
-    if (!CONTRACT_CONFIG.appId) {
-      throw new Error('Contract not configured. App ID: ' + CONTRACT_CONFIG.appId);
-    }
-    
+    if (!account) throw new Error('Please connect your wallet first');
+    if (!CONTRACT_CONFIG.appId) throw new Error('Contract not configured');
+
     try {
       const suggestedParams = await getParamsWithRetry();
-      
-      // Use different app arg based on pod ID
-      const appArg = podId === 2 ? 'mint_pod_2' : 'mint_pod';
-      
-      const txn = algosdk.makeApplicationNoOpTxnFromObject({
+      const method = abiContract.getMethodByName(podId === 2 ? 'mintPod2' : 'mintPod');
+
+      const atc = new algosdk.AtomicTransactionComposer();
+      atc.addMethodCall({
+        appID: CONTRACT_CONFIG.appId,
+        method,
+        methodArgs: [],
         sender: account,
         suggestedParams,
-        appIndex: CONTRACT_CONFIG.appId,
-        appArgs: [encodeArg(appArg)],
+        signer: dummySigner,
       });
-      
-      const signedTxns = await signTransactions([txn]);
-      const txId = await submitTransaction(signedTxns);
+
+      const txId = await executeAtc(atc);
       refreshState();
       return txId;
     } catch (error) {
       console.error('Mint pod failed:', error);
       throw error;
     }
-  }, [account, signTransactions]);
+  }, [account, abiContract, dummySigner, executeAtc]);
 
-  // Water a plant - calls "water" on the smart contract
-  // Optional cooldownSeconds parameter (default: 600s / 10 minutes for TestNet)
-  const waterPlant = useCallback(async (podId: number = 1, cooldownSeconds?: number): Promise<string | null> => {
+  // Water a plant - ABI call to water(cooldownSeconds) or water2(cooldownSeconds)
+  const waterPlant = useCallback(async (podId: number = 1, cooldownSeconds: number = WATER_COOLDOWN): Promise<string | null> => {
     if (!account || !CONTRACT_CONFIG.appId) return null;
-    
+
     try {
       const suggestedParams = await getParamsWithRetry();
-      
-      // Use different app arg based on pod ID
-      const appArg = podId === 2 ? 'water_2' : 'water';
-      
-      // Build app args array - include cooldown if provided
-      const appArgs: Uint8Array[] = [encodeArg(appArg)];
-      if (cooldownSeconds !== undefined) {
-        // Encode cooldown as 8-byte big-endian uint64
-        const cooldownBytes = new Uint8Array(8);
-        const view = new DataView(cooldownBytes.buffer);
-        view.setBigUint64(0, BigInt(cooldownSeconds), false); // false = big-endian
-        appArgs.push(cooldownBytes);
-      }
-      
-      const txn = algosdk.makeApplicationNoOpTxnFromObject({
+      const method = abiContract.getMethodByName(podId === 2 ? 'water2' : 'water');
+
+      const atc = new algosdk.AtomicTransactionComposer();
+      atc.addMethodCall({
+        appID: CONTRACT_CONFIG.appId,
+        method,
+        methodArgs: [cooldownSeconds], // uint64 cooldown in seconds
         sender: account,
         suggestedParams,
-        appIndex: CONTRACT_CONFIG.appId,
-        appArgs,
+        signer: dummySigner,
       });
-      
-      const signedTxns = await signTransactions([txn]);
-      const txId = await submitTransaction(signedTxns);
+
+      const txId = await executeAtc(atc);
       refreshState();
       return txId;
     } catch (error) {
       console.error('Water plant failed:', error);
       throw error;
     }
-  }, [account, signTransactions]);
+  }, [account, abiContract, dummySigner, executeAtc]);
 
-  // Add nutrients to a plant - calls "nutrients" on the smart contract (6h cooldown)
+  // Add nutrients - ABI call to nutrients() or nutrients2()
   const addNutrients = useCallback(async (podId: number = 1): Promise<string | null> => {
     if (!account || !CONTRACT_CONFIG.appId) return null;
-    
+
     try {
       const suggestedParams = await getParamsWithRetry();
-      
-      // Use different app arg based on pod ID
-      const appArg = podId === 2 ? 'nutrients_2' : 'nutrients';
-      
-      const txn = algosdk.makeApplicationNoOpTxnFromObject({
+      const method = abiContract.getMethodByName(podId === 2 ? 'nutrients2' : 'nutrients');
+
+      const atc = new algosdk.AtomicTransactionComposer();
+      atc.addMethodCall({
+        appID: CONTRACT_CONFIG.appId,
+        method,
+        methodArgs: [],
         sender: account,
         suggestedParams,
-        appIndex: CONTRACT_CONFIG.appId,
-        appArgs: [encodeArg(appArg)],
+        signer: dummySigner,
       });
-      
-      const signedTxns = await signTransactions([txn]);
-      const txId = await submitTransaction(signedTxns);
+
+      const txId = await executeAtc(atc);
       refreshState();
       return txId;
     } catch (error) {
       console.error('Add nutrients failed:', error);
       throw error;
     }
-  }, [account, signTransactions]);
+  }, [account, abiContract, dummySigner, executeAtc]);
 
-  // Harvest a plant - calls "harvest" or "harvest_2" on the smart contract
+  // Harvest a plant - ABI call to harvest() or harvest2()
+  // Contract mints $BUD to user, so budAsset must be in foreignAssets
   const harvestPlant = useCallback(async (podId: number = 1): Promise<string | null> => {
-    if (!account || !CONTRACT_CONFIG.appId) return null;
-    
+    if (!account || !CONTRACT_CONFIG.appId || !CONTRACT_CONFIG.budAssetId) return null;
+
     try {
       const suggestedParams = await getParamsWithRetry();
-      
-      // Use different app arg based on pod ID
-      const appArg = podId === 2 ? 'harvest_2' : 'harvest';
-      
-      const txn = algosdk.makeApplicationNoOpTxnFromObject({
+      const method = abiContract.getMethodByName(podId === 2 ? 'harvest2' : 'harvest');
+
+      const atc = new algosdk.AtomicTransactionComposer();
+      atc.addMethodCall({
+        appID: CONTRACT_CONFIG.appId,
+        method,
+        methodArgs: [],
         sender: account,
         suggestedParams,
-        appIndex: CONTRACT_CONFIG.appId,
-        appArgs: [encodeArg(appArg)],
-        foreignAssets: CONTRACT_CONFIG.budAssetId ? [CONTRACT_CONFIG.budAssetId] : undefined,
+        signer: dummySigner,
+        foreignAssets: [CONTRACT_CONFIG.budAssetId],
       });
-      
-      const signedTxns = await signTransactions([txn]);
-      const txId = await submitTransaction(signedTxns);
+
+      const txId = await executeAtc(atc);
       refreshState();
       return txId;
     } catch (error) {
       console.error('Harvest failed:', error);
       throw error;
     }
-  }, [account, signTransactions]);
+  }, [account, abiContract, dummySigner, executeAtc]);
 
-  // Cleanup pod - requires burning 500 $BUD
+  // Cleanup pod - ABI call with preceding 500 $BUD burn as a transaction argument
   const cleanupPod = useCallback(async (podId: number = 1): Promise<string | null> => {
     if (!account || !CONTRACT_CONFIG.appId || !CONTRACT_CONFIG.budAssetId) return null;
 
     try {
       const suggestedParams = await getParamsWithRetry();
+      const method = abiContract.getMethodByName(podId === 2 ? 'cleanup2' : 'cleanup');
 
-      // Use different app arg based on pod ID
-      const appArg = podId === 2 ? 'cleanup_2' : 'cleanup';
-
-      // Transaction 1: Burn 500 $BUD (send to app address)
+      // BUD burn transaction passed as ABI axfer argument (placed before the app call in the group)
       const burnTxn = algosdk.makeAssetTransferTxnWithSuggestedParamsFromObject({
         sender: account,
         receiver: CONTRACT_CONFIG.appAddress,
@@ -532,58 +526,73 @@ export function useTransactions() {
         suggestedParams,
       });
 
-      // Transaction 2: Call cleanup on contract
-      // Note: Contract expects BUD burn at group_index - 1
-      const appTxn = algosdk.makeApplicationNoOpTxnFromObject({
+      const atc = new algosdk.AtomicTransactionComposer();
+      atc.addMethodCall({
+        appID: CONTRACT_CONFIG.appId,
+        method,
+        methodArgs: [{ txn: burnTxn, signer: dummySigner }], // axfer arg precedes this call
         sender: account,
         suggestedParams,
-        appIndex: CONTRACT_CONFIG.appId,
-        appArgs: [encodeArg(appArg)],
+        signer: dummySigner,
+        foreignAssets: [CONTRACT_CONFIG.budAssetId],
       });
 
-      // Group the transactions
-      const txns = [burnTxn, appTxn];
-      algosdk.assignGroupID(txns);
-
-      const signedTxns = await signTransactions(txns);
-      const txId = await submitTransaction(signedTxns);
+      const txId = await executeAtc(atc);
       refreshState();
       return txId;
     } catch (error) {
       console.error('Cleanup failed:', error);
       throw error;
     }
-  }, [account, signTransactions]);
+  }, [account, abiContract, dummySigner, executeAtc]);
 
-  // Breed plants - requires burning 1000 $BUD
-  const breedPlants = useCallback(async (): Promise<string | null> => {
-    if (!account || !CONTRACT_CONFIG.appId || !CONTRACT_CONFIG.budAssetId) return null;
-    
+  // Check and potentially mint $TERP - ABI call to checkTerp() or checkTerp2()
+  // ~12.5% chance of rare terpene reward (5,000-50,000 $TERP)
+  const checkTerp = useCallback(async (podId: number = 1): Promise<string | null> => {
+    if (!account || !CONTRACT_CONFIG.appId || !CONTRACT_CONFIG.terpAssetId) return null;
+
     try {
       const suggestedParams = await getParamsWithRetry();
-      
-      // Transaction 1: Burn 1000 $BUD
+      const method = abiContract.getMethodByName(podId === 2 ? 'checkTerp2' : 'checkTerp');
+
+      const atc = new algosdk.AtomicTransactionComposer();
+      atc.addMethodCall({
+        appID: CONTRACT_CONFIG.appId,
+        method,
+        methodArgs: [],
+        sender: account,
+        suggestedParams,
+        signer: dummySigner,
+        foreignAssets: [CONTRACT_CONFIG.terpAssetId],
+      });
+
+      const txId = await executeAtc(atc);
+      refreshState();
+      return txId;
+    } catch (error) {
+      console.error('Check terp failed:', error);
+      throw error;
+    }
+  }, [account, abiContract, dummySigner, executeAtc]);
+
+  // Breed plants - placeholder BUD burn; full breed requires on-chain seed NFT ASAs
+  // TODO: When seeds are minted as on-chain ASAs, update to pass seed1Txn/seed2Txn as ABI axfer args
+  const breedPlants = useCallback(async (): Promise<string | null> => {
+    if (!account || !CONTRACT_CONFIG.appId || !CONTRACT_CONFIG.budAssetId) return null;
+
+    try {
+      const suggestedParams = await getParamsWithRetry();
+
+      // Burn 1,000 $BUD as breeding fee (sent directly to app address)
       const burnTxn = algosdk.makeAssetTransferTxnWithSuggestedParamsFromObject({
         sender: account,
         receiver: CONTRACT_CONFIG.appAddress,
-        amount: BigInt(1000000000), // 1000 $BUD (6 decimals)
+        amount: BigInt(1000000000), // 1,000 $BUD (6 decimals)
         assetIndex: CONTRACT_CONFIG.budAssetId,
         suggestedParams,
       });
-      
-      // Transaction 2: Call breed on contract
-      const appTxn = algosdk.makeApplicationNoOpTxnFromObject({
-        sender: account,
-        suggestedParams,
-        appIndex: CONTRACT_CONFIG.appId,
-        appArgs: [encodeArg('breed')],
-      });
-      
-      // Group the transactions
-      const txns = [burnTxn, appTxn];
-      algosdk.assignGroupID(txns);
-      
-      const signedTxns = await signTransactions(txns);
+
+      const signedTxns = await signTransactions([burnTxn]);
       const txId = await submitTransaction(signedTxns);
       refreshState();
       return txId;
@@ -596,7 +605,7 @@ export function useTransactions() {
   // Check if user is opted into the app
   const checkAppOptedIn = useCallback(async (): Promise<boolean> => {
     if (!account || !CONTRACT_CONFIG.appId) return false;
-    
+
     try {
       const accountInfo = await algodClient.accountInformation(account).do();
       const appsLocalState = accountInfo.appsLocalState || [];
@@ -609,7 +618,7 @@ export function useTransactions() {
   // Check if user is opted into an asset
   const checkAssetOptedIn = useCallback(async (assetId: number): Promise<boolean> => {
     if (!account || !assetId) return false;
-    
+
     try {
       const accountInfo = await algodClient.accountInformation(account).do();
       const assets = accountInfo.assets || [];
@@ -619,14 +628,15 @@ export function useTransactions() {
     }
   }, [account]);
 
-  // Claim a Slot Token - requires burning 2,500 $BUD and at least 5 total harvests
+  // Claim a Slot Token - ABI call with preceding 2,500 $BUD burn as a transaction argument
   const claimSlotToken = useCallback(async (): Promise<string | null> => {
     if (!account || !CONTRACT_CONFIG.appId || !CONTRACT_CONFIG.budAssetId || !CONTRACT_CONFIG.slotAssetId) return null;
-    
+
     try {
       const suggestedParams = await getParamsWithRetry();
-      
-      // Transaction 1: Burn 2,500 $BUD (send to app address)
+      const method = abiContract.getMethodByName('claimSlotToken');
+
+      // BUD burn as ABI axfer argument
       const burnTxn = algosdk.makeAssetTransferTxnWithSuggestedParamsFromObject({
         sender: account,
         receiver: CONTRACT_CONFIG.appAddress,
@@ -634,67 +644,63 @@ export function useTransactions() {
         assetIndex: CONTRACT_CONFIG.budAssetId,
         suggestedParams,
       });
-      
-      // Transaction 2: Call claim_slot_token on contract
-      const appTxn = algosdk.makeApplicationNoOpTxnFromObject({
+
+      const atc = new algosdk.AtomicTransactionComposer();
+      atc.addMethodCall({
+        appID: CONTRACT_CONFIG.appId,
+        method,
+        methodArgs: [{ txn: burnTxn, signer: dummySigner }], // axfer arg precedes this call
         sender: account,
         suggestedParams,
-        appIndex: CONTRACT_CONFIG.appId,
-        appArgs: [encodeArg('claim_slot_token')],
-        foreignAssets: [CONTRACT_CONFIG.slotAssetId],
+        signer: dummySigner,
+        foreignAssets: [CONTRACT_CONFIG.budAssetId, CONTRACT_CONFIG.slotAssetId],
       });
-      
-      // Group the transactions
-      const txns = [burnTxn, appTxn];
-      algosdk.assignGroupID(txns);
-      
-      const signedTxns = await signTransactions(txns);
-      const txId = await submitTransaction(signedTxns);
+
+      const txId = await executeAtc(atc);
       refreshState();
       return txId;
     } catch (error) {
       console.error('Claim slot token failed:', error);
       throw error;
     }
-  }, [account, signTransactions]);
+  }, [account, abiContract, dummySigner, executeAtc]);
 
-  // Unlock a new pod slot - requires burning 1 Slot Token
+  // Unlock a new pod slot - ABI call with preceding 1 Slot Token burn as a transaction argument
   const unlockSlot = useCallback(async (): Promise<string | null> => {
     if (!account || !CONTRACT_CONFIG.appId || !CONTRACT_CONFIG.slotAssetId) return null;
-    
+
     try {
       const suggestedParams = await getParamsWithRetry();
-      
-      // Transaction 1: Burn 1 Slot Token (send to app address)
-      const burnTxn = algosdk.makeAssetTransferTxnWithSuggestedParamsFromObject({
+      const method = abiContract.getMethodByName('unlockSlot');
+
+      // Slot token burn as ABI axfer argument
+      const slotBurnTxn = algosdk.makeAssetTransferTxnWithSuggestedParamsFromObject({
         sender: account,
         receiver: CONTRACT_CONFIG.appAddress,
         amount: BigInt(1), // 1 Slot Token (0 decimals)
         assetIndex: CONTRACT_CONFIG.slotAssetId,
         suggestedParams,
       });
-      
-      // Transaction 2: Call unlock_slot on contract
-      const appTxn = algosdk.makeApplicationNoOpTxnFromObject({
+
+      const atc = new algosdk.AtomicTransactionComposer();
+      atc.addMethodCall({
+        appID: CONTRACT_CONFIG.appId,
+        method,
+        methodArgs: [{ txn: slotBurnTxn, signer: dummySigner }], // axfer arg precedes this call
         sender: account,
         suggestedParams,
-        appIndex: CONTRACT_CONFIG.appId,
-        appArgs: [encodeArg('unlock_slot')],
+        signer: dummySigner,
+        foreignAssets: [CONTRACT_CONFIG.slotAssetId],
       });
-      
-      // Group the transactions
-      const txns = [burnTxn, appTxn];
-      algosdk.assignGroupID(txns);
-      
-      const signedTxns = await signTransactions(txns);
-      const txId = await submitTransaction(signedTxns);
+
+      const txId = await executeAtc(atc);
       refreshState();
       return txId;
     } catch (error) {
       console.error('Unlock slot failed:', error);
       throw error;
     }
-  }, [account, signTransactions]);
+  }, [account, abiContract, dummySigner, executeAtc]);
 
   return {
     optInToApp,
@@ -704,6 +710,7 @@ export function useTransactions() {
     addNutrients,
     harvestPlant,
     cleanupPod,
+    checkTerp,
     breedPlants,
     checkAppOptedIn,
     checkAssetOptedIn,
