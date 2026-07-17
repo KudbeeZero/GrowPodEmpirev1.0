@@ -17,10 +17,13 @@ GrowPod Empire — prioritized work list.
 ## Priority 1 — Pending items (from interrupted PR)
 Ordered by user-facing impact. These are the 6 items the agent was mid-flight on.
 
-1. **Multi-wallet support**
-   - Enhance Pera Wallet connection and add Defly (via WalletConnect) + other
-     WalletConnect-compatible wallets.
-   - Files: `client/src/context/AlgorandContext.tsx`, `client/src/hooks/use-algorand.ts`.
+1. **Multi-wallet support** — ✅ Already implemented.
+   - Pera + Defly (WalletConnect) both wired in `AlgorandContext.tsx`,
+     `WalletSelector.tsx` offers both, Navigation shows active wallet.
+   - **Done (2026-07-17)**: added `localStorage` persistence of the
+     last-used wallet type so a fresh reload restores the correct session
+     globally (prefers stored wallet, falls back to the other). Non-breaking.
+     Files: `client/src/context/AlgorandContext.tsx`.
 
 2. **Remove "Fast Mode" button**
    - Clean up homepage by removing the unnecessary water-throttling control while
