@@ -23,6 +23,31 @@ export const CONTRACT_CONFIG = {
 
 export const algodClient = new algosdk.Algodv2(ALGOD_TOKEN, ALGOD_SERVER, '');
 
+// Persist the last-used wallet so a fresh page load can restore the
+// correct session globally instead of always defaulting to Pera.
+const WALLET_STORAGE_KEY = 'growpod_wallet';
+
+function getStoredWalletType(): WalletType {
+  try {
+    const stored = localStorage.getItem(WALLET_STORAGE_KEY);
+    return stored === 'pera' || stored === 'defly' ? stored : null;
+  } catch {
+    return null;
+  }
+}
+
+function setStoredWalletType(type: WalletType) {
+  try {
+    if (type) {
+      localStorage.setItem(WALLET_STORAGE_KEY, type);
+    } else {
+      localStorage.removeItem(WALLET_STORAGE_KEY);
+    }
+  } catch {
+    // ignore storage failures (private mode, etc.)
+  }
+}
+
 // Lazy-initialize wallet connectors to avoid module-level failures
 // if polyfills (Buffer, global, process) haven't loaded yet
 let _peraWallet: PeraWalletConnect | null = null;
@@ -87,34 +112,34 @@ export function AlgorandProvider({ children }: { children: ReactNode }) {
     let cancelled = false;
 
     const reconnect = async () => {
-      // Try Pera first
-      try {
-        const peraAccounts = await getPeraWallet().reconnectSession();
-        if (!cancelled && peraAccounts.length) {
-          const address = peraAccounts[0];
-          setAccount(address);
-          setIsConnected(true);
-          setWalletType('pera');
-          await syncWithBackend(address);
-          return; // Pera connected, skip Defly
-        }
-      } catch (err) {
-        console.error('Pera reconnect failed:', err);
-      }
+      const preferred = getStoredWalletType();
+      const first: WalletType = preferred ?? 'pera';
+      const second: WalletType = first === 'pera' ? 'defly' : 'pera';
 
-      // Try Defly if Pera didn't connect
-      try {
-        const deflyAccounts = await getDeflyWallet().reconnectSession();
-        if (!cancelled && deflyAccounts.length) {
-          const address = deflyAccounts[0];
-          setAccount(address);
-          setIsConnected(true);
-          setWalletType('defly');
-          await syncWithBackend(address);
+      const tryReconnect = async (type: WalletType): Promise<boolean> => {
+        if (!type) return false;
+        try {
+          const accounts = type === 'pera'
+            ? await getPeraWallet().reconnectSession()
+            : await getDeflyWallet().reconnectSession();
+          if (!cancelled && accounts.length) {
+            const address = accounts[0];
+            setAccount(address);
+            setIsConnected(true);
+            setWalletType(type);
+            setStoredWalletType(type);
+            await syncWithBackend(address);
+            return true;
+          }
+        } catch (err) {
+          console.error(`${type} reconnect failed:`, err);
         }
-      } catch (err) {
-        console.error('Defly reconnect failed:', err);
-      }
+        return false;
+      };
+
+      // Prefer the last-used wallet, then fall back to the other
+      if (await tryReconnect(first)) return;
+      await tryReconnect(second);
     };
 
     reconnect();
@@ -164,6 +189,7 @@ export function AlgorandProvider({ children }: { children: ReactNode }) {
       setAccount(address);
       setIsConnected(true);
       setWalletType(type);
+      setStoredWalletType(type);
 
       // Sync with backend (non-blocking, don't let failure prevent connection)
       syncWithBackend(address).catch(() => {});
@@ -197,6 +223,7 @@ export function AlgorandProvider({ children }: { children: ReactNode }) {
       setAccount(null);
       setIsConnected(false);
       setWalletType(null);
+      setStoredWalletType(null);
       queryClient.clear();
       toast({ title: "Wallet Disconnected" });
     } catch (error) {

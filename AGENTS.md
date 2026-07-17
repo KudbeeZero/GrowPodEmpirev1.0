@@ -23,18 +23,20 @@ working on GrowPod Empire. Update it as decisions and context change.
 
 ## Known TypeScript Errors (baseline = 14, tolerated by CI)
 CI (`pr-validation.yml`) hard-codes `ALLOWED_ERRORS=14` and only fails if the
-count *increases*. Root cause: seed-object type inference. These are NOT to be
-treated as blocked, but should shrink over time.
+count *increases*. These are NOT to be treated as blocked, but should shrink
+over time.
 
-| # | File | Area |
-|---|------|------|
-| 1-? | `client/src/pages/CombinerLab.tsx` | `userSeed.seed.*` access — `SeedBankItem` relation not inferred |
-| 1-? | `client/src/pages/Dashboard.tsx` | `(UserSeed & { seed: SeedBankItem })` typing in state/query/handlers |
-| 1-? | `client/src/pages/SeedVault.tsx` | `userSeed.seed.rarity` / `.name` access type inference |
+> Verified 2026-07-17 after `npm install`: `tsc` reported **5** errors, all in
+> `client/src/hooks/use-algorand.ts` (`foreignAssets` should be
+> `appForeignAssets` on `addMethodCall`). Zero errors in WalletContext/pages.
+> Down from the historical 14 — keep count from increasing.
 
-> Exact per-file counts were not reproducible in this session (`tsc` not
-> installed in the sandbox). Re-run `npm run check` after `npm install` to get
-> precise line numbers and update this table. Total confirmed baseline: 14.
+| File | Area | Count |
+|------|------|-------|
+| `client/src/hooks/use-algorand.ts` | `foreignAssets` vs `appForeignAssets` in `addMethodCall` (harvest/cleanup/checkTerp/claimSlot/unlockSlot) | 5 |
+| `client/src/pages/CombinerLab.tsx` | `userSeed.seed.*` access — `SeedBankItem` relation not inferred | (historical) |
+| `client/src/pages/Dashboard.tsx` | `(UserSeed & { seed: SeedBankItem })` typing in state/query/handlers | (historical) |
+| `client/src/pages/SeedVault.tsx` | `userSeed.seed.rarity` / `.name` access type inference | (historical) |
 
 ## Decisions & Context
 - `main` is the single source of truth; all AI work merges back via reviewed PR.
